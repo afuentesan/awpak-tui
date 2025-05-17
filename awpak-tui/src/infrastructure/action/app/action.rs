@@ -1,0 +1,33 @@
+
+pub enum Action
+{
+    Enter,
+    AltEnter,
+    Down,
+    Up,
+    AltUp,
+    Left,
+    AltLeft,
+    Right,
+    AltRight,
+    Tab,
+    AltTab,
+    AltX,
+    AltI,
+    AltA,
+    AltNumber( usize ),
+    Backspace,
+    Char( char ),
+    Esc,
+    CtrlC,
+    CtrlV,
+    CtrlX,
+    CtrlD,
+    CtrlS,
+    ShiftDown,
+    ShiftUp,
+    AppendTextToContent( String ),
+    EndChatResponse,
+    Render,
+    Exit
+}
