@@ -1,7 +1,7 @@
 use async_recursion::async_recursion;
 use serde_json::Value;
 
-use crate::{application::{node::{node::send_prompt_to_node_client, node_client::node_existing_client}, repeat::{repeat::send_prompt_to_repeat_client, repeat_client::repeat_existing_client}}, domain::{chain::{chain_client::{ChainClient, ChainClientItem, ChainClientProvider}, chain_functions::{input_item_chain_client, merge_output_item_chain_client, merge_output_item_chain_repeat_client}}, chat::chat::ChatChannel, data::data_utils::merge_values, error::Error, node::node_client::NodeClient, repeat::repeat_client::RepeatClient}};
+use crate::{application::{node::{node::send_prompt_to_node_client, node_client::node_existing_client}, repeat::{repeat::send_prompt_to_repeat_client, repeat_client::repeat_existing_client}}, domain::{chain::{chain_client::{ChainClient, ChainClientItem, ChainClientProvider}, chain_functions::{input_item_chain_client, merge_output_item_chain_client, merge_output_item_chain_repeat_client}}, chat::chat::ChatChannel, data::data_utils::merge_values, error::Error, node::{node_client::NodeClient, node_functions::trace_node_prompt}, repeat::repeat_client::RepeatClient}};
 
 use super::chain_client::chain_existing_client;
 
@@ -75,20 +75,18 @@ where T: ChatChannel + Send + Sync
         }
     };
 
-    // let context = merge_output_item_chain_client( &item, context, &output_str, output_context )?;
-
     Ok( ( output_str, context ) )
 }
 
 async fn send_prompt_to_node_chain_client<T>(
-    // client_id : &str,
-    // item_id : &str,
     node : NodeClient,
     prompt : String,
     chat_channel : T
 ) -> Result<( String, Value ), Error>
 where T: ChatChannel + Send + Sync
 {
+    trace_node_prompt( &node.output, format!( "\n\nGenerated prompt:\n{}", &prompt ).as_str(), &chat_channel );
+
     let output_str = send_prompt_to_node_client( node, prompt.as_str(), chat_channel ).await?;
 
     Ok( ( output_str, Value::Null ) )

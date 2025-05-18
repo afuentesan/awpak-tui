@@ -1,7 +1,7 @@
 use async_recursion::async_recursion;
 use serde_json::Value;
 
-use crate::{application::{chain::{chain::send_prompt_to_chain_client, chain_client::chain_existing_client}, node::{node::send_prompt_to_node_client, node_client::node_existing_client}}, domain::{chat::chat::ChatChannel, data::data_utils::merge_values, error::Error, repeat::{repeat_client::{RepeatClient, RepeatClientProvider}, repeat_functions::input_for_repeat}}};
+use crate::{application::{chain::{chain::send_prompt_to_chain_client, chain_client::chain_existing_client}, node::{node::send_prompt_to_node_client, node_client::node_existing_client}}, domain::{chat::chat::ChatChannel, data::data_utils::merge_values, error::Error, node::node_functions::trace_node_prompt, repeat::{repeat_client::{RepeatClient, RepeatClientProvider}, repeat_functions::input_for_repeat}}};
 
 use super::repeat_client::repeat_existing_client;
 
@@ -50,6 +50,8 @@ async fn send_prompt_to_repeat_node<T>(
 where T: ChatChannel + Send + Sync
 {
     let client = node_existing_client( client_id )?;
+
+    trace_node_prompt( &client.output, format!( "\n\nGenerated prompt:\n{}", &prompt ).as_str(), &chat_channel );
 
     let output_str = send_prompt_to_node_client( client, prompt, chat_channel ).await?;
 

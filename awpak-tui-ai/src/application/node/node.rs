@@ -11,7 +11,7 @@ pub async fn send_prompt_to_node_client<T>(
     prompt : &str,
     chat_channel : T
 ) -> Result<String, Error>
-where T: ChatChannel
+where T: ChatChannel + Send + Sync
 {
     match &client.provider
     {
@@ -30,7 +30,7 @@ where T: ChatChannel
     }
 }
 
-async fn send_prompt<T: StreamingCompletionModel, U: ChatChannel>(
+async fn send_prompt<T: StreamingCompletionModel, U: ChatChannel + Send + Sync>(
     client : NodeClient,
     prompt : &str,
     agent : Arc<Agent<T>>,
@@ -45,3 +45,4 @@ async fn send_prompt<T: StreamingCompletionModel, U: ChatChannel>(
 
     Ok( out )
 }
+

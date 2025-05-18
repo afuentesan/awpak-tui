@@ -10,7 +10,7 @@ use super::node::NodeOutputDestination;
 
 // SEND PROMPT TO NODE
 
-pub async fn send_prompt_to_node<T: StreamingCompletionModel, U: ChatChannel>( 
+pub async fn send_prompt_to_node<T: StreamingCompletionModel, U: ChatChannel + Send + Sync>( 
     prompt : &str,
     mut chat_history : Vec<Message>,
     chat_channel : U,
@@ -70,7 +70,7 @@ impl From<( String, String, Vec<Message> )> for StreamResponse
     }
 }
 
-async fn stream_response<M: StreamingCompletionModel, U: ChatChannel>(
+async fn stream_response<M: StreamingCompletionModel, U: ChatChannel + Send + Sync>(
     agent: &Agent<M>,
     stream: &mut StreamingResult,
     chat_channel : &U,
@@ -181,7 +181,7 @@ fn user_tool_response( id : String, text : String ) -> Message
     }
 }
 
-fn stream_response_append_text<T: ChatChannel>( 
+fn stream_response_append_text<T: ChatChannel + Send + Sync>( 
     text : String, 
     chat_channel : &T, 
     mut append_to : String,
@@ -190,20 +190,43 @@ fn stream_response_append_text<T: ChatChannel>(
 {
     append_to.push_str( text.as_str() );
 
-    match output_destination
+    trace_node_prompt( output_destination, text.as_str(), chat_channel );
+
+    // match output_destination
+    // {
+    //     NodeOutputDestination::Channel =>
+    //     {
+    //         let _ = chat_channel.send_str( text.as_str() );
+    //     },
+    //     NodeOutputDestination::Log( p ) => 
+    //     {
+    //         let _ = log_to_file( text.as_str(), p );
+    //     },
+    //     NodeOutputDestination::Ignore => {}
+    // };
+
+    append_to
+}
+
+pub fn trace_node_prompt<T>(
+    output : &NodeOutputDestination,
+    prompt : &str,
+    chat_channel : &T
+)
+where T: ChatChannel + Send + Sync
+{
+    match output
     {
         NodeOutputDestination::Channel =>
         {
-            let _ = chat_channel.send_str( text.as_str() );
+            let _ = chat_channel.send_str( prompt );
         },
-        NodeOutputDestination::Log( p ) => 
+        NodeOutputDestination::Log( p ) =>
         {
-            let _ = log_to_file( text.as_str(), p );
+            let _ = log_to_file( prompt, p );
         },
         NodeOutputDestination::Ignore => {}
-    };
-
-    append_to
+    }
 }
 
 async fn stream_chat<T: StreamingCompletionModel>( 

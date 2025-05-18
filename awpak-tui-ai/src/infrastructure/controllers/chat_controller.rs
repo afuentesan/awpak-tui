@@ -104,7 +104,7 @@ where T: ChatChannel + Send + Sync
 }
 
 async fn send_propmt_to_node_chat<T>( chat : Chat, chat_channel : T ) -> Result<(), Error>
-where T: ChatChannel
+where T: ChatChannel + Send + Sync
 {
     let ( chat, agent ) = chat.own_agent();
 
