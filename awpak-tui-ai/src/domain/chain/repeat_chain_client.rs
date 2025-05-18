@@ -1,30 +1,20 @@
-
-// Create RepeatChainClient
-
 use serde_json::Value;
 
-use crate::domain::{error::Error, repeat::{repeat::Repeat, repeat_client::RepeatClient, repeat_functions::create_repeat_client}};
+use crate::domain::error::Error;
 
-use super::chain_client::ChainClientItem;
-
-pub async fn create_repeat_chain_client(
-    repeat : &Repeat
-) -> Result<RepeatClient, Error>
-{
-    let id = uuid::Uuid::new_v4().to_string();
-
-    Ok( create_repeat_client(  id.as_str(), repeat ).await? )
-}
-
-// END Create RepeatChainClient
+use super::{chain_client::ChainClientItem, node_chain_client::input_item_node_chain_client};
 
 // Input RepeatChainClient
 
-pub fn input_item_repeat_chain_client( item : &ChainClientItem, prompt : &str, context : &Value ) -> Result<(String, Value), Error>
+pub fn input_item_repeat_chain_client( 
+    item : &ChainClientItem, 
+    prompt : &str, 
+    context : &Value 
+) -> Result<(String, Value), Error>
 {
-    todo!()
+    let prompt = input_item_node_chain_client( item, prompt, context )?.0;
 
-    // Ok( ( "".to_string(), Value::Null ) )
+    Ok( ( prompt, context.clone() ) )
 }
 
 // END Input RepeatChainClient

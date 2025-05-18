@@ -14,3 +14,10 @@ pub struct Repeat
     pub input : Vec<InputData>
 }
 
+impl Default for Repeat
+{
+    fn default() -> Self 
+    {
+        Self { name : Default::default(), agent : Default::default(), input : Default::default() }
+    }
+}

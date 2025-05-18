@@ -1,6 +1,6 @@
 use serde_json::Value;
 
-use crate::domain::{data::data::{InputData, OutputData}, node::node_client::NodeClient, repeat::repeat_client::RepeatClient};
+use crate::domain::data::data::{InputData, OutputData};
 
 
 #[derive(Clone)]
@@ -24,7 +24,7 @@ pub struct ChainClientItem
 #[derive(Clone)]
 pub enum ChainClientProvider
 {
-    Node( NodeClient ),
-    Chain( ChainClient ),
-    Repeat( RepeatClient )
+    Node( String ),
+    Chain( String ),
+    Repeat( String )
 }

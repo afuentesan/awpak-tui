@@ -6,7 +6,7 @@ use tokio_stream::{Stream, StreamExt as _};
 
 use crate::domain::{chat::chat::ChatChannel, error::Error, util::file_utils::log_to_file};
 
-use super::{node::{Node, NodeOutputDestination, NodeProvider}, node_client::{NodeClient, NodeClientProvider}, ollama_node_client::ollama_node_client, openai_node_client::openai_node_client};
+use super::node::NodeOutputDestination;
 
 // SEND PROMPT TO NODE
 
@@ -243,35 +243,3 @@ fn response_header<U: ChatChannel>(
 
 // END SEND PROMPT TO NODE
 
-// CREATE NODE CLIENT
-
-pub async fn create_node_client( 
-    id : &str, 
-    node : &Node
-) -> Result<NodeClient, Error>
-{
-    Ok(
-        NodeClient 
-        { 
-            id : id.to_string(), 
-            history : vec![], 
-            save_history: node.save_history, 
-            output : node.output.clone(),
-            provider : create_node_client_provider( node ).await?
-        }
-    )
-}
-
-async fn create_node_client_provider( 
-    node : &Node
-) -> Result<NodeClientProvider, Error>
-{
-    match &node.provider
-    {
-        NodeProvider::Ollama( c ) => ollama_node_client( node, c ).await,
-        NodeProvider::OpenAI( c ) => openai_node_client( node,c ).await,
-        NodeProvider::Empty => return Err( Error::AgentErr( "AgentErr: Empty NodeProvider".into() ) )    
-    }
-}
-
-// END CREATE NODE CLIENT

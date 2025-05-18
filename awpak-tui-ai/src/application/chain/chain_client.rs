@@ -1,8 +1,8 @@
 use std::{collections::HashMap, sync::{Arc, Mutex, OnceLock}};
 
-use rig::message::Message;
+use async_recursion::async_recursion;
 
-use crate::domain::{chain::{chain::Chain, chain_client::{ChainClient, ChainClientProvider}, chain_functions::create_chain_client}, error::Error};
+use crate::{application::{node::node_client::node_client, repeat::repeat_client::repeat_client}, domain::{agent::agent::AIAgent, chain::{chain::{Chain, ChainItem}, chain_client::{ChainClient, ChainClientItem, ChainClientProvider}}, error::Error}};
 
 // MANAGE CHAIN CLIENTS
 
@@ -28,7 +28,7 @@ fn chain_clients() -> &'static Arc<Mutex<HashMap<String, ChainClient>>>
     CHAIN_CLIENTS.get_or_init(|| Arc::new( Mutex::new( HashMap::new() ) ) )
 }
 
-fn chain_existing_client( id : &str ) -> Result<ChainClient, Error>
+pub fn chain_existing_client( id : &str ) -> Result<ChainClient, Error>
 {
     match chain_clients().as_ref().lock().unwrap().get( id )
     {
@@ -39,74 +39,89 @@ fn chain_existing_client( id : &str ) -> Result<ChainClient, Error>
 
 // END MANAGE CHAIN CLIENTS
 
-// SAVE NODE_CHAIN HISTORY
+// CREATE CHAIN
 
-pub fn save_node_chain_history(
-    client_id : &str,
-    item_id : &str,
-    node_id : &str,
-    new_history : Vec<Message>
-)
+#[async_recursion]
+async fn create_chain_client( 
+    id : &str, 
+    chain : &Chain
+) -> Result<ChainClient, Error>
 {
-    match chain_existing_client( client_id )
-    {
-        Ok( c ) => save_node_chain_item_history( c, item_id, node_id, new_history ),
-        _ => {}
-    }
+    Ok(
+        ChainClient 
+        { 
+            id : id.to_string(), 
+            items : create_chain_client_items( &chain.items ).await?,
+            initial_context : chain.initial_context.clone()
+        }
+    )
 }
 
-fn save_node_chain_item_history( 
-    client : ChainClient,
-    item_id : &str,
-    node_id : &str,
-    new_history : Vec<Message>
-)
+async fn create_chain_client_items(
+    items : &Vec<ChainItem>
+) -> Result<Vec<ChainClientItem>, Error>
 {
-    match client.items.iter().enumerate()
-    .find( | ( _, c ) | c.id == item_id )
-    .map( | ( i, _ ) | i )
+    let mut ret = vec![];
+
+    for item in items
     {
-        Some( i ) => save_node_chain_idx_history( client, i, node_id, new_history ),
-        None => {}
+        ret.push( create_chain_client_item( item ).await? )
     }
+
+    Ok( ret )
 }
 
-fn save_node_chain_idx_history(
-    client : ChainClient,
-    idx : usize,
-    node_id : &str,
-    new_history : Vec<Message>
-)
+async fn create_chain_client_item(
+    item : &ChainItem
+) -> Result<ChainClientItem, Error>
 {
-    match &client.items[ idx ].provider
-    {
-        ChainClientProvider::Node( n ) if n.id == node_id =>
+    Ok(
+        ChainClientItem
         {
-            save_node_chain_node_history( client, idx, new_history )
+            id : uuid::Uuid::new_v4().to_string(),
+            
+            input : item.input.clone(),
+
+            input_separator : item.input_separator.clone(),
+            
+            output : item.output.clone(),
+
+            provider : create_chain_client_provider( &item.agent ).await?
+        }
+    )
+}
+
+async fn create_chain_client_provider(
+    agent : &AIAgent
+) -> Result<ChainClientProvider, Error>
+{
+    match agent
+    {
+        AIAgent::Node( n ) =>
+        {
+            let id = uuid::Uuid::new_v4().to_string();
+
+            let client = node_client( id.as_str(), n ).await?;
+
+            Ok( ChainClientProvider::Node( client.id ) )
         },
-        _ => {}
+        AIAgent::Chain( c ) => 
+        {
+            let id = uuid::Uuid::new_v4().to_string();
+
+            let client = chain_client( id.as_str(), c ).await?;
+
+            Ok( ChainClientProvider::Chain( client.id ) )
+        },
+        AIAgent::Repeat( r ) => 
+        {
+            let id = uuid::Uuid::new_v4().to_string();
+
+            let client = repeat_client( id.as_str(), r ).await?;
+
+            Ok( ChainClientProvider::Repeat( client.id ) )
+        }
     }
 }
 
-fn save_node_chain_node_history(
-    mut client : ChainClient,
-    idx : usize,
-    new_history : Vec<Message>
-)
-{
-    match &mut client.items[ idx ].provider
-    {
-        ChainClientProvider::Node( n ) =>
-        {
-            if n.save_history
-            {
-                n.history = new_history;
-            }
-        },
-        _ => unreachable!()
-    };
-
-    chain_clients().lock().unwrap().insert( client.id.clone(), client );
-}
-
-// END SAVE NODE_CHAIN HISTORY
+// END CREATE CHAIN

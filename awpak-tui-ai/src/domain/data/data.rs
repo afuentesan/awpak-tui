@@ -17,6 +17,7 @@ pub enum DataMerge
     FromMapToMap { #[serde(default)] parent_key : Option<String>, keys : Vec<String> },
     FromStringToString { #[serde(default)] sep : Option<String> },
     FromStringToMap( String ),
+    FromArrayToMap( String ),
 
     #[default]
     None

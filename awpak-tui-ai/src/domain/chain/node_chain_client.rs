@@ -1,21 +1,8 @@
 use serde_json::Value;
 
-use crate::domain::{data::data_functions::string_from_input_data, error::Error, node::{node::Node, node_client::NodeClient, node_functions::create_node_client}};
+use crate::domain::{data::data_functions::string_from_input_data, error::Error};
 
 use super::chain_client::ChainClientItem;
-
-// Create NodeChainClient
-
-pub async fn create_node_chain_client(
-    node : &Node
-) -> Result<NodeClient, Error>
-{
-    let id = uuid::Uuid::new_v4().to_string();
-
-    Ok( create_node_client( id.as_str(), node ).await? )
-}
-
-// END Create NodeChainClient
 
 // Input NodeChainClient
 

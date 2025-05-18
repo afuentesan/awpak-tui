@@ -2,28 +2,15 @@ use serde_json::Value;
 
 use crate::domain::error::Error;
 
-use super::{chain::Chain, chain_client::{ChainClient, ChainClientItem}, chain_functions::create_chain_client};
-
-// Create ChainChainClient
-
-pub async fn create_chain_chain_client(
-    chain : &Chain
-) -> Result<ChainClient, Error>
-{
-    let id = uuid::Uuid::new_v4().to_string();
-
-    Ok( create_chain_client(  id.as_str(), chain ).await? )
-}
-
-// END Create ChainChainClient
+use super::{chain_client::ChainClientItem, node_chain_client::input_item_node_chain_client};
 
 // Input ChainChainClient
 
 pub fn input_item_chain_chain_client( item : &ChainClientItem, prompt : &str, context : &Value ) -> Result<(String, Value), Error>
 {
-    todo!()
+    let prompt = input_item_node_chain_client( item, prompt, context )?.0;
 
-    // Ok( ( "".to_string(), Value::Null ) )
+    Ok( ( prompt, context.clone() ) )
 }
 
 // END Input ChainChainClient

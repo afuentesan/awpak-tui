@@ -8,4 +8,3 @@ pub mod modal;
 pub mod loading;
 pub mod text_area;
 pub mod list;
-pub mod border;

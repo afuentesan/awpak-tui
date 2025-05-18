@@ -1,6 +1,6 @@
 use serde_json::{Map, Value};
 
-use crate::domain::error::Error;
+use crate::domain::{data::data_utils::value_to_array, error::Error};
 
 use super::{data::{DataMerge, DataSelection, InputData}, data_utils::{add_footer, add_title, array_of_strings_from_map, array_of_strings_from_string, string_from_map, value_to_map, value_to_string}};
 
@@ -127,6 +127,16 @@ pub fn merge_data( data_merge : &DataMerge, from : Value, to : Value ) -> Result
 
             Ok( serde_json::to_value( to ).map_err( | e | Error::DataSelection( e.to_string() ) )? )
         },
+        DataMerge::FromArrayToMap( s ) =>
+        {
+            let mut to = value_to_map( to )?;
+
+            let from = value_to_array( from );
+
+            to.insert( s.to_string(), Value::Array( from ) );
+
+            Ok( serde_json::to_value( to ).map_err( | e | Error::DataSelection( e.to_string() ) )? )
+        }
         DataMerge::None => Ok( to )
     }
 }

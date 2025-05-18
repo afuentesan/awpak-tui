@@ -1,4 +1,4 @@
-use crate::{application::{chain::{chain::send_prompt_to_chain_client, chain_client::chain_client}, node::{node::send_prompt_to_node_client, node_client::{node_client, save_node_history}}}, domain::{agent::agent::AIAgent, chat::chat::{Chat, ChatChannel}, data::data_utils::option_value_to_string, error::Error}};
+use crate::{application::{chain::{chain::send_prompt_to_chain_client, chain_client::chain_client}, node::{node::send_prompt_to_node_client, node_client::node_client}, repeat::{repeat::send_prompt_to_repeat_client, repeat_client::repeat_client}}, domain::{agent::agent::AIAgent, chat::chat::{Chat, ChatChannel}, data::data_utils::option_value_to_string, error::Error}};
 
 
 pub async fn send_propmt_to_chat<T>( chat : Chat, chat_channel : T )
@@ -33,9 +33,9 @@ where T: ChatChannel + Send + Sync
                         {
                             send_prompt_to_chain_chat( chat, chat_channel.clone() ).await
                         },
-                        AIAgent::Repeat( _ ) =>
+                        AIAgent::Repeat { .. } =>
                         {
-                            todo!()
+                            send_prompt_to_repeat_chat( chat, chat_channel.clone() ).await
                         }
                     };
 
@@ -51,6 +51,31 @@ where T: ChatChannel + Send + Sync
             );
         }
     ).join();
+}
+
+async fn send_prompt_to_repeat_chat<T>( chat : Chat, chat_channel : T ) -> Result<(), Error>
+where T: ChatChannel + Send + Sync
+{
+    let ( chat, agent ) = chat.own_agent();
+
+    let ( _, repeat ) = agent.own_repeat();
+
+    let repeat = repeat.ok_or( Error::AgentErr( "AgentErr: Repeat not found in agent".into() ) )?;
+
+    let id = chat.id();
+
+    let prompt = option_value_to_string( chat.request_value() );
+
+    let repeat_client = repeat_client( id, &repeat ).await?;
+
+    let _ = send_prompt_to_repeat_client( 
+        repeat_client, 
+        prompt.as_str(), 
+        serde_json::Value::Null,
+        chat_channel
+    ).await?;
+
+    Ok( () )
 }
 
 async fn send_prompt_to_chain_chat<T>( chat : Chat, chat_channel : T ) -> Result<(), Error>
@@ -93,13 +118,11 @@ where T: ChatChannel
 
     let node_client = node_client( id, &node ).await?;
 
-    let ( _, history ) = send_prompt_to_node_client( 
+    let _ = send_prompt_to_node_client( 
         node_client, 
         prompt.as_str(), 
         chat_channel
     ).await?;
-
-    save_node_history( id )( history );
 
     Ok( () )
 }

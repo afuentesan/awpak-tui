@@ -36,6 +36,18 @@ impl AIAgent
             _ => ( self, None )
         }
     }
+
+    pub fn own_repeat( self ) -> ( Self, Option<Repeat> )
+    {
+        match self
+        {
+            AIAgent::Repeat( r ) =>
+            {
+                ( AIAgent::Repeat( Repeat::default() ), Some( r ) )
+            },
+            _ => ( self, None )
+        }
+    }
 }
 
 impl Default for AIAgent

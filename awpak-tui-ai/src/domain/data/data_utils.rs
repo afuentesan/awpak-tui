@@ -37,6 +37,24 @@ pub fn value_to_map( value : Value ) -> Result<Map<String, Value>, Error>
     }
 }
 
+pub fn value_to_array( value : Value ) -> Vec<Value>
+{
+    match value
+    {
+        Value::Array( v ) => v,
+        Value::Null => vec![],
+        Value::String( s ) =>
+        {
+            match serde_json::from_str::<Vec<Value>>( &s )
+            {
+                Ok( v ) => v,
+                _ => vec![ Value::String( s ) ]
+            }
+        },
+        v => vec![ v ]
+    }
+}
+
 pub fn array_from_string( str : &str ) -> Vec<Value>
 {
     match serde_json::from_str::<Vec<Value>>( str )

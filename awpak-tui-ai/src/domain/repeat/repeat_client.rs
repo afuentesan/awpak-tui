@@ -1,4 +1,4 @@
-use crate::domain::{chain::chain_client::ChainClient, data::data::InputData, node::node_client::NodeClient};
+use crate::domain::data::data::InputData;
 
 
 #[derive(Clone)]
@@ -12,7 +12,7 @@ pub struct RepeatClient
 #[derive(Clone)]
 pub enum RepeatClientProvider
 {
-    Node( NodeClient ),
-    Chain( ChainClient ),
-    Repeat( RepeatClient )
+    Node( String ),
+    Chain( String ),
+    Repeat( String )
 }

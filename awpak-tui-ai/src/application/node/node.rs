@@ -1,14 +1,16 @@
 use std::sync::Arc;
 
-use rig::{agent::Agent, message::Message, streaming::StreamingCompletionModel};
+use rig::{agent::Agent, streaming::StreamingCompletionModel};
 
 use crate::domain::{chat::chat::ChatChannel, error::Error, node::{node_client::{NodeClient, NodeClientProvider}, node_functions::send_prompt_to_node}};
+
+use super::node_client::save_node_history;
 
 pub async fn send_prompt_to_node_client<T>( 
     client : NodeClient, 
     prompt : &str,
     chat_channel : T
-) -> Result<( String, Vec<Message> ), Error>
+) -> Result<String, Error>
 where T: ChatChannel
 {
     match &client.provider
@@ -33,9 +35,13 @@ async fn send_prompt<T: StreamingCompletionModel, U: ChatChannel>(
     prompt : &str,
     agent : Arc<Agent<T>>,
     chat_channel : U
-) -> Result<( String, Vec<Message> ), Error>
+) -> Result<String, Error>
 {
     let chat_history = client.history;
     
-    send_prompt_to_node( prompt, chat_history, chat_channel, agent, &client.output ).await
+    let ( out, history ) = send_prompt_to_node( prompt, chat_history, chat_channel, agent, &client.output ).await?;
+
+    save_node_history( &client.id )( history );
+
+    Ok( out )
 }
