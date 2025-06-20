@@ -1,2 +1,0 @@
-AwpakResult<(collections::hash::map::HashMap<string::String, serde_json::value::Value>, Result<serde_json::value::Value, domain::error::Error>), domain::error::Error>
-AwpakResult<(std::collections::HashMap<std::string::String, serde_json::Value>, Result<serde_json::Value, domain::error::Error>), domain::error::Error>
