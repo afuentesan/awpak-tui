@@ -1,4 +1,4 @@
-use crate::{application::{chain::{chain::send_prompt_to_chain_client, chain_client::chain_client}, node::{node::send_prompt_to_node_client, node_client::node_client}, repeat::{repeat::send_prompt_to_repeat_client, repeat_client::repeat_client}}, domain::{agent::agent::AIAgent, chat::chat::{Chat, ChatChannel}, data::data_utils::option_value_to_string, error::Error}};
+use crate::{application::{chain::{chain::send_prompt_to_chain_client, chain_client::chain_client}, node::{node::send_prompt_to_node_client, node_client::node_client}, repeat::{repeat::send_prompt_to_repeat_client, repeat_client::repeat_client}}, domain::{agent::agent::AIAgent, chat::chat::{Chat, ChatChannel}, command::command_functions::send_prompt_to_command, data::data_utils::option_value_to_string, error::Error}};
 
 
 pub async fn send_propmt_to_chat<T>( chat : Chat, chat_channel : T )
@@ -36,6 +36,10 @@ where T: ChatChannel + Send + Sync
                         AIAgent::Repeat { .. } =>
                         {
                             send_prompt_to_repeat_chat( chat, chat_channel.clone() ).await
+                        },
+                        AIAgent::Command( _ ) =>
+                        {
+                            send_prompt_to_command_chat( chat, chat_channel.clone() ).await
                         }
                     };
 
@@ -51,6 +55,30 @@ where T: ChatChannel + Send + Sync
             );
         }
     ).join();
+}
+
+async fn send_prompt_to_command_chat<T>( chat : Chat, chat_channel : T ) -> Result<(), Error>
+where T: ChatChannel + Send + Sync
+{
+    let ( chat, agent ) = chat.own_agent();
+
+    let ( _, command ) = agent.own_command();
+
+    let command = command.ok_or( Error::AgentErr( "AgentErr: Command not found in agent".into() ) )?;
+
+    let prompt = option_value_to_string( chat.request_value() );
+
+    let _ = send_prompt_to_command( 
+        &prompt, 
+        &command.command,
+        &command.args,
+        &command.output,
+        &command.output_err,
+        &chat_channel
+    )
+    .await?;
+
+    Ok( () )
 }
 
 async fn send_prompt_to_repeat_chat<T>( chat : Chat, chat_channel : T ) -> Result<(), Error>

@@ -1,8 +1,8 @@
 use std::{collections::HashMap, sync::{Arc, Mutex, OnceLock}};
 
-use rig::message::Message;
+use rig::{client::CompletionClient, message::Message};
 
-use crate::domain::{error::Error, mcp::mcp_functions::add_clients_from_servers, node::{node::{Node, NodeProvider}, node_client::{NodeClient, NodeClientProvider}, ollama_node_client::OllamaConfig, openai_node_client::OpenAIConfig}};
+use crate::domain::{error::Error, mcp::mcp_functions::add_clients_from_servers, node::{anthropic_node_client::AnthropicConfig, deepseek_node_client::DeepSeekConfig, gemini_node_client::GeminiConfig, node::{Node, NodeProvider}, node_client::{NodeClient, NodeClientProvider}, ollama_node_client::OllamaConfig, openai_node_client::OpenAIConfig}};
 
 // MANAGE NODE CLIENTS
 
@@ -53,7 +53,10 @@ async fn create_node_client(
             history : vec![], 
             save_history: node.save_history, 
             output : node.output.clone(),
-            provider : create_node_client_provider( node ).await?
+            provider : create_node_client_provider( node ).await?,
+            tools_output : node.tools_output.clone(),
+            millis_between_tool_call : node.millis_between_tool_call.clone(),
+            millis_between_streams : node.millis_between_streams
         }
     )
 }
@@ -66,8 +69,62 @@ async fn create_node_client_provider(
     {
         NodeProvider::Ollama( c ) => ollama_node_client( node, c ).await,
         NodeProvider::OpenAI( c ) => openai_node_client( node,c ).await,
+        NodeProvider::Anthropic( c ) => anthropic_node_client( node, c ).await,
+        NodeProvider::DeepSeek( c ) => deepseek_node_client( node, c ).await,
+        NodeProvider::Gemini( c ) => gemini_node_client( node,c ).await,
         NodeProvider::Empty => return Err( Error::AgentErr( "AgentErr: Empty NodeProvider".into() ) )    
     }
+}
+
+async fn gemini_node_client( 
+    node : &Node,
+    config : &GeminiConfig
+) -> Result<NodeClientProvider, Error>
+{
+    let api_key = std::env::var( &config.api_key ).map_err( | e | Error::AgentErr( e.to_string() ) )?;
+
+    let client = rig::providers::gemini::Client::new( &api_key );
+
+    let agent = client.agent( &config.model );
+
+    let mut agent = add_clients_from_servers( agent, &node.servers ).await?;
+
+    if let Some( p ) = node.system_prompt.as_ref()
+    {
+        agent = agent.preamble( p.as_str() );
+    }
+    
+    let agent = agent.build();
+
+    Ok( NodeClientProvider::Gemini( Arc::new( agent ) ) )
+}
+
+async fn deepseek_node_client( 
+    node : &Node,
+    config : &DeepSeekConfig
+) -> Result<NodeClientProvider, Error>
+{
+    let api_key = std::env::var( &config.api_key ).map_err( | e | Error::AgentErr( e.to_string() ) )?;
+
+    let client = rig::providers::deepseek::Client::new( &api_key );
+
+    let mut agent = client.agent( &config.model );
+
+    if let Some( m ) = config.max_tokens
+    {
+        agent = agent.max_tokens( m );
+    }
+
+    let mut agent = add_clients_from_servers( agent, &node.servers ).await?;
+
+    if let Some( p ) = node.system_prompt.as_ref()
+    {
+        agent = agent.preamble( p.as_str() );
+    }
+    
+    let agent = agent.build();
+
+    Ok( NodeClientProvider::DeepSeek( Arc::new( agent ) ) )
 }
 
 async fn ollama_node_client( 
@@ -110,6 +167,31 @@ async fn openai_node_client(
     let agent = agent.build();
 
     Ok( NodeClientProvider::OpenAI( Arc::new( agent ) ) )
+}
+
+async fn anthropic_node_client( 
+    node : &Node,
+    config : &AnthropicConfig
+) -> Result<NodeClientProvider, Error>
+{
+    let api_key = std::env::var( &config.api_key ).map_err( | e | Error::AgentErr( e.to_string() ) )?;
+
+    let client = rig::providers::anthropic::ClientBuilder::new( &api_key ).build();
+
+    // let client = rig::providers::anthropic::Client::from_env()
+
+    let agent = client.agent( &config.model ).max_tokens( config.max_tokens );
+
+    let mut agent = add_clients_from_servers( agent, &node.servers ).await?;
+
+    if let Some( p ) = node.system_prompt.as_ref()
+    {
+        agent = agent.preamble( p.as_str() );
+    }
+    
+    let agent = agent.build();
+
+    Ok( NodeClientProvider::Anthropic( Arc::new( agent ) ) )
 }
 
 // END CREATE NODE CLIENT

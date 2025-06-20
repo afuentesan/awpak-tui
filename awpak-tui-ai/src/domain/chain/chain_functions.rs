@@ -47,6 +47,7 @@ pub fn merge_output_item_chain_repeat_client(
         | mut a, ( s, _ ) |
         {
             a.push_str( s );
+            a.push_str( "\n" );
 
             a
         }
@@ -66,7 +67,7 @@ pub fn merge_output_item_chain_repeat_client(
 
             Ok( ( output_str, merge_data( d, output_context, context )? ) )
         },
-        OutputData::None => Ok( ( output_str, context ) )
+        OutputData::None => Ok( ( output_str, context ) ) 
     }
 }
 

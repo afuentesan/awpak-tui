@@ -1,4 +1,5 @@
 use serde_json::Value;
+use unicode_segmentation::UnicodeSegmentation;
 use uuid::Uuid;
 
 use crate::domain::agent::agent::AIAgent;
@@ -120,6 +121,29 @@ impl Default for Chat
             request : ChatRequest::Empty, 
             response: Default::default(), 
             agent : AIAgent::default()
+        }
+    }
+}
+
+impl ToString for Chat
+{
+    fn to_string( &self ) -> String
+    {
+        let response = self.response.trim().replacen( "Prompt:", "", 1 ).replace( "\n", " " );
+
+        if response != ""
+        {
+            let len = response.graphemes( true ).count();
+
+            let last = usize::min( len, 100 );
+
+            UnicodeSegmentation::graphemes( response.as_str(), true )
+            .take( last )
+            .collect::<String>()
+        }
+        else
+        {
+            "Empty chat".into()
         }
     }
 }

@@ -8,3 +8,4 @@ pub mod mcp;
 pub mod util;
 pub mod chain;
 pub mod repeat;
+pub mod command;

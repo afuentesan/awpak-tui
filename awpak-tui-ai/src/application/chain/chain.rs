@@ -69,7 +69,7 @@ where T: ChatChannel + Send + Sync
         {
             let r = repeat_existing_client( r )?;
 
-            let arr_results = send_prompt_to_repeat_chain_client(r, input_prompt, input_context, chat_channel ).await?;
+            let arr_results = send_prompt_to_repeat_chain_client(r, input_prompt, input_context, chat_channel.clone() ).await?;
 
             merge_output_item_chain_repeat_client( &item, context, arr_results )?
         }

@@ -120,7 +120,8 @@ async fn create_chain_client_provider(
             let client = repeat_client( id.as_str(), r ).await?;
 
             Ok( ChainClientProvider::Repeat( client.id ) )
-        }
+        },
+        AIAgent::Command( _ ) => todo!()
     }
 }
 

@@ -1,0 +1,116 @@
+{
+    "first" : {
+        "Node" : {
+            "id" : "node_1",
+            "executor" : {
+                "Command" : {
+                    "command" : "echo",
+                    "args" : [ 
+                        {
+                            "Input" : { "required" : true }
+                        }
+                    ],
+                    "output" : [ 
+                        {
+                            "Out" : {}
+                        }
+                    ]
+                }
+            },
+            "output" : {
+                "path" : "num_1"
+            },
+            "destination" : [
+                {
+                    "next" : {
+                        "Node" : "node_sum"
+                    },
+                    "condition" : {
+                        "Regex" : {
+                            "regex" : "^[0-9]+$",
+                            "from" : {
+                                "Context" : {
+                                    "path" : "num_1"
+                                }
+                            }
+                        }
+                    }
+                },
+                {
+                    "next" : {
+                        "ExitErr" : [
+                            {
+                                "from" : {
+                                    "Context" : {
+                                        "path" : "num_1"
+                                    }
+                                }
+                            },
+                            {
+                                "from" : {
+                                    "Static" : " is not a number"
+                                }
+                            }
+                        ]
+                    },
+                    "condition" : "True"
+                }
+            ]
+        }
+    },
+    "nodes" : [
+        {
+            "Node" : {
+                "id" : "node_sum",
+                "executor" : {
+                    "Command" : {
+                        "command" : "expr",
+                        "args" : [ 
+                            {
+                                "Context" : { 
+                                    "path" : "num_1",
+                                    "required" : true 
+                                }
+                            },
+                            {
+                                "Static" : "+"
+                            },
+                            {
+                                "Static" : 3
+                            }
+                        ],
+                        "output" : [ 
+                            {
+                                "Out" : {}
+                            }
+                        ]
+                    }
+                },
+                "output" : {
+                    "path" : "result"
+                },
+                "destination" : [
+                    {
+                        "next" : {
+                            "ExitOk" : [
+                                {
+                                    "from" : {
+                                        "Static" : "Sum result: "
+                                    }
+                                },
+                                {
+                                    "from" : {
+                                        "Context" : {
+                                            "path" : "result"
+                                        }
+                                    }
+                                }
+                            ]
+                        },
+                        "condition" : "True"
+                    }
+                ]
+            }
+        }
+    ]
+}

@@ -18,7 +18,15 @@ fn close_chat( app : App, parent : ContentGenerator ) -> AwpakResult<App>
 {
     let app = app.change_content_generator( parent );
 
-    AwpakResult::new( reload_app_content(app ) )
+    let ( app, chat ) = app.own_chat_content();
+
+    let app = match chat
+    {
+        Some( c ) => app.save_chat( c ),
+        _ => app    
+    };
+
+    AwpakResult::new( reload_app_content( app ) )
 }
 
 pub fn back_from_detail( app : App ) -> AwpakResult<App>

@@ -1,6 +1,6 @@
 use std::sync::mpsc::Sender;
 
-use crate::{application::chat::chat::{append_text_to_content, chat_to_waiting, finalize_chat_response, open_chat, pending_chat}, domain::app::model::app::App, infrastructure::action::{async_action::async_action::AsyncAction, window::window_action::{CursorDirection, WindowAction}}};
+use crate::{application::chat::chat::{append_text_to_content, chat_to_waiting, finalize_chat_response, open_saved_chat, open_new_chat, pending_chat}, domain::app::model::app::App, infrastructure::action::{async_action::async_action::AsyncAction, window::window_action::{CursorDirection, WindowAction}}};
 
 use super::app_utils::app_exec_action;
 
@@ -20,7 +20,12 @@ pub fn app_append_text_to_content( app : App, tx : Sender<WindowAction>, text : 
 
 pub fn app_alt_a( app : App, tx : Sender<WindowAction> ) -> App
 {
-    app_exec_action( app, tx, open_chat )
+    app_exec_action( app, tx, open_new_chat )
+}
+
+pub fn app_alt_s( app : App, tx : Sender<WindowAction> ) -> App
+{
+    app_exec_action( app, tx, open_saved_chat )
 }
 
 pub fn chat_post_processing( app : App, tx : Sender<WindowAction>, chat_sender : Sender<AsyncAction> ) -> App

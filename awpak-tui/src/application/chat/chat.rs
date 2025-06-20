@@ -16,16 +16,72 @@ pub fn confirm_agent_selection( app : App ) -> AwpakResult<App>
     .read()
 }
 
-pub fn open_chat( app : App ) -> AwpakResult<App>
+pub fn confirm_saved_chat_selection( app : App ) -> AwpakResult<App>
+{
+    AwpakResult::new( app )
+    .validate()
+    .zip_result( | a | idx_current_selected_item( a.saved_chats() ).ok_or( Error::Ignore ) )
+    .write()
+    .map(
+        | ( a, i ) |
+        {
+            let i = i.unwrap();
+
+            ( show_saved_chat_idx( a, i ), Ok( i ) )
+        }
+    )
+    .finalize()
+    .unzip( | ( a, _ ) | a )
+    .read()
+}
+
+pub fn open_new_chat( app : App ) -> AwpakResult<App>
+{
+    show_new_chat( app )
+}
+
+pub fn open_saved_chat( app : App ) -> AwpakResult<App>
 {
     match app.content()
     {
-        AppContent::Chat( _ ) => AwpakResult::new_err( app, Error::Ignore ),
-        _ => show_chat( app )
+        AppContent::Chat( _ ) => show_saved_chat( app ),
+        _ => show_saved_or_new_chat( app )
     }
 }
 
-fn show_chat( app : App ) -> AwpakResult<App>
+fn show_saved_or_new_chat( app : App ) -> AwpakResult<App>
+{
+    match show_saved_chat( app ).collect()
+    {
+        ( a, None ) => AwpakResult::new( a ),
+        ( a, _ ) => show_new_chat( a )    
+    }
+}
+
+fn show_saved_chat( app : App ) -> AwpakResult<App>
+{
+    AwpakResult::new( app )
+    .validate()
+    .map_result( | a | bool_err( a.saved_chats().len() == 0, Error::Ignore ) )
+    .write()
+    .map_if(
+        | a | a.saved_chats().len() == 1, 
+        | a |
+        {
+            show_saved_chat_idx( a, 0 )
+        }
+    )
+    .map_if( 
+        | a | a.saved_chats().len() > 1, 
+        | a |
+        {
+            a.change_focus( AppFocus::Confirm( Confirm::ChatSelection ) )
+        }
+    )
+    .read()
+}
+
+fn show_new_chat( app : App ) -> AwpakResult<App>
 {
     AwpakResult::new( app )
     .validate()
@@ -52,6 +108,32 @@ fn show_chat( app : App ) -> AwpakResult<App>
     .read()
 }
 
+fn show_saved_chat_idx( app : App, idx : usize ) -> App
+{
+    AwpakResult::new( app )
+    .validate()
+    .map_result( | a | bool_err( a.saved_chats().len() <= idx, Error::Ignore ) )
+    .write()
+    .map(
+        | a |
+        {
+            let ( a, chat ) = a.own_saved_chat( idx );
+
+            let ( mut a, c ) = a.own_chat_content();
+
+            if let Some( c ) = c
+            {
+                a = a.save_chat( c );
+            }
+
+            a.change_content( AppContent::Chat( chat.unwrap() ) )
+        }
+    )
+    .map( | a | chat_content_generator( a ) )
+    .map( | a | a.change_focus( AppFocus::Search ) )
+    .own()
+}
+
 fn show_chat_agent_selected( app : App ) -> App
 {
     AwpakResult::new( app )
@@ -62,6 +144,13 @@ fn show_chat_agent_selected( app : App ) -> App
         | ( a, i ) |
         {
             let new_chat = Chat::new( Uuid::new_v4().to_string().as_str(), a.ai_agents()[ *i.as_ref().unwrap() ].inner().clone() );
+
+            let ( mut a, c ) = a.own_chat_content();
+
+            if let Some( c ) = c
+            {
+                a = a.save_chat( c );
+            }
 
             ( a.change_content( AppContent::Chat( new_chat ) ), i )
         }
@@ -82,6 +171,7 @@ fn chat_content_generator( app : App ) -> App
     let generator = match generator
     {
         ContentGenerator::Detail( g, _ ) => ContentGenerator::Chat( g, id ),
+        ContentGenerator::Chat( g, _ ) => ContentGenerator::Chat( g, id ),
         _ => ContentGenerator::Chat( Box::new( generator ), id )
     };
 

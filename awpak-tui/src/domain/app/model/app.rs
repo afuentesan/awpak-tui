@@ -25,7 +25,9 @@ pub struct App
 
     field : Option<Field>,
 
-    ai_agents : Vec<SelectableItem<AIAgent>>
+    ai_agents : Vec<SelectableItem<AIAgent>>,
+
+    saved_chats : Vec<SelectableItem<Chat>>
 }
 
 impl App
@@ -53,7 +55,9 @@ impl App
 
             field : None,
 
-            ai_agents : vec![]
+            ai_agents : vec![],
+
+            saved_chats : vec![]
         }
     }
 
@@ -130,6 +134,41 @@ impl App
             AppContent::Detail( d ) => ( app.change_content( AppContent::Detail( d ) ), None ),
             AppContent::Chat( c ) => ( app, Some( c ) )
         }
+    }
+
+    pub fn save_chat( mut self, chat : Chat ) -> Self
+    {
+        self.saved_chats.push( SelectableItem::Idle( chat ) );
+
+        self
+    }
+
+    pub fn saved_chats( &self ) -> &Vec<SelectableItem<Chat>>
+    {
+        &self.saved_chats
+    }
+
+    pub fn own_saved_chats( mut self ) -> ( Self, Vec<SelectableItem<Chat>> )
+    {
+        let saved = std::mem::replace( &mut self.saved_chats, vec![] );
+
+        ( self, saved )
+    }
+
+    pub fn change_saved_chats( mut self, new : Vec<SelectableItem<Chat>> ) -> Self
+    {
+        self.saved_chats = new;
+
+        self
+    }
+
+    pub fn own_saved_chat( mut self, idx : usize ) -> ( Self, Option<Chat> )
+    {
+        if idx >= self.saved_chats.len() { return ( self, None ) }
+
+        let ( _, chat ) = self.saved_chats.remove( idx ).own_inner();
+
+        ( self, Some( chat ) )
     }
 
     pub fn change_content( mut self, new : AppContent ) -> App
@@ -421,7 +460,8 @@ impl AppFocus
 pub enum Confirm
 {
     MovibleAction,
-    AgentSelection
+    AgentSelection,
+    ChatSelection
 }
 
 // pub enum AppResult

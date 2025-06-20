@@ -1,0 +1,41 @@
+{
+    "first" : {
+        "Node" : {
+            "id" : "node_1",
+            "executor" : {
+                "Command" : {
+                    "command" : "echo",
+                    "args" : [ 
+                        {
+                            "Input" : { "required" : true }
+                        }
+                    ],
+                    "output" : [ 
+                        {
+                            "Out" : {}
+                        }
+                    ]
+                }
+            },
+            "output" : {
+                "path" : "output"
+            },
+            "destination" : [
+                {
+                    "next" : {
+                        "ExitOk" : [
+                            {
+                                "from" : {
+                                    "Context" : {
+                                        "path" : "output"
+                                    }
+                                }
+                            }
+                        ]
+                    },
+                    "condition" : "True"
+                }
+            ]
+        }
+    }
+}

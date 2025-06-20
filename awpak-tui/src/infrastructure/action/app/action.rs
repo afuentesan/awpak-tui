@@ -15,6 +15,7 @@ pub enum Action
     AltX,
     AltI,
     AltA,
+    AltS,
     AltNumber( usize ),
     Backspace,
     Char( char ),

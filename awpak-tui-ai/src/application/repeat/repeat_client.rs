@@ -86,7 +86,8 @@ async fn create_repeat_provider(
             let repeat_client = repeat_client( id.as_str(), r ).await?;
 
             Ok( RepeatClientProvider::Repeat( repeat_client.id ) )
-        }
+        },
+        AIAgent::Command( _ ) => todo!()
     }
 }
 

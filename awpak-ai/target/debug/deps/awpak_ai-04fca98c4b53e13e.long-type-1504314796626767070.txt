@@ -1,0 +1,2 @@
+AwpakResult<(HashMap<string::String, Value>, Result<Value, domain::error::Error>), domain::error::Error>
+AwpakResult<(HashMap<std::string::String, Value>, Result<Value, domain::error::Error>), domain::error::Error>

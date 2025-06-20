@@ -7,6 +7,7 @@ pub enum Error
     DataSelection( String ),
     MCPToolErr( String ),
     AgentErr( String ),
+    CommandErr( String ),
     Ignore
 }
 
@@ -17,6 +18,7 @@ fn error_to_string( err : &Error ) -> String
         Error::DataSelection( s ) => format!( "DataSelection: {}", s ),
         Error::MCPToolErr( s ) => format!( "MCPToolErr: {}", s ),
         Error::AgentErr( s ) => format!( "AgentErr: {}", s ),
+        Error::CommandErr( s ) => format!( "CommandErr: {}", s ),
         Error::Ignore => "Ignore".into()
     }
 }

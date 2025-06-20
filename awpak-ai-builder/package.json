@@ -1,0 +1,22 @@
+{
+  "name": "awpak-ai-builder",
+  "type": "module",
+  "version": "0.0.1",
+  "scripts": {
+    "dev": "astro dev",
+    "build": "astro build",
+    "preview": "astro preview",
+    "astro": "astro"
+  },
+  "dependencies": {
+    "@astrojs/svelte": "^7.1.0",
+    "@tailwindcss/vite": "^4.1.10",
+    "astro": "^5.9.4",
+    "flowbite": "^3.1.2",
+    "nanostores": "^1.0.1",
+    "svelte": "^5.34.7",
+    "tailwindcss": "^4.1.10",
+    "typescript": "^5.8.3",
+    "uuid": "^11.1.0"
+  }
+}

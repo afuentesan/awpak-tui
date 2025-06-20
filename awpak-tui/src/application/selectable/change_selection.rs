@@ -1,4 +1,4 @@
-use awpak_tui_ai::domain::agent::agent::AIAgent;
+use awpak_tui_ai::domain::{agent::agent::AIAgent, chat::chat::Chat};
 
 use crate::{application::app::change_focus::{next_focus, previous_focus}, domain::{app::model::app::{App, AppContent, AppFocus, Confirm}, detail::model::detail::{Detail, DetailContent}, error::Error, result::result::AwpakResult, selectable::{functions::change_selectable::{append_or_remove_next_selection, append_or_remove_previous_selection, select_next_or_first_or_none_if_all_hidden, select_previous_or_last_or_none_if_all_hidden}, model::selectable_item::SelectableItem}, table::model::table::Table}};
 
@@ -64,23 +64,63 @@ pub fn select_previous_in_focus( app : App ) -> AwpakResult<App>
 
 fn select_previous_in_confirm( app : App, confirm : Confirm ) -> AwpakResult<App>
 {
-    change_confirm_selection(
-        app,
-        confirm,
-        select_previous_or_last_or_none_if_all_hidden
-    )
+    match confirm
+    {
+        Confirm::AgentSelection => change_confirm_agent_selection(
+            app,
+            confirm,
+            select_previous_or_last_or_none_if_all_hidden
+        ),
+        Confirm::ChatSelection => change_confirm_chat_selection(
+            app, 
+            confirm, 
+            select_previous_or_last_or_none_if_all_hidden
+        ),
+        Confirm::MovibleAction => AwpakResult::new_err( app, Error::Ignore )
+    }
+    
 }
 
 fn select_next_in_confirm( app : App, confirm : Confirm ) -> AwpakResult<App>
 {
-    change_confirm_selection(
-        app,
-        confirm,
-        select_next_or_first_or_none_if_all_hidden
-    )
+    match confirm
+    {
+        Confirm::AgentSelection => change_confirm_agent_selection(
+            app,
+            confirm,
+            select_next_or_first_or_none_if_all_hidden
+        ),
+        Confirm::ChatSelection => change_confirm_chat_selection(
+            app, 
+            confirm, 
+            select_next_or_first_or_none_if_all_hidden
+        ),
+        Confirm::MovibleAction => AwpakResult::new_err( app, Error::Ignore )
+    }
 }
 
-fn change_confirm_selection( 
+fn change_confirm_chat_selection( 
+    app : App,
+    confirm : Confirm,
+    fn_select : impl Fn( Vec<SelectableItem<Chat>> ) -> Vec<SelectableItem<Chat>>
+) -> AwpakResult<App>
+{
+    match confirm
+    {
+        Confirm::MovibleAction => AwpakResult::new_err( app, Error::Ignore ),
+        Confirm::AgentSelection => AwpakResult::new_err( app, Error::Ignore ),
+        Confirm::ChatSelection =>
+        {
+            let ( app, chats ) = app.own_saved_chats();
+
+            let chats = fn_select( chats );
+
+            AwpakResult::new( app.change_saved_chats( chats ) )
+        }
+    }
+}
+
+fn change_confirm_agent_selection( 
     app : App,
     confirm : Confirm,
     fn_select : impl Fn( Vec<SelectableItem<AIAgent>> ) -> Vec<SelectableItem<AIAgent>>
@@ -96,7 +136,8 @@ fn change_confirm_selection(
             let agents = fn_select( agents );
 
             AwpakResult::new( app.change_ai_agents( agents ) )
-        }
+        },
+        Confirm::ChatSelection => AwpakResult::new_err( app, Error::Ignore )
     }
 }
 

@@ -15,7 +15,7 @@ pub fn log_to_file(
         .open( file_path )
         .map_err( | _ | () )?;
 
-    let _ = write!( file, "{}", log );
+    let _ = writeln!( file, "{}", log );
 
     Ok( () )
 }

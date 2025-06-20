@@ -1,6 +1,6 @@
 use std::sync::Arc;
 
-use rig::{agent::Agent, streaming::StreamingCompletionModel};
+use rig::{agent::Agent, completion::CompletionModel};
 
 use crate::domain::{chat::chat::ChatChannel, error::Error, node::{node_client::{NodeClient, NodeClientProvider}, node_functions::send_prompt_to_node}};
 
@@ -26,11 +26,29 @@ where T: ChatChannel + Send + Sync
             let a = a.clone();
 
             send_prompt( client, prompt, a, chat_channel ).await
-        }   
+        },
+        NodeClientProvider::Anthropic( a ) =>
+        {
+            let a = a.clone();
+
+            send_prompt( client, prompt, a, chat_channel ).await
+        },
+        NodeClientProvider::DeepSeek( a ) =>
+        {
+            let a = a.clone();
+
+            send_prompt( client, prompt, a, chat_channel ).await
+        },
+        NodeClientProvider::Gemini( a ) =>
+        {
+            let a = a.clone();
+
+            send_prompt( client, prompt, a, chat_channel ).await
+        }
     }
 }
 
-async fn send_prompt<T: StreamingCompletionModel, U: ChatChannel + Send + Sync>(
+async fn send_prompt<T: CompletionModel, U: ChatChannel + Send + Sync>(
     client : NodeClient,
     prompt : &str,
     agent : Arc<Agent<T>>,
@@ -39,7 +57,16 @@ async fn send_prompt<T: StreamingCompletionModel, U: ChatChannel + Send + Sync>(
 {
     let chat_history = client.history;
     
-    let ( out, history ) = send_prompt_to_node( prompt, chat_history, chat_channel, agent, &client.output ).await?;
+    let ( out, history ) = send_prompt_to_node( 
+        prompt, 
+        chat_history, 
+        chat_channel, 
+        agent, 
+        &client.output, 
+        client.tools_output.as_ref(), 
+        client.millis_between_tool_call,
+        client.millis_between_streams
+    ).await?;
 
     save_node_history( &client.id )( history );
 

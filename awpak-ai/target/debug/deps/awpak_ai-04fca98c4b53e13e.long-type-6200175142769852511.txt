@@ -1,0 +1,1 @@
+Result<_, fn(std::string::String) -> domain::error::Error {domain::error::Error::NodeNotFound}>: StdError

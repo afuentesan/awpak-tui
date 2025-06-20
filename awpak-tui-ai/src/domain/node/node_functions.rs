@@ -1,8 +1,9 @@
-use std::sync::Arc;
+use std::{sync::Arc, time::Duration};
 
-use rig::{agent::Agent, message::{AssistantContent, Message, ToolCall, ToolFunction, ToolResult, ToolResultContent, UserContent}, streaming::{StreamingChat, StreamingChoice, StreamingCompletionModel, StreamingResult}, OneOrMany};
+use rig::{agent::Agent, completion::CompletionModel, message::{AssistantContent, Message, ToolCall, ToolFunction, ToolResult, ToolResultContent, UserContent}, streaming::StreamingChat, OneOrMany};
 use serde_json::Value;
-use tokio_stream::{Stream, StreamExt as _};
+use tokio::time::sleep;
+use tokio_stream::StreamExt as _;
 
 use crate::domain::{chat::chat::ChatChannel, error::Error, util::file_utils::log_to_file};
 
@@ -10,29 +11,48 @@ use super::node::NodeOutputDestination;
 
 // SEND PROMPT TO NODE
 
-pub async fn send_prompt_to_node<T: StreamingCompletionModel, U: ChatChannel + Send + Sync>( 
+pub async fn send_prompt_to_node<T: CompletionModel, U: ChatChannel + Send + Sync>( 
     prompt : &str,
     mut chat_history : Vec<Message>,
     chat_channel : U,
     agent : Arc<Agent<T>>,
-    output_destination : &NodeOutputDestination
+    output_destination : &NodeOutputDestination,
+    tools_output : Option<&NodeOutputDestination>,
+    millis_between_tool_call : Option<u64>,
+    millis_between_streams : Option<u64>
 ) -> Result<( String, Vec<Message> ), Error>
 {
     response_header( &chat_channel, output_destination );
 
     let mut stream = stream_chat( agent.clone(), prompt, chat_history.clone() ).await?;
 
-    let mut response = stream_response( &agent, &mut stream, &chat_channel, output_destination ).await?;
+    let mut response = stream_response( &agent, &mut stream, &chat_channel, output_destination, tools_output, millis_between_tool_call ).await?;
 
     chat_history.push( Message::user( prompt ) );
 
-    while let StreamResponse::ToolCall( _p, mut h ) = response
+    while let StreamResponse::ToolCall( p, mut h ) = response
     {
+        if let Some( od ) = tools_output
+        {
+            trace_node_prompt( 
+                od, 
+                format!( "\n\n{}\n\n", p.as_str() ).as_str(), 
+                &chat_channel 
+            );
+        }
+
+        if let Some( m ) = millis_between_streams
+        {
+            let _ = sleep( Duration::from_millis( m ) ).await;
+        }
+        
         chat_history.append( &mut h );
 
-        let mut stream = stream_chat( agent.clone(), "", chat_history.clone() ).await?;
+        let mut stream = stream_chat( agent.clone(), p.as_str(), chat_history.clone() ).await?;
 
-        response = stream_response( &agent, &mut stream, &chat_channel, output_destination ).await?;
+        response = stream_response( &agent, &mut stream, &chat_channel, output_destination, tools_output, millis_between_tool_call ).await?;
+
+        chat_history.push( Message::user( p ) );
     }
 
     let output = match response
@@ -70,11 +90,13 @@ impl From<( String, String, Vec<Message> )> for StreamResponse
     }
 }
 
-async fn stream_response<M: StreamingCompletionModel, U: ChatChannel + Send + Sync>(
+async fn stream_response<M: CompletionModel, U: ChatChannel + Send + Sync>(
     agent: &Agent<M>,
-    stream: &mut StreamingResult,
+    stream: &mut rig::streaming::StreamingCompletionResponse<<M>::StreamingResponse>,
     chat_channel : &U,
-    output_destination : &NodeOutputDestination
+    output_destination : &NodeOutputDestination,
+    tools_output : Option<&NodeOutputDestination>,
+    millis_between_tool_call : Option<u64>
 ) -> Result<StreamResponse, Error> 
 {
     let mut history : Vec<Message> = vec![];
@@ -89,12 +111,30 @@ async fn stream_response<M: StreamingCompletionModel, U: ChatChannel + Send + Sy
 
         match chunk 
         {
-            Ok( StreamingChoice::Message( text ) ) => 
+            Ok( AssistantContent::Text( text ) ) => 
             {
-                complete_output = stream_response_append_text( text, chat_channel, complete_output, output_destination );
+                complete_output = stream_response_append_text( text.text, chat_channel, complete_output, output_destination );
             },
-            Ok( StreamingChoice::ToolCall( name, id, arguments ) ) =>
+            Ok( AssistantContent::ToolCall( t ) ) =>
             {
+                let id = t.id;
+                let name = t.function.name;
+                let arguments = t.function.arguments;
+
+                if let Some( od ) = tools_output
+                {
+                    trace_node_prompt( 
+                        od, 
+                        format!( "\n\nName: {}\nId: {}\nArguments: {}\n\n", name, id, arguments ).as_str(), 
+                        chat_channel 
+                    );
+                }
+
+                if let Some( m ) = millis_between_tool_call
+                {
+                    let _ = sleep( Duration::from_millis( m ) ).await;
+                }
+
                 ( tool_response, history ) = stream_response_tool_call( 
                     &agent,
                     tool_response,
@@ -119,7 +159,7 @@ async fn stream_response<M: StreamingCompletionModel, U: ChatChannel + Send + Sy
     Ok( StreamResponse::from( ( tool_response, complete_output, history ) ) )
 }
 
-async fn stream_response_tool_call<M: StreamingCompletionModel>(
+async fn stream_response_tool_call<M: CompletionModel>(
     agent: &Agent<M>,
     mut tool_response : String,
     mut history : Vec<Message>,
@@ -134,17 +174,23 @@ async fn stream_response_tool_call<M: StreamingCompletionModel>(
                     .await
                     .map_err( | e | Error::MCPToolErr( e.to_string() ) )?;
 
-    history.push( assistant_message_tool_call( id.clone(), name, arguments ) );
+    history.push( assistant_message_tool_call( id.clone(), name.clone(), arguments ) );
 
     tool_response.push_str( &response );
 
-    history.push( user_tool_response( id, response ) );
+    let _ = log_to_file( &response, "/tmp/response.log" );
+
+    // history.push( user_tool_response( if id.trim() == "" { name } else { id }, response ) );
+
+    history.push( user_tool_response( if id.trim() == "" { name } else { id }, "{}".to_string() ) );
 
     Ok( ( tool_response, history ) )
 }
 
 fn assistant_message_tool_call( id : String, name : String, arguments : Value ) -> Message
 {
+    let _ = log_to_file( format!( "Name: {name}" ).as_str(), "/tmp/response.log" );
+
     Message::Assistant 
     { 
         content : OneOrMany::one(
@@ -192,19 +238,6 @@ fn stream_response_append_text<T: ChatChannel + Send + Sync>(
 
     trace_node_prompt( output_destination, text.as_str(), chat_channel );
 
-    // match output_destination
-    // {
-    //     NodeOutputDestination::Channel =>
-    //     {
-    //         let _ = chat_channel.send_str( text.as_str() );
-    //     },
-    //     NodeOutputDestination::Log( p ) => 
-    //     {
-    //         let _ = log_to_file( text.as_str(), p );
-    //     },
-    //     NodeOutputDestination::Ignore => {}
-    // };
-
     append_to
 }
 
@@ -229,11 +262,12 @@ where T: ChatChannel + Send + Sync
     }
 }
 
-async fn stream_chat<T: StreamingCompletionModel>( 
+async fn stream_chat<T: CompletionModel>( 
     agent : Arc<Agent<T>>,
     prompt : &str, 
     chat_history : Vec<Message> 
-) -> Result<std::pin::Pin<Box<dyn Stream<Item = Result<rig::streaming::StreamingChoice, rig::completion::CompletionError>> + Send + 'static>>, Error>
+) -> Result<rig::streaming::StreamingCompletionResponse<<T>::StreamingResponse>, Error>
+// -> Result<std::pin::Pin<Box<dyn Stream<Item = Result<StreamingCompletionResponse<String>, rig::completion::CompletionError>> + Send + 'static>>, Error>
 {
     agent
     .stream_chat( 
@@ -243,7 +277,7 @@ async fn stream_chat<T: StreamingCompletionModel>(
     .await.map_err( | e | Error::AgentErr( e.to_string() ) )
 }
 
-fn response_header<U: ChatChannel>(
+pub fn response_header<U: ChatChannel>(
     chat_channel : &U,
     output_destination : &NodeOutputDestination
 )

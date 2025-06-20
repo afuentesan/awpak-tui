@@ -1,0 +1,87 @@
+{
+    "input_type" : "Object",
+    "first" : {
+        "Node" : {
+            "id" : "node_sum",
+            "executor" : {
+                "Command" : {
+                    "command" : "expr",
+                    "args" : [ 
+                        {
+                            "ParsedInput" : { 
+                                "path" : "a",
+                                "required" : true 
+                            }
+                        },
+                        {
+                            "Static" : "+"
+                        },
+                        {
+                            "ParsedInput" : { 
+                                "path" : "b",
+                                "required" : true 
+                            }
+                        }
+                    ],
+                    "output" : [ 
+                        {
+                            "Out" : {}
+                        }
+                    ]
+                }
+            },
+            "output" : {
+                "path" : "result"
+            },
+            "destination" : [
+                {
+                    "next" : {
+                        "ExitOk" : [
+                            {
+                                "from" : {
+                                    "Static" : "Sum result: "
+                                }
+                            },
+                            {
+                                "from" : {
+                                    "Context" : {
+                                        "path" : "result"
+                                    }
+                                }
+                            }
+                        ]
+                    },
+                    "condition" : {
+                        "Regex" : {
+                            "regex" : "^[0-9]+$",
+                            "from" : {
+                                "Context" : {
+                                    "path" : "result"
+                                }
+                            }
+                        }
+                    }
+                },
+                {
+                    "next" : {
+                        "ExitErr" : [
+                            {
+                                "from" : {
+                                    "Static" : "Result is not a number: "
+                                }
+                            },
+                            {
+                                "from" : {
+                                    "Context" : {
+                                        "path" : "result"
+                                    }
+                                }
+                            }
+                        ]
+                    },
+                    "condition" : "True"
+                }
+            ]
+        }
+    }
+}

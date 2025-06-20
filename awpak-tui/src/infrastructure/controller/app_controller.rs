@@ -1,6 +1,6 @@
 use std::sync::mpsc::{Receiver, Sender};
 
-use crate::{domain::app::model::app::App, infrastructure::action::{app::{action::Action, app_chat::{app_alt_a, app_append_text_to_content, app_end_chat_response, chat_post_processing}, app_detail::{app_alt_i, app_esc}, app_exec::{app_ctrl_s, app_enter}, app_focus::{app_alt_tab, app_left, app_right, app_tab}, app_movible::{app_ctrl_c, app_ctrl_d, app_ctrl_v, app_ctrl_x}, app_navigation::{app_alt_left, app_alt_right, app_alt_up, app_down, app_shift_down, app_shift_up, app_up}, app_search::{app_alt_x, app_alt_enter, app_backspace, app_char}, app_sort::app_alt_number}, async_action::async_action::AsyncAction, window::window_action::WindowAction}};
+use crate::{domain::app::model::app::App, infrastructure::action::{app::{action::Action, app_chat::{app_alt_a, app_alt_s, app_append_text_to_content, app_end_chat_response, chat_post_processing}, app_detail::{app_alt_i, app_esc}, app_exec::{app_ctrl_s, app_enter}, app_focus::{app_alt_tab, app_left, app_right, app_tab}, app_movible::{app_ctrl_c, app_ctrl_d, app_ctrl_v, app_ctrl_x}, app_navigation::{app_alt_left, app_alt_right, app_alt_up, app_down, app_shift_down, app_shift_up, app_up}, app_search::{app_alt_enter, app_alt_x, app_backspace, app_char}, app_sort::app_alt_number}, async_action::async_action::AsyncAction, window::window_action::WindowAction}};
 
 
 pub fn app_controller( app : App, rx : Receiver<Action>, tx : Sender<WindowAction>, chat_sender : Sender<AsyncAction> )
@@ -52,6 +52,7 @@ fn execute_app_action( action : Action, app : App, tx : Sender<WindowAction> ) -
         Action::AltUp => app_alt_up( app, tx ),
         Action::AltI => app_alt_i( app, tx ),
         Action::AltA => app_alt_a( app, tx ),
+        Action::AltS => app_alt_s( app, tx ),
         Action::AltNumber( n ) => app_alt_number( app, tx, n ),
         Action::Backspace => app_backspace( app, tx ),
         Action::Char( c ) => app_char( app, tx, c ),
