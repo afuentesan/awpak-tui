@@ -1,6 +1,6 @@
 import { atom } from 'nanostores';
 import { Graph } from './model/graph';
-import { Node, type NodeType } from './model/node';
+import { Node, NodeDestination, NodeTypeVariant, type NodeType } from './model/node';
 import type { DataType } from './model/data';
 import { change_node_variant, node_by_id } from './functions/node_functions';
 
@@ -85,6 +85,52 @@ export function change_input_data_type( input_data_type : DataType | undefined )
     new_graph.input_type = input_data_type;
 
     graph.set( new_graph );
+}
+
+export function add_node_destination( id : string )
+{
+    console.log( "Add node destination. ", id );
+
+    let new_graph = Object.assign( {}, graph.get() );
+
+    let node = node_by_id( new_graph, id );
+
+    if( ! node ) { return; }
+
+    if( node._variant == NodeTypeVariant.Node )
+    {
+        if( ! node.destination ) { node.destination = []; }        
+
+        node.destination.push( new NodeDestination() );
+
+        console.log( "Node variant ok: ", node.destination );
+    }
+    else if( node._variant == NodeTypeVariant.GraphNode )
+    {
+        if( ! node.node_destination ) { node.node_destination = []; }        
+
+        node.node_destination.push( new NodeDestination() );
+    }
+    else
+    {
+        return;
+    }
+
+    replace_node_in_graph( new_graph, node );
+
+    graph.set( new_graph );
+}
+
+function replace_node_in_graph( graph : Graph, node : NodeType )
+{
+    if( graph.first?.id == node.id )
+    {
+        graph.first = node;
+    }
+    else if( graph.nodes.get( node.id as string ) )
+    {
+        graph.nodes.set( node.id as string, node );
+    }
 }
 
 

@@ -2,19 +2,26 @@ import type { DataFrom, DataToContext } from "./data";
 
 export type NodeExecutor = NodeExecutorCommand | NodeExecutorGraph | NodeExecutorContextMut;
 
+export enum NodeExecutorVariant
+{
+    Command = "Command",
+    Graph = "Graph",
+    ContextMut = "ContextMut"
+}
+
 export class NodeExecutorCommand
 {
-    _variant = "Command";
+    readonly _variant = NodeExecutorVariant.Command;
 }
 
 export class NodeExecutorGraph
 {
-    _variant = "Graph";
+    readonly _variant = NodeExecutorVariant.Graph;
 }
 
 export class NodeExecutorContextMut
 {
-    _variant = "ContextMut";
+    readonly _variant = NodeExecutorVariant.ContextMut;
 
     from : DataFrom | undefined;
     to : DataToContext | undefined;

@@ -1,19 +1,19 @@
 
 <script lang="ts">
-    import { select_options_from_array } from "../../functions/form_utils";
-    import { node_variants } from "../../functions/node_functions";
-    import type { NodeType } from "../../model/node";
-    import { change_node_id, change_node_type } from "../../store";
+    import { select_options_from_enum } from "../../functions/form_utils";
+    import { NodeTypeVariant, type NodeType } from "../../model/node";
+    import { add_node_destination, change_node_id, change_node_type } from "../../store";
     import DataToContext from "../data/DataToContext.svelte";
-    import DataType from "../data/DataType.svelte";
+    import Button from "../form/Button.svelte";
     import Input from "../form/Input.svelte";
     import Select from "../form/Select.svelte";
+    import NodeDestination from "../node/NodeDestination.svelte";
 
 
     let { node } : { node : NodeType } = $props();
 
-    const node_type_options = select_options_from_array(
-        node_variants(),
+    const node_type_options = select_options_from_enum(
+        NodeTypeVariant,
         node._variant,
         false
     );
@@ -53,7 +53,12 @@
         console.log( "send_change_node_output_merge: ", event?.target?.value );
     }
 
-    let node_output = node._variant == "Node" ? node.output : node.node_output;
+    let node_output = node._variant == NodeTypeVariant.Node ? node.output : node.node_output;
+
+    function send_add_node_destination()
+    {
+        add_node_destination( node.id as string );
+    }
 
 </script>
 
@@ -67,3 +72,18 @@
     change_node_output_type={send_change_node_output_type}
     change_node_output_merge={send_change_node_output_merge}
 />
+
+{#if node._variant == NodeTypeVariant.Node}
+    {#each node.destination as dest, i}
+    <NodeDestination  destination={dest} />
+    {/each}
+{/if}
+
+{#if node._variant == NodeTypeVariant.GraphNode}
+    {#each node.node_destination as dest, i}
+    <NodeDestination  destination={dest} />
+    {/each}
+{/if}
+
+
+<Button text="Add node destination" click={send_add_node_destination} />

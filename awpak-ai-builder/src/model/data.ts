@@ -32,9 +32,19 @@ export class DataToString
 
 export type DataFrom = FromContext | FromParsedInput | FromInput | FromStatic | FromConcat | FromOperation;
 
+export enum DataFromVariant
+{
+    Context = "Context",
+    ParsedInput = "ParsedInput",
+    Static = "Static",
+    Input = "Input",
+    Operation = "Operation",
+    Concat = "Concat"
+}
+
 export class FromContext
 {
-    _variant = "Context";
+    readonly _variant = DataFromVariant.Context;
 
     path : string | undefined;
     required : boolean | undefined;
@@ -42,7 +52,7 @@ export class FromContext
 
 export class FromParsedInput
 {
-    _variant = "ParsedInput";
+    readonly _variant = DataFromVariant.ParsedInput;
 
     path : string | undefined;
     required : boolean | undefined;
@@ -50,44 +60,51 @@ export class FromParsedInput
 
 export class FromStatic
 {
-    _variant = "Static";
+    readonly _variant = DataFromVariant.Static;
 
     value : any
 }
 
 export class FromInput
 {
-    _variant = "Input";
+    readonly _variant = DataFromVariant.Input;
 
     required : boolean | undefined;
 }
 
 export class FromOperation
 {
-    _variant  = "Operation";
+    readonly _variant  = DataFromVariant.Operation;
 
     value : DataOperation | undefined;
 }
 
 export class FromConcat
 {
-    _variant = "Concat";
+    readonly _variant = DataFromVariant.Concat;
 
     value : Array<DataFrom> = [];
 }
 
 export type DataOperation = DataOperationLen | DataOperationSubstract | DataOperationAdd;
 
+export enum DataOperationVariant
+{
+    Len = "Len",
+    Substract = "Substract",
+    Add = "Add"
+}
+
 export class DataOperationLen
 {
-    _variant = "Len";
+    readonly _variant = DataOperationVariant.Len;
 
     value : DataFrom | undefined;
 }
 
 export class DataOperationSubstract
 {
-    _variant = "Substract";
+    readonly _variant = DataOperationVariant.Substract;
 
     num_1 : DataFrom | undefined;
     num_2 : DataFrom | undefined;
@@ -95,7 +112,7 @@ export class DataOperationSubstract
 
 export class DataOperationAdd
 {
-    _variant = "Add";
+    readonly _variant = DataOperationVariant.Add;
 
     num_1 : DataFrom | undefined;
     num_2 : DataFrom | undefined;
