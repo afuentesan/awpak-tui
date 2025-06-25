@@ -1,4 +1,4 @@
-import type { DataFrom } from "./data";
+import { FromContext, type DataFrom } from "./data";
 
 export type DataComparator = DataComparatorEq | 
                              DataComparatorNotEq | 
@@ -31,6 +31,12 @@ export class DataComparatorEq
 
     from_1 : DataFrom | undefined;
     from_2 : DataFrom | undefined;
+
+    constructor()
+    {
+        this.from_1 = new FromContext();
+        this.from_2 = new FromContext();
+    }
 }
 
 export class DataComparatorNotEq
@@ -39,6 +45,12 @@ export class DataComparatorNotEq
 
     from_1 : DataFrom | undefined;
     from_2 : DataFrom | undefined;
+
+    constructor()
+    {
+        this.from_1 = new FromContext();
+        this.from_2 = new FromContext();
+    }
 }
 
 export class DataComparatorGt
@@ -47,6 +59,12 @@ export class DataComparatorGt
 
     from_1 : DataFrom | undefined;
     from_2 : DataFrom | undefined;
+
+    constructor()
+    {
+        this.from_1 = new FromContext();
+        this.from_2 = new FromContext();
+    }
 }
 
 export class DataComparatorLt
@@ -55,6 +73,12 @@ export class DataComparatorLt
 
     from_1 : DataFrom | undefined;
     from_2 : DataFrom | undefined;
+
+    constructor()
+    {
+        this.from_1 = new FromContext();
+        this.from_2 = new FromContext();
+    }
 }
 
 export class DataComparatorRegex
@@ -63,6 +87,12 @@ export class DataComparatorRegex
 
     regex : string | undefined;
     from : DataFrom | undefined;
+
+    constructor()
+    {
+        this.regex = undefined;
+        this.from = new FromContext();
+    }
 }
 
 export class DataComparatorAnd
@@ -71,6 +101,12 @@ export class DataComparatorAnd
 
     comp_1 : DataComparator | undefined;
     comp_2 : DataComparator | undefined;
+
+    constructor()
+    {
+        this.comp_1 = new DataComparatorEq();
+        this.comp_2 = new DataComparatorEq();
+    }
 }
 
 export class DataComparatorOr
@@ -79,6 +115,12 @@ export class DataComparatorOr
 
     comp_1 : DataComparator | undefined;
     comp_2 : DataComparator | undefined;
+
+    constructor()
+    {
+        this.comp_1 = new DataComparatorEq();
+        this.comp_2 = new DataComparatorEq();
+    }
 }
 
 export class DataComparatorNot
@@ -86,6 +128,11 @@ export class DataComparatorNot
     readonly _variant = DataComparatorVariant.Not;
 
     value : DataComparator | undefined;
+
+    constructor()
+    {
+        this.value = new DataComparatorEq();
+    }
 }
 
 export class DataComparatorTrue

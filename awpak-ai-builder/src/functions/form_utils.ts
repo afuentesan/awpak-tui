@@ -44,6 +44,22 @@ export function select_options_from_array(
     return ret;
 }
 
+export function is_type_in_enum(
+    enum_type : any,
+    val : string
+) : boolean
+{
+    return array_from_enum( enum_type ).includes( val )
+}
+
+export function array_from_enum(
+    enum_type : any
+) : Array<string>
+{
+    return Object.keys( enum_type )
+                 .filter( value => typeof value === 'string' ) as string[]
+}
+
 export function select_options_from_enum( 
     enum_type : any, 
     selected_value : any,

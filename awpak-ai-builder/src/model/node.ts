@@ -1,6 +1,6 @@
-import type { DataToContext, DataToString } from "./data";
+import { DataToContext, type DataToString } from "./data";
 import { DataComparatorEq, type DataComparator } from "./data_comparator";
-import type { NodeExecutor } from "./node_executor";
+import { NodeExecutorCommand, type NodeExecutor } from "./node_executor";
 
 export type NodeType = Node | GraphNode;
 
@@ -24,6 +24,8 @@ export class Node
     constructor( id : string )
     {
         this.id = id;
+        this.output = new DataToContext();
+        this.executor = new NodeExecutorCommand();
     }
 }
 
@@ -45,6 +47,7 @@ export class GraphNode
     constructor( id : string )
     {
         this.id = id;
+        this.node_output = new DataToContext();
     }
 }
 

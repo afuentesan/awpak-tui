@@ -1,8 +1,9 @@
 
 <script lang="ts">
-    import { change_input_data_type, change_preserve_context, graph } from "../../store";
+    import { change_input_data_type, change_map_value, change_preserve_context, graph } from "../../store";
     import Checkbox from "../form/Checkbox.svelte";
     import DataType from "../data/DataType.svelte";
+    import TextArea from "../form/TextArea.svelte";
 
     function send_change_preserve_context( event : any )
     {
@@ -18,12 +19,9 @@
         change_input_data_type( event.target.value );
     }
 
-    console.log( "Reload graph config" );
-
 </script>
 
-<form class="space-y-6" action="#">
-    <p>{$graph.input_type}</p>
-    <DataType label="Input data type" value={$graph.input_type} change_value={send_change_input_data_type} />
-    <Checkbox label="Preserve context" value="true" checked={$graph.preserve_context} change_value={send_change_preserve_context} />    
-</form>
+
+<DataType label="Input data type" value={$graph.input_type} change_value={send_change_input_data_type} base_path={undefined} />
+<TextArea label="Initial context" value={JSON.stringify( $graph.context )} change_value={change_map_value} base_path="$.context" />
+<Checkbox label="Preserve context" value="true" checked={$graph.preserve_context} change_value={send_change_preserve_context} base_path={undefined} />

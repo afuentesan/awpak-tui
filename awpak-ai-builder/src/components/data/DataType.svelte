@@ -4,7 +4,7 @@
     import { DataType } from "../../model/data";
     import Select from "../form/Select.svelte";
 
-    let { label, value, change_value } = $props();
+    let { label, value, change_value, base_path } = $props();
 
     let data_type_options = select_options_from_enum(
         DataType,
@@ -13,4 +13,4 @@
     );
 </script>
 
-<Select label={label} options={data_type_options} value={value} change_value={change_value} />
+<Select label={label} options={data_type_options} value={value} change_value={change_value} base_path={base_path} />

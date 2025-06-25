@@ -1,28 +1,32 @@
-import type { DataFrom, DataToContext } from "./data";
+import { Command } from "./command";
+import { DataToContext, type DataFrom } from "./data";
 
-export type NodeExecutor = NodeExecutorCommand | NodeExecutorGraph | NodeExecutorContextMut;
+export type NodeExecutor = NodeExecutorCommand | NodeExecutorContextMut;
 
 export enum NodeExecutorVariant
 {
     Command = "Command",
-    Graph = "Graph",
     ContextMut = "ContextMut"
 }
 
 export class NodeExecutorCommand
 {
     readonly _variant = NodeExecutorVariant.Command;
-}
 
-export class NodeExecutorGraph
-{
-    readonly _variant = NodeExecutorVariant.Graph;
+    value : Command;
+
+    constructor()
+    {
+        this.value = new Command();
+    }
 }
 
 export class NodeExecutorContextMut
 {
     readonly _variant = NodeExecutorVariant.ContextMut;
 
-    from : DataFrom | undefined;
-    to : DataToContext | undefined;
+    value : Array<{
+        from : DataFrom | undefined;
+        to : DataToContext | undefined
+    }> = []
 }

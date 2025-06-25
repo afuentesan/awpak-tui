@@ -8,7 +8,7 @@ export class Graph
 
     first : NodeType | undefined;
 
-    nodes : Map<string, NodeType> = new Map();
+    nodes : Array<NodeType> = [];
 
     input_type : DataType | undefined;
 }

@@ -28,6 +28,11 @@ export class DataToString
     from : DataFrom | undefined;
     prefix : string | undefined;
     suffix : string | undefined;
+
+    constructor()
+    {
+        this.from = new FromContext();
+    }
 }
 
 export type DataFrom = FromContext | FromParsedInput | FromInput | FromStatic | FromConcat | FromOperation;
@@ -77,6 +82,11 @@ export class FromOperation
     readonly _variant  = DataFromVariant.Operation;
 
     value : DataOperation | undefined;
+
+    constructor()
+    {
+        this.value = new DataOperationLen();
+    }
 }
 
 export class FromConcat
@@ -100,6 +110,11 @@ export class DataOperationLen
     readonly _variant = DataOperationVariant.Len;
 
     value : DataFrom | undefined;
+
+    constructor()
+    {
+        this.value = new FromContext();
+    }
 }
 
 export class DataOperationSubstract
@@ -108,6 +123,12 @@ export class DataOperationSubstract
 
     num_1 : DataFrom | undefined;
     num_2 : DataFrom | undefined;
+
+    constructor()
+    {
+        this.num_1 = new FromContext();
+        this.num_2 = new FromContext();
+    }
 }
 
 export class DataOperationAdd
@@ -116,4 +137,10 @@ export class DataOperationAdd
 
     num_1 : DataFrom | undefined;
     num_2 : DataFrom | undefined;
+
+    constructor()
+    {
+        this.num_1 = new FromContext();
+        this.num_2 = new FromContext();
+    }
 }
