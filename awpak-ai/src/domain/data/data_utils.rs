@@ -27,6 +27,8 @@ pub fn value_from_map( path : &str, map : &HashMap<String, Value> ) -> Result<Va
 {
     let expanded_path = expand_path( map, path )?;
 
+    // eprintln!( "Expanded path: {}", expanded_path );
+
     value_from_map_path_expanded( &expanded_path, map )
 }
 

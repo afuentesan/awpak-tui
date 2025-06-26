@@ -102,7 +102,9 @@
                     } 
                 />
             {/each}
-            <Button text="New graph input" click={send_add_graph_input} />
+            <div class="text-center">
+                <Button text="New graph input" click={send_add_graph_input} />
+            </div>
         </Box>
 
         <Box title="Graph output">
@@ -116,9 +118,10 @@
                     } 
                 />
             {/each}
-            <Button text="New graph output" click={send_add_graph_output} />
+            <div class="text-center">
+                <Button text="New graph output" click={send_add_graph_output} />
+            </div>
         </Box>
-
         
     {/if}
 

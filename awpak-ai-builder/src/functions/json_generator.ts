@@ -1,7 +1,9 @@
-import type { DataToContext } from "../model/data";
-import type { DataComparator } from "../model/data_comparator";
+import { CommandOutputVariant, type CommandOutput } from "../model/command";
+import { DataFromVariant, DataOperationVariant, type DataFrom, type DataOperation, type DataToContext, type DataToString } from "../model/data";
+import { DataComparatorVariant, type DataComparator } from "../model/data_comparator";
 import type { Graph } from "../model/graph";
-import { GraphNode, NodeDestination, NodeTypeVariant, type Node, type NodeNext, type NodeType } from "../model/node";
+import { GraphNode, GraphNodeOutputVariant, NodeDestination, NodeNextVariant, NodeTypeVariant, type GraphNodeOutput, type Node, type NodeNext, type NodeType } from "../model/node";
+import { NodeExecutorCommand, NodeExecutorContextMut, NodeExecutorVariant, type NodeExecutor } from "../model/node_executor";
 
 export function generate_json( graph : Graph ) : string
 {
@@ -70,6 +72,7 @@ function json_node_from_node( node : Node ) : any
     let json : any = { 
         "Node" : { 
             id : node.id, 
+            executor : json_executor_from_node_executor( node.executor ),
             output : json_data_to_context( node.output ),
             destination : json_node_destinations( node.destination )
         } 
@@ -78,12 +81,178 @@ function json_node_from_node( node : Node ) : any
     return json;
 }
 
+function json_executor_from_node_executor( executor : NodeExecutor | undefined ) : any
+{
+    if( ! executor ) return undefined;
+
+    if( executor._variant == NodeExecutorVariant.Command )
+    {
+        return json_command( executor );
+    }
+    else if( executor._variant == NodeExecutorVariant.ContextMut )
+    {
+        return json_executor_context_mut( executor );
+    }
+}
+
+function json_command( executor : NodeExecutorCommand ) : any
+{
+    return {
+        "Command" : {
+            command : executor.value.command,
+            args : json_vec_data_from( executor.value.args ),
+            output : json_vec_command_output( executor.value.output )
+        }
+    };
+}
+
+function json_vec_command_output( output : Array<CommandOutput> ) : any
+{
+    return output.map( ( o : CommandOutput ) => json_command_output( o ) )
+}
+
+function json_command_output( output : CommandOutput ) : any
+{
+    let pre_suf = {
+        prefix : output.prefix,
+        suffix : output.suffix
+    };
+
+    if( 
+        output._variant == CommandOutputVariant.Out ||
+        output._variant == CommandOutputVariant.Err ||
+        output._variant == CommandOutputVariant.Success ||
+        output._variant == CommandOutputVariant.Code
+    )
+    {
+        return {
+            [output._variant] : pre_suf
+        }
+    }
+}
+
+function json_executor_context_mut( executor : NodeExecutorContextMut ) : any
+{
+    return {
+        "ContextMut" : json_vec_context_mut( executor.value )
+    };
+}
+
+function json_vec_context_mut( 
+    context_muts : Array<{
+        from : DataFrom | undefined;
+        to : DataToContext | undefined
+    }>
+)
+{
+    return context_muts.map( ( c : {
+        from : DataFrom | undefined;
+        to : DataToContext | undefined
+    } ) => json_context_mut( c ) )
+}
+
+function json_context_mut(
+    context_mut : {
+        from : DataFrom | undefined;
+        to : DataToContext | undefined
+    }
+)
+{
+    return {
+        from : context_mut.from ? json_data_from( context_mut.from ) : undefined,
+        to : json_data_to_context( context_mut.to )
+    }
+}
+
+
+function json_vec_data_from( data_from : Array<DataFrom> ) : any
+{
+    return data_from.map( ( f : DataFrom ) => json_data_from( f ) )
+}
+
+function json_data_from( data_from : DataFrom ) : any
+{
+    if( 
+        data_from._variant == DataFromVariant.Context ||
+        data_from._variant == DataFromVariant.ParsedInput
+    )
+    {
+        return {
+            [data_from._variant] : {
+                path : data_from.path,
+                required : data_from.required
+            }
+        }
+    }
+    else if( data_from._variant == DataFromVariant.Input )
+    {
+        return {
+            [data_from._variant] : {
+                required : data_from.required
+            }
+        }
+    }
+    else if( data_from._variant == DataFromVariant.Static )
+    {
+        return {
+            [data_from._variant] : json_from_any( data_from.value )
+        }
+    }
+    else if( data_from._variant == DataFromVariant.Concat )
+    {
+        return {
+            [data_from._variant] : json_vec_data_from( data_from.value )
+        }
+    }
+    else if( data_from._variant == DataFromVariant.Operation )
+    {
+        return {
+            [data_from._variant] : data_from.value ? json_data_operation( data_from.value ) : undefined
+        }
+    }
+}
+
+function json_from_any( input : any ) : any
+{
+    try
+    {
+        let json = JSON.parse( input );
+
+        return json;
+    }
+    catch( e )
+    {
+        return json_number_or_string( input );
+    }
+}
+
+function json_number_or_string( input : any ) : number | string
+{
+    try
+    {
+        let n = Number( input );
+
+        if( isNaN( n ) )
+        {
+            return input + "";
+        }
+
+        return n;
+    }
+    catch( e )
+    {
+        return input + "";
+    }
+}
+
 function json_node_from_graph_node( node : GraphNode ) : any
 {
     let json : any = { 
         "GraphNode" : {
             id : node.id,
             path : node.path,
+            input : json_vec_data_to_string( node.input ),
+            output : json_vec_graph_node_output( node.output ),
             node_output : json_data_to_context( node.node_output ),
             node_destination : json_node_destinations( node.node_destination )
         } 
@@ -94,7 +263,7 @@ function json_node_from_graph_node( node : GraphNode ) : any
 
 function json_data_to_context( data : DataToContext | undefined ) : any
 {
-    if( ! data ) { return undefined; }
+    if( ! data?.path?.trim() ) { return undefined; }
 
     return {
         path : data.path,
@@ -120,10 +289,126 @@ function json_node_next( node_next : NodeNext | undefined ) : any
 {
     if( ! node_next ) { return undefined; }
 
-
+    if( node_next._variant == NodeNextVariant.Node )
+    {
+        return {
+            "Node" : node_next.value
+        }
+    }
+    else if( node_next._variant == NodeNextVariant.ExitOk || node_next._variant == NodeNextVariant.ExitErr )
+    {
+        return {
+            [node_next._variant] : json_vec_data_to_string( node_next.value )
+        }
+    }
 }
 
 function json_data_comparator( data_comparator : DataComparator | undefined ) : any
 {
     if( ! data_comparator ) { return undefined; }
+
+    if( 
+        data_comparator._variant == DataComparatorVariant.Eq ||
+        data_comparator._variant == DataComparatorVariant.NotEq ||
+        data_comparator._variant == DataComparatorVariant.Gt ||
+        data_comparator._variant == DataComparatorVariant.Lt
+    )
+    {
+        return {
+            [data_comparator._variant] : {
+                from_1 : data_comparator.from_1 ? json_data_from( data_comparator.from_1 ) : undefined,
+                from_2 : data_comparator.from_2 ? json_data_from( data_comparator.from_2 ) : undefined,
+            }
+        }
+    }
+    else if( data_comparator._variant == DataComparatorVariant.Regex )
+    {
+        return {
+            "Regex" : {
+                regex : data_comparator.regex,
+                from : data_comparator.from ? json_data_from( data_comparator.from ) : undefined,
+            }
+        }
+    }
+    else if( 
+        data_comparator._variant == DataComparatorVariant.And ||
+        data_comparator._variant == DataComparatorVariant.Or
+    )
+    {
+        return {
+            [data_comparator._variant] : {
+                comp_1 : data_comparator.comp_1 ? json_data_comparator( data_comparator.comp_1 ) : undefined,
+                comp_2 : data_comparator.comp_2 ? json_data_comparator( data_comparator.comp_2 ) : undefined,
+            }
+        }
+    }
+    else if( data_comparator._variant == DataComparatorVariant.Not )
+    {
+        return {
+            [data_comparator._variant] : data_comparator.value ? json_data_comparator( data_comparator.value ) : undefined
+        }
+    }
+    else if( 
+        data_comparator._variant == DataComparatorVariant.True || 
+        data_comparator._variant == DataComparatorVariant.False
+    )
+    {
+        return data_comparator._variant;
+    }
+}
+
+function json_vec_data_to_string( data : Array<DataToString> ) : any
+{
+    return data.map( ( d : DataToString ) => json_data_to_string( d ) )
+}
+
+function json_data_to_string( data : DataToString ) : any
+{
+    return {
+        from : data.from ? json_data_from( data.from ) : undefined,
+        prefix : data.prefix,
+        suffix : data.suffix
+    }
+}
+
+function json_vec_graph_node_output( output : Array<GraphNodeOutput> ) : any
+{
+    return output.map( ( d : GraphNodeOutput ) => json_graph_node_output( d ) )
+}
+
+function json_graph_node_output( output : GraphNodeOutput ) : any
+{
+    let pre_suf = {
+        prefix : output.prefix,
+        suffix : output.suffix
+    };
+
+    if( output._variant == GraphNodeOutputVariant.Out || output._variant == GraphNodeOutputVariant.Err )
+    {
+        return {
+            [output._variant] : pre_suf
+        }
+    }
+}
+
+function json_data_operation( data : DataOperation ) : any
+{
+    if( data._variant == DataOperationVariant.Len )
+    {
+        return {
+            [data._variant] : data.value ? json_data_from( data.value ) : undefined
+        }
+    }
+    else if(
+        data._variant == DataOperationVariant.Add ||
+        data._variant == DataOperationVariant.Substract
+    )
+    {
+        return {
+            [data._variant] : {
+                num_1 : data.num_1 ? json_data_from( data.num_1 ) : undefined,
+                num_2 : data.num_2 ? json_data_from( data.num_2 ) : undefined
+            }
+        }
+    }
 }

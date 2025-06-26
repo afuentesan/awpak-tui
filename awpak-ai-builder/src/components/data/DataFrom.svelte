@@ -1,8 +1,9 @@
 
 <script lang="ts">
+    import Self from './DataFrom.svelte'
     import { select_options_from_enum } from "../../functions/form_utils";
-    import { DataFromVariant, type DataFrom } from "../../model/data";
-    import { chage_data_from_variant, change_boolean, change_option_string } from "../../store";
+    import { DataFromVariant, FromContext, type DataFrom } from "../../model/data";
+    import { append_to_array, chage_data_from_variant, change_boolean, change_option_string, remove_from_array } from "../../store";
     import Box from "../form/Box.svelte";
     import Button from "../form/Button.svelte";
     import Checkbox from "../form/Checkbox.svelte";
@@ -21,6 +22,15 @@
     let { from, base_path, label, remove_from_loop } : InputProps = $props();
 
     let options_from_variants = select_options_from_enum( DataFromVariant, from._variant, false );
+
+    function send_add_item_concat()
+    {
+        let path = base_path + ".value";
+
+        let new_item_concat = new FromContext();
+
+        append_to_array( path, new_item_concat );
+    }
 </script>
 
 <Box title={"DataFrom "+from._variant+". "+label}>
@@ -43,7 +53,21 @@
     {/if}
 
     {#if from._variant == DataFromVariant.Concat}
-    <p>TODO: Concat</p>
+        <Box title="Concat items">
+            {#each from.value as _, i}
+                <Self
+                    label={"Concat "+from.value[i]._variant + " " + i}
+                    from={from.value[i]}
+                    base_path={base_path+".value["+i+"]"}
+                    remove_from_loop={
+                        () => remove_from_array( base_path+".value", i )
+                    } 
+                />
+            {/each}
+            <div class="text-center">
+                <Button text="New concat item" click={send_add_item_concat} />
+            </div>
+        </Box>
     {/if}
 
     {#if 
