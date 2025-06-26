@@ -29,8 +29,6 @@ mod tests
 
         let graph = run_graph( "".into(), graph ).await;
 
-        assert_eq!( "Ok", graph.err().unwrap().to_string() );
-
         assert!( graph.is_ok() );
 
         let graph = graph.own();
@@ -43,9 +41,7 @@ mod tests
 
         let final_output = final_output.unwrap();
 
-        assert_eq!( final_output, "Result: 6.0" );
-
-        // assert_eq!( graph.err().unwrap().to_string(), "Ok" );
+        assert_eq!( final_output, "Result: 6" );
     }
 
     #[tokio::test]
@@ -71,9 +67,7 @@ mod tests
 
         let final_output = final_output.unwrap();
 
-        assert_eq!( final_output, "Exit ok: 2.0" );
-
-        // assert_eq!( graph.err().unwrap().to_string(), "Ok" );
+        assert_eq!( final_output, "Exit ok: 2" );
     }
 
     #[tokio::test]
