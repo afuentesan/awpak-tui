@@ -145,6 +145,8 @@ fn data_from_parsed_input(
         {
             let path = expand_path( context, p )?;
 
+            if path.trim() == "" || path.trim() == "/" { return Ok( parsed_input.clone() ) }
+
             let value = parsed_input.pointer( path.as_str() );
 
             match value

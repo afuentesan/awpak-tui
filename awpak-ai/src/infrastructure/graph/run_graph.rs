@@ -19,6 +19,32 @@ mod tests
     use super::*;
 
     #[tokio::test]
+    async fn test_run_loop_from_parsed_input_context_mut_ok()
+    {
+        let graph = graph_from_path( "test_data/graphs/loop_from_parsed_input_graph.json" );
+
+        assert!( graph.is_ok() );
+
+        let graph = graph.unwrap();
+
+        let graph = run_graph( "[1.2,2,3,0.3]".into(), graph ).await;
+
+        assert!( graph.is_ok() );
+
+        let graph = graph.own();
+
+        assert!( graph.final_output.is_some() );
+
+        let final_output = graph.final_output.unwrap();
+
+        assert!( final_output.is_ok() );
+
+        let final_output = final_output.unwrap();
+
+        assert_eq!( final_output, "Result: 6.5" );
+    }
+
+    #[tokio::test]
     async fn test_run_loop_context_mut_ok()
     {
         let graph = graph_from_path( "test_data/graphs/loop_graph.json" );
