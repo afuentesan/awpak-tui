@@ -15,7 +15,12 @@ pub async fn execute_agent(
 {
     let prompt = agent_prompt( input, parsed_input, context, &agent.prompt ).await;
 
-    let provider = create_agent_provider( agent ).await?;
+    let provider = create_agent_provider( 
+        input,
+        parsed_input,
+        context,
+        agent 
+    ).await?;
 
     match provider
     {

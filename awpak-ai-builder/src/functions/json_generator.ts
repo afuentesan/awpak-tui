@@ -1,9 +1,10 @@
+import { AIAgentProviderConfigVariant, type AIAgentProvider, type NodeMCPServer } from "../model/agent";
 import { CommandOutputVariant, type CommandOutput } from "../model/command";
 import { DataFromVariant, DataOperationVariant, type DataFrom, type DataOperation, type DataToContext, type DataToString } from "../model/data";
 import { DataComparatorVariant, type DataComparator } from "../model/data_comparator";
 import type { Graph } from "../model/graph";
 import { GraphNode, GraphNodeOutputVariant, NodeDestination, NodeNextVariant, NodeTypeVariant, type GraphNodeOutput, type Node, type NodeNext, type NodeType } from "../model/node";
-import { NodeExecutorCommand, NodeExecutorContextMut, NodeExecutorVariant, type NodeExecutor } from "../model/node_executor";
+import { NodeExecutorAgent, NodeExecutorCommand, NodeExecutorContextMut, NodeExecutorVariant, type NodeExecutor } from "../model/node_executor";
 
 export function generate_json( graph : Graph ) : string
 {
@@ -92,6 +93,75 @@ function json_executor_from_node_executor( executor : NodeExecutor | undefined )
     else if( executor._variant == NodeExecutorVariant.ContextMut )
     {
         return json_executor_context_mut( executor );
+    }
+    else if( executor._variant == NodeExecutorVariant.Agent )
+    {
+        return json_agent( executor );
+    }
+}
+
+function json_agent( executor : NodeExecutorAgent ) : any
+{
+    return {
+        "Agent" : {
+            provider : json_agent_provider( executor.value.provider ),
+            system_prompt : executor.value.system_prompt,
+            save_history : executor.value.save_history,
+            prompt : json_vec_data_to_string( executor.value.prompt ),
+            servers : json_vec_mcp_server( executor.value.servers )
+        }
+    }
+}
+
+function json_vec_mcp_server( servers : Array<NodeMCPServer> ) : any
+{
+    return servers.map( ( s : NodeMCPServer ) => json_mcp_server( s ) )
+}
+
+function json_mcp_server( server : NodeMCPServer ) : any
+{
+    return {
+        command : server.command,
+        arguments : json_vec_data_from( server.args )
+    }
+}
+
+function json_agent_provider( provider : AIAgentProvider ) : any
+{
+    if( 
+        provider._variant == AIAgentProviderConfigVariant.Anthropic ||
+        provider._variant == AIAgentProviderConfigVariant.DeepSeek
+    )
+    {
+        return {
+            [provider._variant] : {
+                api_key : provider.api_key,
+                model : provider.model,
+                max_tokens : provider.max_tokens
+            }
+        }
+    }
+    else if( 
+        provider._variant == AIAgentProviderConfigVariant.OpenAI ||
+        provider._variant == AIAgentProviderConfigVariant.Gemini
+    )
+    {
+        return {
+            [provider._variant] : {
+                api_key : provider.api_key,
+                model : provider.model
+            }
+        }
+    }
+    else if( 
+        provider._variant == AIAgentProviderConfigVariant.Ollama
+    )
+    {
+        return {
+            [provider._variant] : {
+                model : provider.model
+            }
+        }
     }
 }
 

@@ -1,7 +1,8 @@
+import { AIAgentProviderAnthropic, AIAgentProviderConfigVariant, AIAgentProviderDeepSeek, AIAgentProviderGemini, AIAgentProviderOllama, AIAgentProviderOpenAI, type AIAgentProvider } from "../model/agent";
 import { CommandOutputCode, CommandOutputErr, CommandOutputOut, CommandOutputSuccess, CommandOutputVariant, type CommandOutput } from "../model/command";
 import type { Graph } from "../model/graph";
 import { GraphNode, GraphNodeOutputErr, GraphNodeOutputOut, GraphNodeOutputVariant, Node, NodeDestination, NodeNextExitErr, NodeNextExitOk, NodeNextNode, NodeNextVariant, NodeTypeVariant, type GraphNodeOutput, type NodeNext, type NodeType } from "../model/node";
-import { NodeExecutorCommand, NodeExecutorContextMut, NodeExecutorVariant, type NodeExecutor } from "../model/node_executor";
+import { NodeExecutorAgent, NodeExecutorCommand, NodeExecutorContextMut, NodeExecutorVariant, type NodeExecutor } from "../model/node_executor";
 import { is_type_in_enum } from "./form_utils";
 
 export function clean_graph_destinations_id( graph : Graph, id : string )
@@ -127,6 +128,56 @@ export function node_and_base_path_from_id(
     }
 }
 
+export function new_agent_provider_variant( old : AIAgentProvider, new_variant : string ) : AIAgentProvider | undefined
+{
+    if( ! is_type_in_enum( AIAgentProviderConfigVariant, new_variant ) ) { return undefined; }
+    
+    new_variant = new_variant as AIAgentProviderConfigVariant;
+
+    if( old._variant == new_variant ) { return old; }
+
+    let model = old.model;
+
+    let api_key = ( old._variant != AIAgentProviderConfigVariant.Ollama ) ? old.api_key : undefined;
+
+    let max_tokens = (
+        old._variant == AIAgentProviderConfigVariant.Anthropic ||
+        old._variant == AIAgentProviderConfigVariant.DeepSeek
+    )
+    ?
+    old.max_tokens
+    :
+    undefined;
+
+    if( new_variant == AIAgentProviderConfigVariant.Anthropic || new_variant == AIAgentProviderConfigVariant.DeepSeek )
+    {
+        let provider = ( new_variant == AIAgentProviderConfigVariant.Anthropic ) ? new AIAgentProviderAnthropic() : new AIAgentProviderDeepSeek();
+
+        provider.model = model;
+        provider.api_key = api_key;
+        provider.max_tokens = max_tokens;
+
+        return provider;
+    }
+    else if( new_variant == AIAgentProviderConfigVariant.OpenAI || new_variant == AIAgentProviderConfigVariant.Gemini )
+    {
+        let provider = ( new_variant == AIAgentProviderConfigVariant.OpenAI ) ? new AIAgentProviderOpenAI() : new AIAgentProviderGemini();
+
+        provider.model = model;
+        provider.api_key = api_key;
+
+        return provider;
+    }
+    else if( new_variant == AIAgentProviderConfigVariant.Ollama )
+    {
+        let provider = new AIAgentProviderOllama();
+
+        provider.model = model;
+
+        return provider;
+    }
+}
+
 export function new_node_executor_variant( old : NodeExecutor, new_variant : string ) : NodeExecutor | undefined
 {
     if( ! is_type_in_enum( NodeExecutorVariant, new_variant ) ) { return undefined; }
@@ -142,6 +193,10 @@ export function new_node_executor_variant( old : NodeExecutor, new_variant : str
     else if( new_variant == NodeExecutorVariant.ContextMut )
     {
         return new NodeExecutorContextMut();
+    }
+    else if( new_variant == NodeExecutorVariant.Agent )
+    {
+        return new NodeExecutorAgent();
     }
 }
 

@@ -2,13 +2,14 @@ import { atom } from 'nanostores';
 import { Graph } from './model/graph';
 import { GraphNodeOutputVariant, Node, NodeDestination, NodeNextExitErr, NodeNextExitOk, NodeNextNode, NodeNextVariant, NodeTypeVariant, type NodeNext, type NodeType } from './model/node';
 import { DataFromVariant, DataMerge, DataToContext, DataToString, FromConcat, FromContext, FromInput, FromOperation, FromParsedInput, FromStatic, DataType, DataOperationVariant } from './model/data';
-import { change_node_next_variant, change_node_variant, clean_graph_destinations_id, new_command_node_output_variant, new_graph_node_output_variant, new_node_executor_variant, node_by_id, update_graph_destinations_id } from './functions/node_functions';
+import { change_node_next_variant, change_node_variant, clean_graph_destinations_id, new_agent_provider_variant, new_command_node_output_variant, new_graph_node_output_variant, new_node_executor_variant, node_by_id, update_graph_destinations_id } from './functions/node_functions';
 import { JSONPath } from 'jsonpath-plus';
 import { new_data_comparator_variant, new_data_from_variant, new_data_operation_variant } from './functions/data_functions';
 import { is_type_in_enum, random_id } from './functions/form_utils';
 import type { DataComparatorVariant } from './model/data_comparator';
 import type { NodeExecutorVariant } from './model/node_executor';
 import type { CommandOutputVariant } from './model/command';
+import type { AIAgentProviderConfigVariant } from './model/agent';
 
 let g = new Graph();
 
@@ -208,6 +209,21 @@ export function change_boolean( base_path : string, next : boolean )
     graph.set( new_graph );
 }
 
+export function change_option_number( base_path : string, next : number | undefined )
+{
+    if( typeof( next ) === "undefined" || next === null ) { next = undefined; }
+
+    let new_graph = Object.assign( {}, graph.get() );
+
+    const result = JSONPath( { path : base_path, json : new_graph, resultType : "all" } );
+
+    if( ! result?.length || ! result[ 0 ].parent ) { return; }
+
+    result[ 0 ].parent[ result[ 0 ].parentProperty ] = next;
+
+    graph.set( new_graph );
+}
+
 export function change_option_string( base_path : string, next : string )
 {
     if( ! next.trim() ) { next = ""; }
@@ -244,6 +260,11 @@ export function change_variant(
     result[ 0 ].parent[ result[ 0 ].parentProperty ] = new_obj;
 
     graph.set( new_graph );
+}
+
+export function change_provider_variant( base_path : string, next_variant : AIAgentProviderConfigVariant )
+{
+    change_variant( base_path, next_variant, new_agent_provider_variant );
 }
 
 export function change_node_executor_variant( base_path : string, next_variant : NodeExecutorVariant )
