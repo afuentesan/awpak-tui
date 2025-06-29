@@ -1,6 +1,6 @@
 
 <script lang="ts">
-    import { DataComparatorVariant } from "../../model/data_comparator";
+    import { DataComparatorVariant, type DataComparator } from "../../model/data_comparator";
     import DataFrom from "./DataFrom.svelte";
     import Self from './DataComparator.svelte'
     import Text from "../form/Text.svelte";
@@ -10,7 +10,14 @@
     import Input from "../form/Input.svelte";
     import Box from "../form/Box.svelte";
 
-    let { comparator, base_path } = $props();
+    interface InputProps
+    {
+        comparator : DataComparator,
+        base_path : string,
+        is_grid? : boolean
+    }
+
+    let { comparator, base_path, is_grid } : InputProps = $props();
 
     let data_type_options = select_options_from_enum(
         DataComparatorVariant,
@@ -19,7 +26,7 @@
     );
 </script>
 
-<Box title={"Comparator "+comparator._variant}>
+<Box title={"Comparator "+comparator._variant} is_grid={is_grid}>
 
     <Select 
         label="Comparator type" 
@@ -35,20 +42,29 @@
         comparator._variant == DataComparatorVariant.Gt ||
         comparator._variant == DataComparatorVariant.Lt
     }
+    {#if comparator.from_1}
     <DataFrom from={comparator.from_1} base_path={base_path+".from_1"} label={comparator._variant + " from_1"} />
+    {/if}
+    {#if comparator.from_2}
     <DataFrom from={comparator.from_2} base_path={base_path+".from_2"} label={comparator._variant + " from_2"} />
+    {/if}
     {/if}
 
     {#if 
         comparator._variant == DataComparatorVariant.And ||
         comparator._variant == DataComparatorVariant.Or
     }
+        {#if comparator.comp_1}
         <Self comparator={comparator.comp_1} base_path={base_path+".comp_1"} />
+        {/if}
+        {#if comparator.comp_2}
         <Self comparator={comparator.comp_2} base_path={base_path+".comp_2"} />
+        {/if}
     {/if}
 
     {#if 
-        comparator._variant == DataComparatorVariant.Not
+        comparator._variant == DataComparatorVariant.Not &&
+        comparator.value
     }
         <Self comparator={comparator.value} base_path={base_path+".value"} />
     {/if}
@@ -63,7 +79,9 @@
 
     {#if comparator._variant == DataComparatorVariant.Regex}
         <Input label="Regex" value={comparator.regex} change_value={change_option_string} base_path={base_path+".regex"} />
+        {#if comparator.from}
         <DataFrom from={comparator.from} base_path={base_path+".from"} label={comparator._variant + " from"} />
+        {/if}
     {/if}
 
 </Box>

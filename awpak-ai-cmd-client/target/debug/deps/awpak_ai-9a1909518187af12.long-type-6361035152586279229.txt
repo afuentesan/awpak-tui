@@ -1,0 +1,1 @@
+rig::streaming::StreamingCompletionResponse<<M as rig::completion::CompletionModel>::StreamingResponse>

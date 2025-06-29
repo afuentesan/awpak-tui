@@ -2,7 +2,7 @@ import { atom } from 'nanostores';
 import { Graph } from './model/graph';
 import { GraphNodeOutputVariant, Node, NodeDestination, NodeNextExitErr, NodeNextExitOk, NodeNextNode, NodeNextVariant, NodeTypeVariant, type NodeNext, type NodeType } from './model/node';
 import { DataFromVariant, DataMerge, DataToContext, DataToString, FromConcat, FromContext, FromInput, FromOperation, FromParsedInput, FromStatic, DataType, DataOperationVariant } from './model/data';
-import { change_node_next_variant, change_node_variant, clean_node_destination_id, new_command_node_output_variant, new_graph_node_output_variant, new_node_executor_variant, node_by_id, update_node_destination_id } from './functions/node_functions';
+import { change_node_next_variant, change_node_variant, clean_graph_destinations_id, new_command_node_output_variant, new_graph_node_output_variant, new_node_executor_variant, node_by_id, update_graph_destinations_id } from './functions/node_functions';
 import { JSONPath } from 'jsonpath-plus';
 import { new_data_comparator_variant, new_data_from_variant, new_data_operation_variant } from './functions/data_functions';
 import { is_type_in_enum, random_id } from './functions/form_utils';
@@ -18,6 +18,15 @@ g.preserve_context = false;
 g.first = new Node( "first_node" );
 
 export const graph = atom( g );
+
+export function element_from_path( graph : Graph, path : string ) : any
+{
+    const result = JSONPath( { path : path, json : graph, resultType : "all" } );
+
+    if( ! result?.length || ! result[ 0 ].value ) { return undefined; }
+
+    return result[ 0 ].value;
+}
 
 export function add_node()
 {
@@ -40,7 +49,7 @@ export function change_node_id( id : string, new_id : string )
     {
         new_graph.first.id = new_id;
 
-        update_node_destination_id( new_graph, id, new_id );
+        update_graph_destinations_id( new_graph, id, new_id );
 
         graph.set( new_graph );
 
@@ -58,7 +67,7 @@ export function change_node_id( id : string, new_id : string )
         }
     );
 
-    update_node_destination_id( new_graph, id, new_id );
+    update_graph_destinations_id( new_graph, id, new_id );
 
     graph.set( new_graph );
 }
@@ -80,7 +89,7 @@ export function remove_node( idx : number )
 
     new_graph.nodes.splice( idx, 1 );
 
-    clean_node_destination_id( new_graph, id as string );
+    clean_graph_destinations_id( new_graph, id as string );
 
     graph.set( new_graph );
 }

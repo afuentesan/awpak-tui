@@ -1,6 +1,6 @@
 use serde::{Deserialize, Serialize};
 
-use crate::domain::{command::command::Command, context_mut::context_mut::ContextMut, data::data::{DataComparator, DataToContext, DataToString}, graph::graph_node::{GraphNode, GraphNodeOutput}};
+use crate::domain::{agent::agent::AIAgent, command::command::Command, context_mut::context_mut::ContextMut, data::data::{DataComparator, DataToContext, DataToString}, graph::graph_node::{GraphNode, GraphNodeOutput}};
 
 
 #[derive(Serialize, Deserialize, Clone)]
@@ -57,7 +57,7 @@ pub enum NodeNext
 #[derive(Serialize, Deserialize, Clone)]
 pub enum NodeExecutor
 {
-    Agent,
+    Agent( AIAgent ),
     Command( Command ),
     Graph( GraphNode ),
     ContextMut( Vec<ContextMut> )
@@ -89,6 +89,18 @@ impl NodeExecutor
                 ),
                 Some( g )
             ),
+            _ => ( self, None )
+        }
+    }
+
+    pub fn own_agent( self ) -> ( Self, Option<AIAgent> )
+    {
+        match self
+        {
+            NodeExecutor::Agent( a ) =>
+            {
+                ( NodeExecutor::Agent( AIAgent::default() ), Some( a ) )
+            },
             _ => ( self, None )
         }
     }

@@ -2,7 +2,7 @@ use awpak_utils::result::result::AwpakResult;
 use serde_json::Value;
 use async_recursion::async_recursion;
 
-use crate::{application::graph::execute_graph::execute_graph, domain::{command::execute_command::execute_command, context_mut::change_context::change_context, data::{data::{DataComparator, DataType}, data_compare::compare_data, data_insert::str_to_context, data_selection::data_to_string, data_utils::str_to_value}, error::Error, graph::{graph::Graph, node::{NodeDestination, NodeExecutor, NodeNext}}}};
+use crate::{application::graph::execute_graph::execute_graph, domain::{agent::execute_agent::execute_agent, command::execute_command::execute_command, context_mut::change_context::change_context, data::{data::{DataComparator, DataType}, data_compare::compare_data, data_insert::str_to_context, data_selection::data_to_string, data_utils::str_to_value}, error::Error, graph::{graph::Graph, node::{NodeDestination, NodeExecutor, NodeNext}}}};
 
 
 struct GraphRunner
@@ -85,7 +85,34 @@ async fn execute_node( mut runner : GraphRunner ) -> ( AwpakResult<GraphRunner, 
                 result
             )
         },
-        NodeExecutor::Agent => todo!(),
+        NodeExecutor::Agent( a ) =>
+        {
+            let result = execute_agent( runner.graph.input.as_ref(), &runner.graph.parsed_input, &runner.graph.context, a ).await;
+
+            match result
+            {
+                Ok( ( s, h ) ) =>
+                {
+                    if a.save_history
+                    {
+                        let ( _, agent ) = node.executor.own_agent();
+
+                        let mut agent = agent.unwrap();
+
+                        agent.history = h;
+
+                        node.executor = NodeExecutor::Agent( agent );
+
+                        ( node, Ok( s ) )
+                    }
+                    else
+                    {
+                        ( node, Ok( s ) )
+                    }
+                },
+                Err( e ) => ( node, Err( e ) )
+            }
+        },
         NodeExecutor::Graph( _ ) =>
         {
             let ( _, g ) = node.executor.own_graph();

@@ -19,14 +19,13 @@
         </Card>
     </div>
     <div>
-        <Node node={$graph.first as NodeType} base_path="$.first" label="First node" />
+        <Node node={$graph.first as NodeType} base_path="$.first" />
     </div>
     {#each $graph.nodes as _, i}
         <div>
             <Node 
                 node={$graph.nodes[i]} 
                 base_path={"$.nodes["+i+"]"} 
-                label={$graph.nodes[i]._variant+" "+$graph.nodes[i].id}
                 remove_from_loop={
                     () => remove_from_array( "$.nodes", i )
                 }

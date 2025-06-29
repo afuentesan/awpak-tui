@@ -4,11 +4,18 @@ import { GraphNode, GraphNodeOutputErr, GraphNodeOutputOut, GraphNodeOutputVaria
 import { NodeExecutorCommand, NodeExecutorContextMut, NodeExecutorVariant, type NodeExecutor } from "../model/node_executor";
 import { is_type_in_enum } from "./form_utils";
 
-export function clean_node_destination_id( graph : Graph, id : string )
+export function clean_graph_destinations_id( graph : Graph, id : string )
 {
-    if( ! graph.first ) return;
+    clean_node_destinations_id( graph.first, id );
 
-    let destinations = ( graph.first._variant == NodeTypeVariant.Node ) ? graph.first.destination : graph.first.node_destination;
+    graph.nodes.forEach( ( n ) => clean_node_destinations_id( n, id ) );
+}
+
+function clean_node_destinations_id( node : NodeType | undefined, id : string )
+{
+    if( ! node ) return;
+
+    let destinations = ( node._variant == NodeTypeVariant.Node ) ? node.destination : node.node_destination;
 
     destinations.forEach( 
         ( d : NodeDestination ) => 
@@ -24,11 +31,18 @@ export function clean_node_destination_id( graph : Graph, id : string )
     );
 }
 
-export function update_node_destination_id( graph : Graph, id : string, new_id : string )
+export function update_graph_destinations_id( graph : Graph, id : string, new_id : string )
 {
-    if( ! graph.first ) return;
+    update_node_destinations_id( graph.first, id, new_id );
 
-    let destinations = ( graph.first._variant == NodeTypeVariant.Node ) ? graph.first.destination : graph.first.node_destination;
+    graph.nodes.forEach( ( n ) => update_node_destinations_id( n, id, new_id ) );
+}
+
+function update_node_destinations_id( node : NodeType | undefined, id : string, new_id : string )
+{
+    if( ! node ) return;
+
+    let destinations = ( node._variant == NodeTypeVariant.Node ) ? node.destination : node.node_destination;
 
     destinations.forEach( 
         ( d : NodeDestination ) => 
@@ -82,6 +96,37 @@ export function node_by_id( graph : Graph, id : string ) : NodeType | undefined
     return graph.nodes.find( ( n : NodeType ) => n.id == id );
 }
 
+export function node_and_base_path_from_id( 
+    graph : Graph, 
+    id : string 
+) : { node : NodeType, base_path : string, idx : number | undefined, is_first : boolean } | undefined
+{
+    if( ! id?.trim() ) return undefined;
+
+    if( graph.first?.id == id )
+    {
+        return {
+            node : graph.first,
+            base_path : "$.first",
+            idx : undefined,
+            is_first : true
+        };
+    }
+
+    for( let i = 0 ; i < graph.nodes.length ; i++ )
+    {
+        if( graph.nodes[ i ].id == id )
+        {
+            return {
+                node : graph.nodes[ i ],
+                base_path : "$.nodes["+i+"]",
+                idx : i,
+                is_first : false
+            }
+        }
+    }
+}
+
 export function new_node_executor_variant( old : NodeExecutor, new_variant : string ) : NodeExecutor | undefined
 {
     if( ! is_type_in_enum( NodeExecutorVariant, new_variant ) ) { return undefined; }
@@ -98,8 +143,6 @@ export function new_node_executor_variant( old : NodeExecutor, new_variant : str
     {
         return new NodeExecutorContextMut();
     }
-
-    return undefined;
 }
 
 export function new_graph_node_output_variant( old : GraphNodeOutput, new_variant : string ) : GraphNodeOutput | undefined

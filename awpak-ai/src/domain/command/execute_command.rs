@@ -18,7 +18,8 @@ pub async fn execute_command(
 
     let result = match tokio::process::Command::new( command.command.trim() )
             .args( args )
-            .output().await
+            .output()
+            .await
     {
         Ok( o ) =>
         {

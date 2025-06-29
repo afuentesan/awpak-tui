@@ -35,6 +35,23 @@ pub fn value_from_map_path_expanded(
     map : &HashMap<String, Value>
 ) -> Result<Value, Error>
 {
+    if path.trim() == "" || path.trim() == "/"
+    {
+        return Ok( 
+            Value::Object(
+                map.iter().fold(
+                    Map::new(), 
+                    | mut a, ( k, v ) |
+                    {
+                        a.insert( k.clone(), v.clone() );
+
+                        a
+                    }
+                )
+            )
+        )
+    }
+
     let parts = path.split( "/" ).filter( | s | *s != "" ).collect::<Vec<_>>();
 
     if parts.len() == 0 { return Err( Error::ParseData( format!( "Invalid path: {}", path ) ) ) }

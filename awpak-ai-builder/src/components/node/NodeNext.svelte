@@ -2,24 +2,33 @@
 <script lang="ts">
     import { select_options_from_array, select_options_from_enum } from "../../functions/form_utils";
     import { node_ids } from "../../functions/node_functions";
-    import { NodeNextVariant } from "../../model/node";
+    import { NodeNextVariant, type NodeNext } from "../../model/node";
     import { change_next_step, change_option_string, graph, remove_from_array } from "../../store";
     import DataToString from "../data/DataToString.svelte";
     import Box from "../form/Box.svelte";
     import Button from "../form/Button.svelte";
     import Select from "../form/Select.svelte";
 
+    interface InputProps
+    {
+        node_next : NodeNext,
+        add_exit_text : ( _ : any ) => void,
+        base_path : string,
+        is_grid? : boolean
+    }
+
     let { 
         node_next, 
         add_exit_text,
-        base_path
-    } = $props();
+        base_path,
+        is_grid
+    } : InputProps = $props();
 
     let node_next_options = select_options_from_enum( NodeNextVariant, node_next._variant, false );
 
 </script>
 
-<Box title={"NodeNext "+node_next._variant}>
+<Box title={"NodeNext "+node_next._variant} is_grid={is_grid}>
 
     <Select label="Next step" value={node_next._variant} options={node_next_options} change_value={change_next_step} base_path={base_path} />
 
