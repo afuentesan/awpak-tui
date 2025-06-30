@@ -33,6 +33,7 @@
     }
 </script>
 
+{#if from}
 <Box title={"DataFrom "+from._variant+". "+label}>
 
     <Select label="From" options={options_from_variants} value={from._variant} change_value={chage_data_from_variant} base_path={base_path} />
@@ -84,3 +85,4 @@
     </div>
     {/if}
 </Box>
+{/if}

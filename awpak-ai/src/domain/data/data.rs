@@ -74,7 +74,8 @@ pub enum DataMerge
 {
     #[default]
     Insert,
-    Append
+    Append,
+    AppendToArray
 }
 
 #[derive(Serialize, Deserialize, Clone)]

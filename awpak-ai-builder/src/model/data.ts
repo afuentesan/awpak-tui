@@ -20,7 +20,8 @@ export class DataToContext
 export enum DataMerge
 {
     Insert = "Insert",
-    Append = "Append"
+    Append = "Append",
+    AppendToArray = "AppendToArray"
 }
 
 export class DataToString

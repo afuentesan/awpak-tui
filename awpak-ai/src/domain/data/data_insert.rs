@@ -47,7 +47,93 @@ pub fn value_to_context(
     match conf.merge
     {
         DataMerge::Insert => insert_allways( context, value, path.as_str() ),
-        DataMerge::Append => append_to_context( context, value, path.as_str() )
+        DataMerge::Append => append_to_context( context, value, path.as_str() ),
+        DataMerge::AppendToArray => append_to_array( context, value, path.as_str() )
+    }
+}
+
+fn append_to_array(
+    mut context : HashMap<String, Value>,
+    value : Value,
+    path : &str
+) -> AwpakResult<( HashMap<String, Value>, Result<Value, Error> ), Error>
+{
+    let parts = path.split( "/" ).filter( | s | *s != "" ).collect::<Vec<_>>();
+
+    if parts.len() == 0 { return AwpakResult::new_err( ( context, Ok( Value::Null ) ), Error::ParseData( "Invalid key".into() ) ) }
+
+    if parts.len() == 1
+    {
+        return match context.remove( parts[ 0 ] )
+        {
+            Some( mut v ) => 
+            {
+                match append_value_to_array( value, &mut v )
+                {
+                    Ok( _ ) =>
+                    {
+                        context.insert( parts[ 0 ].to_string(), v );
+
+                        AwpakResult::new( ( context, Ok( Value::Null ) ) )
+                    },
+                    Err( _ ) =>
+                    {
+                        context.insert( parts[ 0 ].to_string(), v );
+
+                        AwpakResult::new_err( 
+                            ( 
+                                context, 
+                                Ok( Value::Null ) 
+                            ), 
+                            Error::ParseData( format!( "AppendToArray. Value in {} is not an array", parts[ 0 ] ) ) 
+                        )
+                    }
+                }
+            },
+            None => insert_allways( context, Value::Array( vec![ value ] ), path )
+        }
+    }
+
+    let mut root = match context.remove( parts[ 0 ] )
+    {
+        Some( v ) => v,
+        None => return insert_allways( context, Value::Array( vec![ value ] ), path )
+    };
+
+    let subpath = format!( "/{}", parts[ 1.. ].join( "/" ) );
+
+    match root.pointer_mut( subpath.as_str() )
+    {
+        Some( v ) =>
+        {
+            match append_value_to_array( value, v ) 
+            {
+                Ok( _ ) =>
+                {
+                    context.insert( parts[ 0 ].into(), root );
+
+                    AwpakResult::new( ( context, Ok( Value::Null ) ) )
+                },
+                Err( _ ) =>
+                {
+                    context.insert( parts[ 0 ].to_string(), root );
+
+                    AwpakResult::new_err( 
+                        ( 
+                            context, 
+                            Ok( Value::Null ) 
+                        ), 
+                        Error::ParseData( format!( "AppendToArray. Value in {} is not an array", parts[ 0 ] ) ) 
+                    )
+                }
+            }
+        },
+        _ =>
+        {
+            context.insert( parts[ 0 ].into(), root );
+
+            insert_allways( context, Value::Array( vec![ value ] ), path )
+        }
     }
 }
 
@@ -111,6 +197,26 @@ fn append_value_to_another( v1 : &mut Value, v2 : Value )
     let new = merge_values( old, v2 );
 
     let _ = std::mem::replace( v1, new );
+}
+
+fn append_value_to_array( value : Value, array : &mut Value ) -> Result<(), Error>
+{
+    match array
+    {
+        Value::Null => 
+        {
+            let _ = std::mem::replace( array, Value::Array( vec![ value ] ) );
+
+            Ok( () )
+        },
+        Value::Array( a ) =>
+        {
+            a.push( value );
+
+            Ok( () )
+        },
+        _ => Err( Error::Ignore )
+    }
 }
 
 pub fn merge_values( v1 : Value, v2 : Value ) -> Value

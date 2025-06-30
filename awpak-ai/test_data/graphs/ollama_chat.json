@@ -1,0 +1,65 @@
+{
+    "context": {},
+    "preserve_context": false,
+    "first": {
+        "Node": {
+            "id": "first_node",
+            "executor": {
+                "Agent": {
+                    "provider": {
+                        "Ollama": {
+                            "model": "llama3.1"
+                        }
+                    },
+                    "system_prompt": "",
+                    "save_history": true,
+                    "prompt": [
+                        {
+                            "from": {
+                                "Input": {}
+                            }
+                        }
+                    ],
+                    "servers": [
+                        {
+                            "command": "npx",
+                            "arguments": [
+                                {
+                                    "Static": "-y"
+                                },
+                                {
+                                    "Static": "@modelcontextprotocol/server-filesystem"
+                                },
+                                {
+                                    "Static": "/tmp"
+                                }
+                            ]
+                        }
+                    ]
+                }
+            },
+            "output": {
+                "path": "respuesta",
+                "merge": "Insert"
+            },
+            "destination": [
+                {
+                    "next": {
+                        "ExitOk": [
+                            {
+                                "from": {
+                                    "Context": {
+                                        "path": "respuesta"
+                                    }
+                                },
+                                "prefix": ""
+                            }
+                        ]
+                    },
+                    "condition": "True"
+                }
+            ]
+        }
+    },
+    "nodes": []
+}

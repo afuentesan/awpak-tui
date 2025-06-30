@@ -1,4 +1,4 @@
-use awpak_ai::{domain::graph::graph::Graph, infrastructure::graph::{build_graph::graph_from_path, run_graph::run_graph}};
+use awpak_ai::{domain::{error::Error, graph::graph::Graph}, infrastructure::graph::{build_graph::graph_from_path, run_graph::run_graph}};
 use text_io::read;
 
 #[tokio::main]
@@ -11,9 +11,18 @@ async fn main() -> Result<(), ()>
         return Err( () );
     }
 
-    let path = std::env::args().nth( 1 ).ok_or( () )?;
+    let path = std::env::args().nth( 1 ).ok_or( Error::Ignore ).map_err( | _ | () )?;
 
-    let mut graph = graph_from_path( &path ).map_err( | _ | () )?;
+    let mut graph = match graph_from_path( &path )
+    {
+        Ok( g ) => g,
+        Err( e ) =>
+        {
+            eprintln!( "Build graph error: {:?}", e );
+
+            return Err( () );
+        }
+    };
 
     loop
     {
