@@ -2,8 +2,9 @@ use std::{pin::Pin, sync::{Arc, Mutex}};
 
 use rig::{agent::Agent, completion::CompletionModel, message::{AssistantContent, Message, Text, ToolResultContent, UserContent}, streaming::StreamingCompletion, OneOrMany};
 use tokio_stream::{Stream, StreamExt};
+use tracing::info;
 type StreamingResult = Pin<Box<dyn Stream<Item = Result<Text, Error>> + Send>>;
-use crate::domain::{agent::agent::AIAgent, error::Error};
+use crate::domain::{agent::agent::AIAgent, error::Error, tracing::filter_layer::{AGENT_STREAM, AGENT_TOOL_CALL, AGENT_TOOL_RESULT}};
 
 pub async fn run_agent<T: CompletionModel + 'static>( 
     prompt : String, 
@@ -45,6 +46,8 @@ async fn string_from_stream(
         {
             Ok( Text { text } ) => 
             {
+                info!( target:AGENT_STREAM, text );
+
                 ret.push_str( text.as_str() );
             },
             Err( e ) => 
@@ -93,8 +96,7 @@ where
                 Ok( mut h ) => h.push( current_prompt.clone() ),
                 Err( mut h ) => h.get_mut().push( current_prompt.clone() )
             };
-            // chat_history.push( current_prompt.clone() );
-
+            
             let mut tool_calls = vec![];
             let mut tool_results = vec![];
 
@@ -106,10 +108,32 @@ where
                         did_call_tool = false;
                     },
                     Ok(AssistantContent::ToolCall(tool_call)) => {
+
+                        let msg_tool_call = format!( 
+                            "\nToolCall:\n- Function name: {}\n- Args: {:?}\n", 
+                            tool_call.function.name,
+                            tool_call.function.arguments
+                        );
+
+                        info!( 
+                            target:AGENT_TOOL_CALL,  
+                            text=msg_tool_call
+                        );
+
                         let tool_result =
                             agent.tools.call(&tool_call.function.name, tool_call.function.arguments.to_string())
                             .await
                             .map_err( | e | Error::MCPTool( e.to_string() ) )?;
+
+                        let msg_tool_result = format!(
+                            "\nTool result:\n{}\n",
+                            tool_result
+                        );
+
+                        info!( 
+                            target:AGENT_TOOL_RESULT, 
+                            text=msg_tool_result 
+                        );
 
                         let tool_call_msg = AssistantContent::ToolCall(tool_call.clone());
 
@@ -138,10 +162,6 @@ where
                     Ok( mut h ) => h.push( m ),
                     Err( mut h ) => h.get_mut().push( m )
                 };
-
-                // chat_history.lock().unwrap().push(Message::Assistant {
-                //     content: OneOrMany::many(tool_calls).expect("Impossible EmptyListError"),
-                // });
             }
 
             // Add tool results to chat history
@@ -162,13 +182,6 @@ where
                     Ok( mut h ) => h.push( m ),
                     Err( mut h ) => h.get_mut().push( m )
                 };
-
-                // chat_history.push(Message::User {
-                //     content: OneOrMany::one(UserContent::tool_result(
-                //         id,
-                //         OneOrMany::one(ToolResultContent::text(tool_result)),
-                //     )),
-                // });
             }
 
             if ! did_call_tool { break; }

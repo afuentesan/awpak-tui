@@ -53,17 +53,17 @@
 
 <Box title={label_str()}>
 
-    {#if destination.next}
+    {#if destination?.next}
     <NodeNext 
-        node_next={destination.next} 
+        node_next={destination?.next} 
         add_exit_text={add_exit_text} 
         base_path={base_path+".next"}
         is_grid={is_grid}
     />
     {/if}
 
-    {#if destination.condition}
-    <DataComparator comparator={destination.condition} base_path={base_path+".condition"} is_grid={is_grid} />
+    {#if destination?.condition}
+    <DataComparator comparator={destination?.condition} base_path={base_path+".condition"} is_grid={is_grid} />
     {/if}
 
     {#if typeof( remove_from_loop ) == "function"}

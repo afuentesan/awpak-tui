@@ -14,3 +14,5 @@ async-recursion = "1.1.1"
 rig-core = { version = "0.13.0", features = [ "mcp" ] }
 mcp-core = "0.1.50"
 async-stream = "0.3.6"
+tracing = "0.1.41"
+tracing-subscriber = { version = "0.3.19" }

@@ -19,22 +19,6 @@
                                 "Input": {}
                             }
                         }
-                    ],
-                    "servers": [
-                        {
-                            "command": "npx",
-                            "arguments": [
-                                {
-                                    "Static": "-y"
-                                },
-                                {
-                                    "Static": "@modelcontextprotocol/server-filesystem"
-                                },
-                                {
-                                    "Static": "/tmp"
-                                }
-                            ]
-                        }
                     ]
                 }
             },
