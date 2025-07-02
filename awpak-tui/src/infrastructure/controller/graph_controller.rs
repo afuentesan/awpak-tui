@@ -1,9 +1,9 @@
 use std::sync::mpsc::{self, Sender};
 
-use awpak_ai::{domain::tracing::filter_layer::{AwpakAIFilterLayer, AwpakAITarget}, infrastructure::graph::run_graph::run_graph};
+use awpak_ai::{domain::{graph::graph::Graph, tracing::filter_layer::{AwpakAIFilterLayer, AwpakAITarget}}, infrastructure::graph::run_graph::run_graph};
 use tracing_subscriber::{layer::SubscriberExt, util::SubscriberInitExt};
 
-use crate::{domain::graph::graph::AwpakTUIGraph, infrastructure::action::app::action::Action};
+use crate::{domain::graph::graph::AwpakTUIGraph, infrastructure::{action::app::action::Action, config::functions::graph_config::{current_graph, save_graph_in_current}}};
 
 
 pub async fn send_prompt_to_graph( 
@@ -26,10 +26,18 @@ async fn proccess_send_prompt_to_graph( graph : AwpakTUIGraph, channel : Sender<
         {
             handle.block_on( async move
                 {
-                    let ( graph, obj_graph ) = graph.own_graph();
                     let ( graph, prompt ) = graph.own_prompt();
 
-                    capture_output( graph, channel.clone() );
+                    let obj_graph : Graph = match current_graph( &graph.initial_id, &graph.id )
+                    {
+                        Ok( g ) => g,
+                        Err( e ) =>
+                        {
+                            let _ = channel.send( Action::AppendTextToContent( e.to_string() ) );
+
+                            return;
+                        }    
+                    };
 
                     let result = run_graph( 
                         prompt.unwrap_or( "".into() ), 
@@ -38,9 +46,11 @@ async fn proccess_send_prompt_to_graph( graph : AwpakTUIGraph, channel : Sender<
 
                     match result.collect()
                     {
-                        ( _, None ) => {},
-                        ( _, Some( e ) ) =>
+                        ( g, None ) => save_graph_in_current( &graph.id, g ),
+                        ( g, Some( e ) ) =>
                         {
+                            save_graph_in_current( "", g );
+
                             let _ = channel.send( Action::AppendTextToContent( e.to_string() ) );
                         }  
                     }
@@ -50,7 +60,7 @@ async fn proccess_send_prompt_to_graph( graph : AwpakTUIGraph, channel : Sender<
     ).join();
 }
 
-fn capture_output( _graph : AwpakTUIGraph, channel : Sender<Action> )
+pub fn capture_graph_output( channel : Sender<Action> )
 {
     // TODO: Que se pueda personalizar donde enviar cada evento
     let ( tx, rx ) = mpsc::channel::<String>();

@@ -9,5 +9,4 @@ pub mod navigation;
 pub mod message;
 pub mod confirm;
 pub mod edit_field;
-pub mod chat;
 pub mod graph;

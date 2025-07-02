@@ -28,31 +28,10 @@ fn render_confirm_type(
     match confirm
     {
         Confirm::MovibleAction => render_confirm_movible( app, areas, frame, palette ),
-        // Confirm::AgentSelection => render_confirm_agent_selection( app, areas, frame, window_state, palette ),
-        Confirm::AgentSelection => render_confirm_selection( areas, frame, window_state, palette, app.ai_agents(), "Select AI" ),
-        Confirm::ChatSelection => render_confirm_selection( areas, frame, window_state, palette, app.saved_chats(), "Select Chat" ),
         Confirm::GraphSelection => render_confirm_selection( areas, frame, window_state, palette, app.graphs(), "Select Graph" ),
         Confirm::SavedGraphSelection => render_confirm_selection( areas, frame, window_state, palette, app.saved_graphs(), "Select Graph" ),
     }
 }
-
-// fn render_confirm_agent_selection( 
-//     app : &App, 
-//     areas : &Areas, 
-//     frame : &mut Frame, 
-//     window_state : &mut WindowState,
-//     palette : &Palette
-// )
-// {
-//     window_state.confirm_list.select( idx_current_selected_item_filter_hidden( app.ai_agents() ) );
-
-//     let list = list_from_selectable( app.ai_agents(), "Select AI", &TableColors::default_selected( palette ) );
-
-//     let area = area_confirm_agent_selection( app, areas );
-
-//     frame.render_widget( Clear, area );
-//     frame.render_stateful_widget(list, area, &mut window_state.confirm_list );
-// }
 
 fn render_confirm_selection<T>( 
     areas : &Areas, 
@@ -100,32 +79,6 @@ where T: Default + ToString
 
     Rect::new( x, y, width, height )
 }
-
-// fn area_confirm_agent_selection( app : &App, areas : &Areas ) -> Rect
-// {
-//     let height = u16::min( app.ai_agents().len() as u16 + 1, areas.full.height - 2 );
-
-//     let width = u16::max( u16::min( 
-//         areas.full.width - 2,
-//         app.ai_agents().iter()
-//         .fold(
-//             0, 
-//             | a, i |
-//             {
-//                 let len = str_len( i.inner().to_string().as_str() ) as u16;
-
-//                 if len > a { len } else { a }
-//             }
-//         )
-//     ), 50 );
-
-//     let x = ( areas.full.width / 2 ) - ( width / 2 );
-//     let y = ( areas.full.height / 2 ) - ( height / 2 );
-
-//     let y = u16::min( y, areas.content.y + 3 );
-
-//     Rect::new( x, y, width, height )
-// }
 
 fn render_confirm_movible( app : &App, areas : &Areas, frame : &mut Frame, palette : &Palette )
 {

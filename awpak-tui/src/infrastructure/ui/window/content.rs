@@ -1,39 +1,38 @@
 use std::collections::HashMap;
 
-use awpak_tui_ai::domain::chat::chat::Chat;
 use ratatui::{layout::{Constraint, Rect}, style::Stylize, text::Line, widgets::Cell, Frame};
 
-use crate::{domain::{app::model::app::{App, AppContent, AppFocus}, detail::model::detail::{Detail, DetailContent}, selectable::{functions::selectable_utils::idx_current_selected_item_filter_hidden, model::{selectable::Selectable, selectable_item::SelectableItem}}, table::model::table::Table, util::string_utils::str_len}, infrastructure::{action::window::window_action::CursorDirection, ui::{areas::areas::{content_area, Areas}, color::{palette::Palette, table::TableColors}, table::from_table::{constraints_table_default, constraints_table_detail, idx_visible_columns, render_cell_default, render_cell_detail, ui_from_table}, util::ui_utils::str_lines_width_limited, window::graph::render_content_graph}}};
+use crate::{domain::{app::model::app::{App, AppContent, AppFocus}, detail::model::detail::{Detail, DetailContent}, graph::graph::AwpakTUIGraph, selectable::{functions::selectable_utils::idx_current_selected_item_filter_hidden, model::{selectable::Selectable, selectable_item::SelectableItem}}, table::model::table::Table, util::string_utils::str_len}, infrastructure::{action::window::window_action::CursorDirection, ui::{areas::areas::{content_area, Areas}, color::{palette::Palette, table::TableColors}, table::from_table::{constraints_table_default, constraints_table_detail, idx_visible_columns, render_cell_default, render_cell_detail, ui_from_table}, util::ui_utils::vec_str_lines_width_limited, window::graph::render_content_graph}}};
 
-use super::{chat::render_content_chat, state::WindowState};
+use super::{state::WindowState};
 
 pub fn move_cursor_content( app : &App, window_state : &mut WindowState, direction : CursorDirection, full_area : Rect ) -> bool
 {
     match app.content()
     {
-        AppContent::Chat( c ) =>
+        AppContent::Graph( g ) =>
         {
             let content_area = content_area( app, full_area );
 
-            move_chat_cursor( c, window_state, direction, content_area )
+            move_graph_cursor( g, window_state, direction, content_area )
         },
         _ => false
     }
 }
 
-fn move_chat_cursor( chat : &Chat, window_state : &mut WindowState, direction : CursorDirection, area : Rect ) -> bool
+fn move_graph_cursor( graph : &AwpakTUIGraph, window_state : &mut WindowState, direction : CursorDirection, area : Rect ) -> bool
 {
     match direction
     {
-        CursorDirection::Up => move_chat_cursor_up( chat, window_state, area ),
-        CursorDirection::Down => move_chat_cursor_down( chat, window_state, area ),
-        CursorDirection::End => move_chat_cursor_to_end( chat, window_state, area )
+        CursorDirection::Up => move_graph_cursor_up( graph, window_state, area ),
+        CursorDirection::Down => move_graph_cursor_down( graph, window_state, area ),
+        CursorDirection::End => move_graph_cursor_to_end( graph, window_state, area )
     }
 }
 
-fn move_chat_cursor_up( chat : &Chat, window_state : &mut WindowState, area : Rect ) -> bool
+fn move_graph_cursor_up( graph : &AwpakTUIGraph, window_state : &mut WindowState, area : Rect ) -> bool
 {
-    let lines = str_lines_width_limited( chat.response(), area.width as usize - 3 );
+    let lines = vec_str_lines_width_limited( &graph.response, area.width as usize - 3 );
 
     let mut new_position = 0;
 
@@ -68,9 +67,9 @@ fn move_chat_cursor_up( chat : &Chat, window_state : &mut WindowState, area : Re
     update_new_position( new_position, window_state )
 }
 
-fn move_chat_cursor_down( chat : &Chat, window_state : &mut WindowState, area : Rect ) -> bool
+fn move_graph_cursor_down( graph : &AwpakTUIGraph, window_state : &mut WindowState, area : Rect ) -> bool
 {
-    let lines = str_lines_width_limited( chat.response(), area.width as usize - 3 );
+    let lines = vec_str_lines_width_limited( &graph.response, area.width as usize - 3 );
 
     let mut new_position = 0;
 
@@ -98,9 +97,9 @@ fn move_chat_cursor_down( chat : &Chat, window_state : &mut WindowState, area : 
     update_new_position( new_position, window_state )
 }
 
-fn move_chat_cursor_to_end( chat : &Chat, window_state : &mut WindowState, area : Rect ) -> bool
+fn move_graph_cursor_to_end( graph : &AwpakTUIGraph, window_state : &mut WindowState, area : Rect ) -> bool
 {
-    let lines = str_lines_width_limited( chat.response(), area.width as usize - 3 );
+    let lines = vec_str_lines_width_limited( &graph.response, area.width as usize - 3 );
 
     let mut new_position = 0;
 
@@ -169,7 +168,6 @@ pub fn render_content(
             ),
         AppContent::Detail( d ) => render_content_detail( d, app, areas, frame, window_state, palette ),
         AppContent::Empty => {},
-        AppContent::Chat( _ ) => render_content_chat( app, areas, frame, window_state, palette ),
         AppContent::Graph( _ ) => render_content_graph( app, areas, frame, window_state, palette )
     };
 }

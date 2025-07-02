@@ -1,4 +1,4 @@
-use crate::{application::{chat::chat::send_chat_request, confirm::confirm::confirm_action, field::field::save_field, navigation::navigate::{direct_navigation, history_back, history_next, parent_navigation}, search::search::regex_search_in_content}, domain::{app::model::app::{App, AppContent, AppFocus}, content_generator::model::content_generator::ContentGenerator, detail::model::detail::{Detail, DetailContent}, error::Error, result::result::AwpakResult, table::{functions::table_exec::exec_current_selected_row, model::row_output::RowOutput}}};
+use crate::{application::{confirm::confirm::confirm_action, field::field::save_field, graph::graph::send_graph_request, navigation::navigate::{direct_navigation, history_back, history_next, parent_navigation}, search::search::regex_search_in_content}, domain::{app::model::app::{App, AppContent, AppFocus}, content_generator::model::content_generator::ContentGenerator, detail::model::detail::{Detail, DetailContent}, error::Error, result::result::AwpakResult, table::{functions::table_exec::exec_current_selected_row, model::row_output::RowOutput}}};
 
 pub fn exec_focus( app : App ) -> AwpakResult<App>
 {
@@ -19,7 +19,8 @@ fn exec_focus_on_search( app : App ) -> AwpakResult<App>
 {
     match app.content()
     {
-        AppContent::Chat( _ ) => send_chat_request( app ),
+        // AppContent::Chat( _ ) => send_chat_request( app ),
+        AppContent::Graph( _ ) => send_graph_request( app ),
         _ => regex_search_in_content( app )
     }
 }
@@ -41,11 +42,6 @@ fn exec_focus_on_content( app : App ) -> AwpakResult<App>
             execution_output( app, result )
         }
         AppContent::Empty => AwpakResult::new_err( app, Error::Ignore ),
-        AppContent::Chat( _ ) =>
-        {
-            // TODO: Si estamos en el área de las preguntas pedir respuestas
-            AwpakResult::new_err( app, Error::Ignore )
-        },
         AppContent::Graph( _ ) =>
         {
             // TODO: Si estamos en el área de las preguntas pedir respuestas

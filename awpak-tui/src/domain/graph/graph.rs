@@ -1,15 +1,13 @@
-use std::collections::HashMap;
 
-use awpak_ai::domain::graph::graph::Graph;
 
 
 #[derive(Clone)]
 pub struct AwpakTUIGraph
 {
+    pub initial_id : String,
     pub id : String,
-    pub name : String,
 
-    pub graph : Graph,
+    pub name : String,
 
     pub request : GraphRequest,
 
@@ -23,8 +21,8 @@ impl Default for AwpakTUIGraph
         Self 
         { 
             id : "".into(), 
+            initial_id : "".into(),
             name : "".into(), 
-            graph : Graph::new( None, HashMap::new(), "".into(), HashMap::new(), false ),
             request : GraphRequest::Empty,
             response : vec![]
         }
@@ -48,13 +46,6 @@ impl AwpakTUIGraph
             GraphRequest::Pending( p ) => Some( p ),
             _ => None
         }
-    }
-
-    pub fn own_graph( mut self ) -> ( Self, Graph )
-    {
-        let old = std::mem::replace( &mut self.graph, Graph::default() );
-
-        ( self, old )
     }
 
     pub fn own_prompt( mut self ) -> ( Self, Option<String> )

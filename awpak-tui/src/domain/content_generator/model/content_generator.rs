@@ -8,7 +8,6 @@ pub enum ContentGenerator
     Expandable( Expandable ),
     ExecutableExpandable( ExecutableExpandable ),
     Detail( Box<ContentGenerator>, String ),
-    Chat( Box<ContentGenerator>, String ),
     Graph( Box<ContentGenerator>, String ),
     Empty
 }
@@ -34,15 +33,6 @@ impl ContentGenerator
         true
     }
 
-    // pub fn self_detail_eq( &self, other : &Self ) -> bool
-    // {
-    //     match ( self, other )
-    //     {
-    //         ( ContentGenerator::Detail( c, _ ), o ) => c.eq( o ),
-    //         _ => false
-    //     }
-    // }
-
     pub fn eq( &self, other : &Self ) -> bool
     {
         // TODO: Crear método para comparar los paths y tener en cuenta que en windows no es case sensitive
@@ -65,10 +55,6 @@ impl ContentGenerator
                 ContentGenerator::Detail( e2, s2 ) 
             ) if e1.to_string() == e2.to_string() && s1 == s2 => true,
             ( 
-                ContentGenerator::Chat( e1, s1 ), 
-                ContentGenerator::Chat( e2, s2 ) 
-            ) if e1.to_string() == e2.to_string() && s1 == s2 => true,
-            ( 
                 ContentGenerator::Graph( e1, s1 ), 
                 ContentGenerator::Graph( e2, s2 ) 
             ) if e1.to_string() == e2.to_string() && s1 == s2 => true,
@@ -78,7 +64,6 @@ impl ContentGenerator
                 ContentGenerator::Expandable( _ ) | 
                 ContentGenerator::ExecutableExpandable( _ ) |
                 ContentGenerator::Detail( _, _ ) |
-                ContentGenerator::Chat( _, _ ) |
                 ContentGenerator::Graph( _, _ ) |
                 ContentGenerator::Empty,
 
@@ -86,7 +71,6 @@ impl ContentGenerator
                 ContentGenerator::Expandable( _ ) | 
                 ContentGenerator::ExecutableExpandable( _ ) | 
                 ContentGenerator::Detail( _, _ ) |
-                ContentGenerator::Chat( _, _ ) |
                 ContentGenerator::Graph( _, _ ) |
                 ContentGenerator::Empty
             ) => false
@@ -113,7 +97,6 @@ impl ToString for ContentGenerator
             ContentGenerator::Expandable( e ) => e.to_string(),
             ContentGenerator::ExecutableExpandable( e ) => e.to_string(),
             ContentGenerator::Detail( d, s ) |
-            ContentGenerator::Chat( d, s ) => format!( "{}#{}", d.to_string(), s ),
             ContentGenerator::Graph( d, s ) => format!( "{}#{}", d.to_string(), s ),
             ContentGenerator::Empty => "Empty".to_string()
         }

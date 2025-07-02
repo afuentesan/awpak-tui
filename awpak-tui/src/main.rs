@@ -2,7 +2,7 @@ use std::sync::mpsc::Sender;
 
 use application::{app::init_app::init_app, source::init_sources::table_sources};
 use domain::{app::model::app::App, error::Error, selectable::model::selectable_item::SelectableItem};
-use infrastructure::{action::{action_channel::{init_channels, ActionChannel}, app::action::Action}, channel::channel::init_global_channels, config::functions::{ai_config::ai_config, config::{rows_from_sources_config, sources_config}}, controller::{app_controller::app_controller, async_controller::async_controller, window_controller::window_controller}, event::handle_events::init_handle_events};
+use infrastructure::{action::{action_channel::{init_channels, ActionChannel}, app::action::Action}, channel::channel::init_global_channels, config::functions::{config::{rows_from_sources_config, sources_config}}, controller::{app_controller::app_controller, async_controller::async_controller, window_controller::window_controller}, event::handle_events::init_handle_events};
 use ratatui::DefaultTerminal;
 
 use crate::infrastructure::config::functions::graph_config::init_graphs_from_config;
@@ -39,14 +39,7 @@ fn new_app() -> Result<App, Error>
     init_app( sources ).map( 
         | a |
         {
-            match ai_config()
-            {
-                Some( c ) => a.change_ai_agents( 
-                    c.agents.into_iter().map( | a | SelectableItem::Idle( a ) ).collect()
-                ),
-                None => a
-            }
-            .change_graphs(
+            a.change_graphs(
                 init_graphs_from_config().into_iter().map( | g | SelectableItem::Idle( g ) ).collect()
             )
         }

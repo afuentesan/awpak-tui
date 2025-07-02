@@ -73,7 +73,7 @@ fn create_middle_areas( app : &App, area : Rect ) -> ( Rect, Rect, Rect )
 
     let search_height = match app.content()
     {
-        AppContent::Chat( _ ) =>
+        AppContent::Graph( _ ) =>
         {
             usize::max(
                 usize::min(
@@ -85,8 +85,6 @@ fn create_middle_areas( app : &App, area : Rect ) -> ( Rect, Rect, Rect )
         },
         _ => 1
     } as u16;
-
-    // println!( "Seeeearch heightttt: {}", search_height );
 
     let layout = Layout::vertical( [ Constraint::Length( search_height + 1 ), Constraint::Fill( 0 ) ] );
 

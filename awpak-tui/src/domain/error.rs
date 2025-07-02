@@ -31,7 +31,8 @@ pub enum Error
     CopyDirectory( String ),
     DeleteFile( String ),
     DeleteDirectory( String ),
-    RenameDirectory( String )
+    RenameDirectory( String ),
+    Graph( String )
 }
 
 fn error_to_string( err : &Error ) -> String
@@ -58,7 +59,8 @@ fn error_to_string( err : &Error ) -> String
         Error::CopyDirectory( s ) |
         Error::DeleteFile( s ) |
         Error::DeleteDirectory( s ) |
-        Error::RenameDirectory( s ) => s.clone(),
+        Error::RenameDirectory( s ) |
+        Error::Graph( s ) => s.clone(),
         Error::NotHomeDir => "Not home dir".to_string(),
         Error::NoSelectableItems => "No visible items".to_string(),
         Error::NoSelectedItems => "No selected items".to_string(),

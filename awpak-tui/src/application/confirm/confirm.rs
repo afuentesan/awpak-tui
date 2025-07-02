@@ -1,4 +1,4 @@
-use crate::{application::{chat::chat::{confirm_agent_selection, confirm_saved_chat_selection}, graph::graph::{confirm_graph_selection, confirm_saved_graph_selection}, movible::movible::confirm_movible_action}, domain::{app::model::app::{App, AppFocus, Confirm}, error::Error, movible::model::movible::MovibleAction, result::result::AwpakResult}};
+use crate::{application::{graph::graph::{confirm_graph_selection, confirm_saved_graph_selection}, movible::movible::confirm_movible_action}, domain::{app::model::app::{App, AppFocus, Confirm}, error::Error, movible::model::movible::MovibleAction, result::result::AwpakResult}};
 
 
 pub fn confirm_action( app : App, confirm : Confirm ) -> AwpakResult<App>
@@ -9,8 +9,6 @@ pub fn confirm_action( app : App, confirm : Confirm ) -> AwpakResult<App>
                                   .finalize()
                                   .unzip( | a | a.change_movible_action( MovibleAction::None ) )
                                   .read(),
-        Confirm::AgentSelection => confirm_agent_selection( app ),
-        Confirm::ChatSelection => confirm_saved_chat_selection( app ),
         Confirm::GraphSelection => confirm_graph_selection( app ),
         Confirm::SavedGraphSelection => confirm_saved_graph_selection( app )
     }
@@ -42,8 +40,6 @@ fn discard_confirm_action( app : App, confirm : Confirm ) -> AwpakResult<App>
     match confirm
     {
         Confirm::MovibleAction => AwpakResult::new( app.change_movible_action( MovibleAction::None ) ),
-        Confirm::AgentSelection => AwpakResult::new( app ),
-        Confirm::ChatSelection => AwpakResult::new( app ),
         Confirm::GraphSelection => AwpakResult::new( app ),
         Confirm::SavedGraphSelection => AwpakResult::new( app )
     }

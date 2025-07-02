@@ -9,7 +9,7 @@ pub fn paste_on_search( text : String ) -> Box<dyn Fn( App ) -> AwpakResult<App>
 {
     Box::new( move | app |
         {
-            let text = if let AppContent::Chat( _ ) = app.content()
+            let text = if let AppContent::Graph( _ ) = app.content()
             {
                 &text
             }
@@ -41,7 +41,8 @@ pub fn search_line_up( app : App ) -> AwpakResult<App>
 {
     match app.content()
     {
-        AppContent::Chat( _ ) => search_navigation( app, InputModifier::LineUp, previous_focus ),
+        // AppContent::Chat( _ ) |
+        AppContent::Graph( _ ) => search_navigation( app, InputModifier::LineUp, previous_focus ),
         _ => previous_focus( app )    
     }
 }
@@ -50,7 +51,7 @@ pub fn search_line_down( app : App ) -> AwpakResult<App>
 {
     match app.content()
     {
-        AppContent::Chat( _ ) => search_navigation( app, InputModifier::LineDown, next_focus ),
+        AppContent::Graph( _ ) => search_navigation( app, InputModifier::LineDown, next_focus ),
         _ => next_focus( app )
     }
 }
@@ -136,10 +137,6 @@ pub fn regex_search_in_content( app : App ) -> AwpakResult<App>
             AppContent::Table( t ) => regex_search_in_table( app, t ),
             AppContent::Detail( d ) => regex_search_in_detail( app , d ),
             AppContent::Empty => app,
-            AppContent::Chat( c ) =>
-            {
-                app.change_content( AppContent::Chat( c ) )
-            },
             AppContent::Graph( g ) =>
             {
                 app.change_content( AppContent::Graph( g ) )

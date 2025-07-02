@@ -23,7 +23,7 @@ pub fn render_search_input(
 
     let ( text, prepend ) = match app.content()
     {
-        AppContent::Chat( _ ) => ( "Prompt:", "│" ),
+        AppContent::Graph( _ ) => ( "Prompt:", "│" ),
         _ => ( "Search:", " " )
     };
 

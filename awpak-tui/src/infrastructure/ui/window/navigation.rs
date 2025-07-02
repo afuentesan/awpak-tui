@@ -51,7 +51,7 @@ fn left_navigation( app : &App ) -> Line
         0 => match app.content_generator()
         {
             ContentGenerator::Detail( _, _ ) |
-            ContentGenerator::Chat( _, _ ) => left_navigation_active( app ),
+            ContentGenerator::Graph( _, _ ) => left_navigation_active( app ),
             _ => left_navigation_inactive()
         },
         _ => left_navigation_active( app )  
@@ -80,7 +80,7 @@ fn right_navigation( app : &App ) -> Line
         _ => match app.content_generator()
         {
             ContentGenerator::Detail( _, _ ) |
-            ContentGenerator::Chat( _, _ ) => right_navigation_inactive(),
+            ContentGenerator::Graph( _, _ ) => right_navigation_inactive(),
             _ => right_navigation_active( app )
         }   
     }

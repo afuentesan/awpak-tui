@@ -8,6 +8,5 @@ pub mod movible;
 pub mod message;
 pub mod confirm;
 pub mod field;
-pub mod chat;
 pub mod search;
 pub mod graph;

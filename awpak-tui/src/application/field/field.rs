@@ -77,7 +77,6 @@ fn persist_field( app : &App ) -> Result<EditFieldOutput, Error>
     {
         AppContent::Table( t ) => save_table_field( t, app.field().unwrap() ),
         AppContent::Detail( d ) => persist_detail_field( d, app.field().unwrap() ),
-        AppContent::Chat( _ ) => Err( Error::Ignore ),
         AppContent::Graph( _ ) => Err( Error::Ignore ),
         AppContent::Empty => Err( Error::Ignore )
     }
@@ -91,7 +90,6 @@ fn update_field( ( app, value ) : ( App, Result<EditFieldOutput, Error> ) ) -> (
     {
         AppContent::Table( t ) => ( update_content_table_selected_field( app, t, value.as_ref().unwrap() ), value ),
         AppContent::Detail( d ) => ( update_detail_field( app, *d, value.as_ref().unwrap() ), value ),
-        AppContent::Chat( _ ) => unreachable!(),
         AppContent::Graph( _ ) => unreachable!(),
         AppContent::Empty => unreachable!()
     }

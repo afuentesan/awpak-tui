@@ -1,7 +1,29 @@
 use uuid::Uuid;
 
-use crate::domain::{app::model::app::{App, AppContent, AppFocus, Confirm}, content_generator::model::content_generator::ContentGenerator, error::Error, graph::{graph::{AwpakTUIGraph, GraphRequest}, graph_functions::{append_string_to_graph_response, is_graph_request_pending}}, result::{functions::result_utils::bool_err, result::AwpakResult}, selectable::{functions::selectable_utils::idx_current_selected_item, model::selectable::Selectable as _}};
+use crate::domain::{app::model::app::{App, AppContent, AppFocus, Confirm}, content_generator::model::content_generator::ContentGenerator, error::Error, graph::{graph::{AwpakTUIGraph, GraphRequest}, graph_functions::{append_string_to_graph_response, is_graph_content, is_graph_request_empty, is_graph_request_pending}}, input::model::input::Input, result::{functions::result_utils::bool_err, result::AwpakResult}, selectable::{functions::selectable_utils::idx_current_selected_item, model::selectable::Selectable as _}};
 
+pub fn send_graph_request( app : App ) -> AwpakResult<App>
+{
+    AwpakResult::new( app )
+    .validate()
+    .map_result( | a | bool_err( a.content_search().text.trim() == "", Error::Ignore ) )
+    .map_result( | a | bool_err( ! is_graph_content( a.content() ), Error::Ignore ) )
+    .map_result( | a | bool_err( ! is_graph_request_empty( &a.graph_content().unwrap().request ), Error::Ignore ) )
+    .write()
+    .map(
+        | a |
+        {
+            let ( a, graph ) = a.own_graph_content();
+
+            let graph = graph.unwrap().change_request( GraphRequest::Pending( a.content_search().text.trim().to_string() ) );
+
+            let a = a.change_content_search( Input::default() );
+
+            a.change_content( AppContent::Graph( graph ) )
+        }
+    )
+    .read()
+}
 
 pub fn open_new_graph( app : App ) -> AwpakResult<App>
 {
@@ -74,7 +96,7 @@ fn show_saved_graph( app : App ) -> AwpakResult<App>
         | a | a.saved_graphs().len() > 1, 
         | a |
         {
-            a.change_focus( AppFocus::Confirm( Confirm::GraphSelection ) )
+            a.change_focus( AppFocus::Confirm( Confirm::SavedGraphSelection ) )
         }
     )
     .read()
@@ -124,7 +146,7 @@ fn show_new_graph( app : App ) -> AwpakResult<App>
         }
     )
     .map_if( 
-        | a | a.ai_agents().len() > 1, 
+        | a | a.graphs().len() > 1, 
         | a |
         {
             a.change_focus( AppFocus::Confirm( Confirm::GraphSelection ) )
@@ -172,7 +194,6 @@ fn graph_content_generator( app : App ) -> App
     let generator = match generator
     {
         ContentGenerator::Detail( g, _ ) => ContentGenerator::Graph( g, id ),
-        ContentGenerator::Chat( g, _ ) => ContentGenerator::Graph( g, id ),
         ContentGenerator::Graph( g, _ ) => ContentGenerator::Graph( g, id ),
         _ => ContentGenerator::Graph( Box::new( generator ), id )
     };
@@ -268,7 +289,7 @@ pub fn append_text_to_graph_content( text : String ) -> impl Fn( App ) -> AwpakR
     }
 }
 
-fn append_text_to_graph( app : App, chat : AwpakTUIGraph, text : &str ) -> AwpakResult<App>
+fn append_text_to_graph( app : App, graph : AwpakTUIGraph, text : &str ) -> AwpakResult<App>
 {
-    AwpakResult::new( app.change_content( AppContent::Graph( append_string_to_graph_response( text.to_string(), chat ) ) ) )
+    AwpakResult::new( app.change_content( AppContent::Graph( append_string_to_graph_response( text.to_string(), graph ) ) ) )
 }

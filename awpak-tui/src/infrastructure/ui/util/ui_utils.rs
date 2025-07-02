@@ -133,6 +133,14 @@ pub fn merge_areas( a1 : Rect, a2 : Rect ) -> Rect
     Rect { x : min_x, y : min_y, width : max_x - min_x, height : max_y - min_y }
 }
 
+pub fn vec_str_lines_width_limited( text : &Vec<String>, max_width : usize ) -> Vec<&str>
+{
+    text.iter().flat_map(
+        | l | str_lines_from_line( l, max_width )
+    )
+    .collect()
+}
+
 pub fn str_lines_width_limited( text : &str, max_width : usize ) -> Vec<&str>
 {
     text.split( "\n" ).flat_map(

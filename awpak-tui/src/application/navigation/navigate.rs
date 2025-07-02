@@ -29,35 +29,6 @@ fn close_graph( app : App, parent : ContentGenerator ) -> AwpakResult<App>
     AwpakResult::new( reload_app_content( app ) )
 }
 
-pub fn back_from_chat( app : App ) -> AwpakResult<App>
-{
-    match app.chat_content_generator()
-    {
-        Some( ( parent, _ ) ) =>
-        {
-            let parent = parent.clone();
-
-            close_chat( app, parent )
-        },
-        None => AwpakResult::new_err( app, Error::Ignore )
-    }
-}
-
-fn close_chat( app : App, parent : ContentGenerator ) -> AwpakResult<App>
-{
-    let app = app.change_content_generator( parent );
-
-    let ( app, chat ) = app.own_chat_content();
-
-    let app = match chat
-    {
-        Some( c ) => app.save_chat( c ),
-        _ => app    
-    };
-
-    AwpakResult::new( reload_app_content( app ) )
-}
-
 pub fn back_from_detail( app : App ) -> AwpakResult<App>
 {
     match app.detail_content_generator()
@@ -166,7 +137,6 @@ fn new_history_result( app : App ) -> AwpakResult<App>
         ContentGenerator::Expandable( _ ) |
         ContentGenerator::Empty => AwpakResult::new( app ),
         ContentGenerator::Detail( _, _ ) => AwpakResult::new_err( app, Error::Ignore ),
-        ContentGenerator::Chat( _, _ ) => AwpakResult::new_err( app, Error::Ignore ),
         ContentGenerator::Graph( _, _ ) => AwpakResult::new_err( app, Error::Ignore )
     }
 }

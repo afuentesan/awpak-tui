@@ -51,7 +51,6 @@ fn change_focus_in_content(
         AppContent::Table( t ) => change_focus_in_content_table_or_default( app, t, fn_change_table_sel, fn_default ),
         AppContent::Detail( d ) => change_focus_in_detail( app, *d, fn_change_table_sel, fn_default ),
         AppContent::Empty => fn_default( app ),
-        AppContent::Chat( c ) => fn_default( app.change_content( AppContent::Chat( c ) ) ),
         AppContent::Graph( g ) => fn_default( app.change_content( AppContent::Graph( g ) ) )
     }
 }
@@ -230,9 +229,6 @@ mod tests
         {
             ( a, None ) => assert_eq!( a.focus(), AppFocus::Sources ),
             _ => assert!( false, "next focus err" )
-
-            // AppResult::Ok( a ) => assert_eq!( a.focus(), AppFocus::Content ),
-            // AppResult::Err( _, _ ) => assert!( false, "next focus err" )
         }
 
         let app = test_app();

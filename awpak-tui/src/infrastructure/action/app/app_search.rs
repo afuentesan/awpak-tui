@@ -28,7 +28,7 @@ pub fn app_alt_enter( app : App, tx : Sender<WindowAction> ) -> App
 {
     match app.content()
     {
-        AppContent::Chat( _ ) => exec_in_input_field( app, tx, vec![ InputModifier::Char( '\n' ) ] ),
+        AppContent::Graph( _ ) => exec_in_input_field( app, tx, vec![ InputModifier::Char( '\n' ) ] ),
         _ => app
     }
 }

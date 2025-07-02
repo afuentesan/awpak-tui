@@ -53,10 +53,6 @@ fn sort_inner_content( content : AppContent, sort_by : SortBy ) -> AppContent
         AppContent::Empty => AppContent::Empty,
         AppContent::Table( t ) => AppContent::Table( sort_table( t, sort_by ).own() ),
         AppContent::Detail( d ) => sort_inner_detail( *d, sort_by ),
-        AppContent::Chat( c ) =>
-        {
-            AppContent::Chat( c )
-        },
         AppContent::Graph( g ) =>
         {
             AppContent::Graph( g )

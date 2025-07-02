@@ -1,4 +1,3 @@
-use awpak_tui_ai::domain::{agent::agent::AIAgent, chat::chat::Chat};
 
 use crate::domain::{content_generator::model::content_generator::ContentGenerator, detail::model::detail::Detail, field::model::field::Field, graph::graph::AwpakTUIGraph, input::model::input::Input, message::model::message::Message, movible::model::movible::MovibleAction, navigation::model::history::History, selectable::model::selectable_item::SelectableItem, sortable::model::sortable::SortBy, table::model::{row::Row, table::Table}};
 
@@ -25,13 +24,9 @@ pub struct App
 
     field : Option<Field>,
 
-    ai_agents : Vec<SelectableItem<AIAgent>>,
-
     graphs : Vec<SelectableItem<AwpakTUIGraph>>,
 
-    saved_graphs : Vec<SelectableItem<AwpakTUIGraph>>,
-
-    saved_chats : Vec<SelectableItem<Chat>>
+    saved_graphs : Vec<SelectableItem<AwpakTUIGraph>>
 }
 
 impl App
@@ -59,13 +54,9 @@ impl App
 
             field : None,
 
-            ai_agents : vec![],
-
             graphs : vec![],
 
             saved_graphs : vec![],
-
-            saved_chats : vec![]
         }
     }
 
@@ -90,13 +81,6 @@ impl App
         self
     }
 
-    // pub fn change_sources( mut self, new : Table ) -> App
-    // {
-    //     self.sources = new;
-
-    //     self
-    // }
-
     pub fn content( &self ) -> &AppContent
     {
         &self.content
@@ -118,30 +102,6 @@ impl App
             AppContent::Table( t ) => ( app.change_content( AppContent::Table( t ) ), None ),
             AppContent::Empty => ( app, None ),
             AppContent::Detail( d ) => ( app, Some( *d ) ),
-            AppContent::Chat( c ) => ( app.change_content( AppContent::Chat( c ) ), None ),
-            AppContent::Graph( g ) => ( app.change_content( AppContent::Graph( g ) ), None )
-        }
-    }
-
-    pub fn chat_content( &self ) -> Option<&Chat>
-    {
-        match self.content()
-        {
-            AppContent::Chat( c ) => Some( c ),
-            _ => None    
-        }
-    }
-
-    pub fn own_chat_content( self ) -> ( Self, Option<Chat> )
-    {
-        let ( app, content ) = self.own_content();
-
-        match content
-        {
-            AppContent::Table( t ) => ( app.change_content( AppContent::Table( t ) ), None ),
-            AppContent::Empty => ( app, None ),
-            AppContent::Detail( d ) => ( app.change_content( AppContent::Detail( d ) ), None ),
-            AppContent::Chat( c ) => ( app, Some( c ) ),
             AppContent::Graph( g ) => ( app.change_content( AppContent::Graph( g ) ), None )
         }
     }
@@ -164,14 +124,13 @@ impl App
             AppContent::Table( t ) => ( app.change_content( AppContent::Table( t ) ), None ),
             AppContent::Empty => ( app, None ),
             AppContent::Detail( d ) => ( app.change_content( AppContent::Detail( d ) ), None ),
-            AppContent::Chat( c ) => ( app.change_content( AppContent::Chat( c ) ), None ),
             AppContent::Graph( g ) => ( app, Some( g ) )
         }
     }
 
     pub fn own_saved_graphs( mut self ) -> ( Self, Vec<SelectableItem<AwpakTUIGraph>> )
     {
-        let saved = std::mem::replace( &mut self.graphs, vec![] );
+        let saved = std::mem::replace( &mut self.saved_graphs, vec![] );
 
         ( self, saved )
     }
@@ -204,41 +163,6 @@ impl App
         ( self, Some( chat ) )
     }
 
-    pub fn save_chat( mut self, chat : Chat ) -> Self
-    {
-        self.saved_chats.push( SelectableItem::Idle( chat ) );
-
-        self
-    }
-
-    pub fn saved_chats( &self ) -> &Vec<SelectableItem<Chat>>
-    {
-        &self.saved_chats
-    }
-
-    pub fn own_saved_chats( mut self ) -> ( Self, Vec<SelectableItem<Chat>> )
-    {
-        let saved = std::mem::replace( &mut self.saved_chats, vec![] );
-
-        ( self, saved )
-    }
-
-    pub fn change_saved_chats( mut self, new : Vec<SelectableItem<Chat>> ) -> Self
-    {
-        self.saved_chats = new;
-
-        self
-    }
-
-    pub fn own_saved_chat( mut self, idx : usize ) -> ( Self, Option<Chat> )
-    {
-        if idx >= self.saved_chats.len() { return ( self, None ) }
-
-        let ( _, chat ) = self.saved_chats.remove( idx ).own_inner();
-
-        ( self, Some( chat ) )
-    }
-
     pub fn change_content( mut self, new : AppContent ) -> App
     {
         self.content = new;
@@ -265,24 +189,9 @@ impl App
             ContentGenerator::Directory( _ ) |
             ContentGenerator::Expandable( _ ) |
             ContentGenerator::ExecutableExpandable( _ ) |
-            ContentGenerator::Chat( _, _ ) |
             ContentGenerator::Graph( _, _ ) |
             ContentGenerator::Empty => None,
             ContentGenerator::Detail( parent, id ) => Some( ( parent, id ) )
-        }
-    }
-
-    pub fn chat_content_generator( &self ) -> Option<( &ContentGenerator, &String )>
-    {
-        match self.content_generator()
-        {
-            ContentGenerator::Directory( _ ) |
-            ContentGenerator::Expandable( _ ) |
-            ContentGenerator::ExecutableExpandable( _ ) |
-            ContentGenerator::Detail( _, _ ) |
-            ContentGenerator::Graph( _, _ ) |
-            ContentGenerator::Empty => None,
-            ContentGenerator::Chat( parent, id ) => Some( ( parent, id ) )
         }
     }
 
@@ -294,7 +203,6 @@ impl App
             ContentGenerator::Expandable( _ ) |
             ContentGenerator::ExecutableExpandable( _ ) |
             ContentGenerator::Detail( _, _ ) |
-            ContentGenerator::Chat( _, _ ) |
             ContentGenerator::Empty => None,
             ContentGenerator::Graph( parent, id ) => Some( ( parent, id ) )
         }
@@ -356,16 +264,6 @@ impl App
 
         self
     }
-
-    // pub fn maybe_change_focus( mut self, focus : Option<AppFocus> ) -> App
-    // {
-    //     if let Some( f ) = focus
-    //     {
-    //         self.focus = f;
-    //     }
-
-    //     self
-    // }
 
     pub fn content_sort( &self ) -> SortBy
     {
@@ -477,25 +375,6 @@ impl App
         self
     }
 
-    pub fn ai_agents( &self ) -> &Vec<SelectableItem<AIAgent>>
-    {
-        &self.ai_agents
-    }
-
-    pub fn own_ai_agents( mut self ) -> ( Self, Vec<SelectableItem<AIAgent>> )
-    {
-        let old = std::mem::replace( &mut self.ai_agents, vec![] );
-
-        ( self, old )
-    }
-
-    pub fn change_ai_agents( mut self, new : Vec<SelectableItem<AIAgent>> ) -> Self
-    {
-        self.ai_agents = new;
-
-        self
-    }
-
 }
 
 #[derive(Clone)]
@@ -503,7 +382,6 @@ pub enum AppContent
 {
     Table( Table ),
     Detail( Box<Detail> ),
-    Chat( Chat ),
     Graph( AwpakTUIGraph ),
     Empty
 }
@@ -517,23 +395,10 @@ impl AppContent
             AppContent::Empty => true,
             AppContent::Table( _ ) |
             AppContent::Detail( _ ) |
-            AppContent::Graph( _ ) |
-            AppContent::Chat( _ ) => false    
+            AppContent::Graph( _ ) => false
         }
     }
 }
-
-// impl AppContent
-// {
-//     pub fn table( &self ) -> Option<&Table>
-//     {
-//         match self
-//         {
-//             AppContent::Table( t ) => Some( t ),
-//             AppContent::Empty => None
-//         }
-//     }
-// }
 
 #[derive(Clone, Copy, PartialEq, Eq, Debug)]
 pub enum AppFocus
@@ -565,14 +430,6 @@ impl AppFocus
 pub enum Confirm
 {
     MovibleAction,
-    AgentSelection,
-    ChatSelection,
     GraphSelection,
     SavedGraphSelection
 }
-
-// pub enum AppResult
-// {
-//     Ok( App ),
-//     Err( App, Error )
-// }

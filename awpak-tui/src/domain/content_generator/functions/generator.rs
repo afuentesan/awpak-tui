@@ -8,7 +8,6 @@ pub fn parent_of_generator( generator : &ContentGenerator ) -> Result<ContentGen
         ContentGenerator::Expandable( _ ) => Err( Error::Ignore ),
         ContentGenerator::ExecutableExpandable( _ ) => Err( Error::Ignore ),
         ContentGenerator::Detail( _, _ ) => Err( Error::Ignore ),
-        ContentGenerator::Chat( _, _ ) => Err( Error::Ignore ),
         ContentGenerator::Graph( _, _ ) => Err( Error::Ignore ),
         ContentGenerator::Empty => Err( Error::EmptyContentGenerator )   
     }
@@ -33,7 +32,6 @@ pub fn generate_content(
             Ok( expand_excutable_expandable( e )? )
         },
         ContentGenerator::Detail( _, _ ) => Err( Error::Ignore ),
-        ContentGenerator::Chat( _, _ ) => Err( Error::Ignore ),
         ContentGenerator::Graph( _, _ ) => Err( Error::Ignore ),
         ContentGenerator::Empty => Err( Error::EmptyContentGenerator )
     }

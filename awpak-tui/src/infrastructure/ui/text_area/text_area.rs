@@ -220,12 +220,10 @@ pub fn text_area_from_vec_of_str<'a>(
     } = text_lines( 
         if let Some( limite_width ) = limite_width
         {
-            // str_lines_width_limited( text, limite_width as usize - 3 )
             text.iter().flat_map( | s | str_lines_from_line( s, limite_width as usize - 3 ) ).collect()
         }
         else
         {
-            // text.split( "\n" ).collect()
             text.iter().map( | s | s.as_str() ).collect()
         }, 
         state.cursor_position,
@@ -245,29 +243,6 @@ pub fn text_area_from_vec_of_str<'a>(
     };
 
     ( text_area, size )
-}
-
-pub fn render_text_area<'a>( 
-    text : &'a str, 
-    state : &mut ScrollState, 
-    area : Rect, 
-    frame : &mut Frame,
-    limite_width : bool,
-    bg : Color,
-    fg : Color,
-    prepend : &'a str
-)
-{
-    let ( text_area, _ ) = text_area( 
-        text, 
-        state, 
-        if limite_width { Some( area.width ) } else { None }, 
-        bg, 
-        fg, 
-        prepend
-    );
-
-    frame.render_stateful_widget( text_area, area, state );
 }
 
 pub fn render_text_area_from_vec_of_str<'a>( 

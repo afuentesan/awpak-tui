@@ -1,6 +1,6 @@
 use std::sync::mpsc::Sender;
 
-use crate::{application::{confirm::confirm::discard_action, detail::show_detail::show_detail, message::message::hide_message, navigation::navigate::{back_from_chat, back_from_detail}}, domain::{app::model::app::{App, AppContent, AppFocus}, chat::functions::chat::is_chat_request_empty, error::Error, result::result::AwpakResult}, infrastructure::{action::window::window_action::WindowAction, channel::channel::send_abort_chat}};
+use crate::{application::{confirm::confirm::discard_action, detail::show_detail::show_detail, message::message::hide_message, navigation::navigate::{back_from_detail, back_from_graph}}, domain::{app::model::app::{App, AppFocus}, error::Error, result::result::AwpakResult}, infrastructure::action::window::window_action::WindowAction};
 
 use super::app_utils::{app_exec_action, app_exec_action_allways_refresh, app_exec_actions_while_err};
 
@@ -32,20 +32,15 @@ pub fn app_esc( app : App, tx : Sender<WindowAction> ) -> App
         AppFocus::Sources |
         AppFocus::Back |
         AppFocus::Next |
-        AppFocus::Up => app_exec_actions_while_err( app, tx, vec![ cancel_chat, hide_message, back_from_detail, back_from_chat ] )
+        AppFocus::Up => app_exec_actions_while_err( app, tx, vec![ cancel_graph, hide_message, back_from_detail, back_from_graph ] )
     }
 }
 
-fn cancel_chat( app : App ) -> AwpakResult<App>
+// TODO: Cancel graph
+fn cancel_graph( app : App ) -> AwpakResult<App>
 {
     match app.content()
     {
-        AppContent::Chat( c ) if ! is_chat_request_empty( c.request() ) =>
-        {
-            send_abort_chat( true );
-
-            AwpakResult::new( app )
-        },
         _ => AwpakResult::new_err( app, Error::Ignore )
     }
 }
