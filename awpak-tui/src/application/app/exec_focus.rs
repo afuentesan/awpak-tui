@@ -41,7 +41,12 @@ fn exec_focus_on_content( app : App ) -> AwpakResult<App>
             execution_output( app, result )
         }
         AppContent::Empty => AwpakResult::new_err( app, Error::Ignore ),
-        AppContent::Chat { .. } =>
+        AppContent::Chat( _ ) =>
+        {
+            // TODO: Si estamos en el área de las preguntas pedir respuestas
+            AwpakResult::new_err( app, Error::Ignore )
+        },
+        AppContent::Graph( _ ) =>
         {
             // TODO: Si estamos en el área de las preguntas pedir respuestas
             AwpakResult::new_err( app, Error::Ignore )

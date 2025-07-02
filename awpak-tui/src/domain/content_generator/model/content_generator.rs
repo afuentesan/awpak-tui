@@ -9,6 +9,7 @@ pub enum ContentGenerator
     ExecutableExpandable( ExecutableExpandable ),
     Detail( Box<ContentGenerator>, String ),
     Chat( Box<ContentGenerator>, String ),
+    Graph( Box<ContentGenerator>, String ),
     Empty
 }
 
@@ -67,6 +68,10 @@ impl ContentGenerator
                 ContentGenerator::Chat( e1, s1 ), 
                 ContentGenerator::Chat( e2, s2 ) 
             ) if e1.to_string() == e2.to_string() && s1 == s2 => true,
+            ( 
+                ContentGenerator::Graph( e1, s1 ), 
+                ContentGenerator::Graph( e2, s2 ) 
+            ) if e1.to_string() == e2.to_string() && s1 == s2 => true,
             ( ContentGenerator::Empty, ContentGenerator::Empty ) => true,
             (
                 ContentGenerator::Directory( _ ) | 
@@ -74,6 +79,7 @@ impl ContentGenerator
                 ContentGenerator::ExecutableExpandable( _ ) |
                 ContentGenerator::Detail( _, _ ) |
                 ContentGenerator::Chat( _, _ ) |
+                ContentGenerator::Graph( _, _ ) |
                 ContentGenerator::Empty,
 
                 ContentGenerator::Directory( _ ) | 
@@ -81,6 +87,7 @@ impl ContentGenerator
                 ContentGenerator::ExecutableExpandable( _ ) | 
                 ContentGenerator::Detail( _, _ ) |
                 ContentGenerator::Chat( _, _ ) |
+                ContentGenerator::Graph( _, _ ) |
                 ContentGenerator::Empty
             ) => false
         }
@@ -107,6 +114,7 @@ impl ToString for ContentGenerator
             ContentGenerator::ExecutableExpandable( e ) => e.to_string(),
             ContentGenerator::Detail( d, s ) |
             ContentGenerator::Chat( d, s ) => format!( "{}#{}", d.to_string(), s ),
+            ContentGenerator::Graph( d, s ) => format!( "{}#{}", d.to_string(), s ),
             ContentGenerator::Empty => "Empty".to_string()
         }
     }

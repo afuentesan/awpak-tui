@@ -20,3 +20,4 @@ pub mod movible;
 pub mod message;
 pub mod field;
 pub mod chat;
+pub mod graph;

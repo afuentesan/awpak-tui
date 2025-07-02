@@ -123,7 +123,8 @@ pub fn detail_id_from_content( content : &AppContent ) -> Option<String>
     {
         AppContent::Detail( d ) => detail_id_from_source_detail( d ),
         AppContent::Table( _ ) |
-        AppContent::Chat { .. } |
+        AppContent::Chat( _ ) |
+        AppContent::Graph( _ ) |
         AppContent::Empty => None    
     }
 }
@@ -134,7 +135,8 @@ fn detail_id_from_source_detail( detail : &Detail ) -> Option<String>
     {
         AppContent::Table( t ) => idx_current_selected_item( t.rows() ).map( | i | i.to_string() ),
         AppContent::Detail( _ ) => None,
-        AppContent::Chat { .. } => None,
+        AppContent::Chat( _ ) => None,
+        AppContent::Graph( _ ) |
         AppContent::Empty => None    
     }
 }
@@ -150,7 +152,8 @@ fn has_detail( content : &AppContent ) -> bool
     {
         AppContent::Table( _ ) => true,
         AppContent::Detail( _ ) => false,
-        AppContent::Chat { .. } => false,
+        AppContent::Chat( _ ) => false,
+        AppContent::Graph( _ ) |
         AppContent::Empty => false    
     }
 }
@@ -162,6 +165,7 @@ fn zip_detail( content : &AppContent ) -> Result<DetailContent, Error>
         AppContent::Table( t ) => detail_content_from_table( t ),
         AppContent::Detail( _ ) => Err( Error::Ignore ),
         AppContent::Empty => Err( Error::Ignore ),
-        AppContent::Chat { .. } => Err( Error::Ignore )  
+        AppContent::Chat( _ ) => Err( Error::Ignore ),
+        AppContent::Graph( _ ) => Err( Error::Ignore )
     }
 }

@@ -1,6 +1,6 @@
 use awpak_tui_ai::domain::{agent::agent::AIAgent, chat::chat::Chat};
 
-use crate::domain::{content_generator::model::content_generator::ContentGenerator, detail::model::detail::Detail, field::model::field::Field, input::model::input::Input, message::model::message::Message, movible::model::movible::MovibleAction, navigation::model::history::History, selectable::model::selectable_item::SelectableItem, sortable::model::sortable::SortBy, table::model::{row::Row, table::Table}};
+use crate::domain::{content_generator::model::content_generator::ContentGenerator, detail::model::detail::Detail, field::model::field::Field, graph::graph::AwpakTUIGraph, input::model::input::Input, message::model::message::Message, movible::model::movible::MovibleAction, navigation::model::history::History, selectable::model::selectable_item::SelectableItem, sortable::model::sortable::SortBy, table::model::{row::Row, table::Table}};
 
 
 #[derive(Clone)]
@@ -26,6 +26,10 @@ pub struct App
     field : Option<Field>,
 
     ai_agents : Vec<SelectableItem<AIAgent>>,
+
+    graphs : Vec<SelectableItem<AwpakTUIGraph>>,
+
+    saved_graphs : Vec<SelectableItem<AwpakTUIGraph>>,
 
     saved_chats : Vec<SelectableItem<Chat>>
 }
@@ -56,6 +60,10 @@ impl App
             field : None,
 
             ai_agents : vec![],
+
+            graphs : vec![],
+
+            saved_graphs : vec![],
 
             saved_chats : vec![]
         }
@@ -110,7 +118,8 @@ impl App
             AppContent::Table( t ) => ( app.change_content( AppContent::Table( t ) ), None ),
             AppContent::Empty => ( app, None ),
             AppContent::Detail( d ) => ( app, Some( *d ) ),
-            AppContent::Chat( c ) => ( app.change_content( AppContent::Chat( c ) ), None )
+            AppContent::Chat( c ) => ( app.change_content( AppContent::Chat( c ) ), None ),
+            AppContent::Graph( g ) => ( app.change_content( AppContent::Graph( g ) ), None )
         }
     }
 
@@ -132,8 +141,67 @@ impl App
             AppContent::Table( t ) => ( app.change_content( AppContent::Table( t ) ), None ),
             AppContent::Empty => ( app, None ),
             AppContent::Detail( d ) => ( app.change_content( AppContent::Detail( d ) ), None ),
-            AppContent::Chat( c ) => ( app, Some( c ) )
+            AppContent::Chat( c ) => ( app, Some( c ) ),
+            AppContent::Graph( g ) => ( app.change_content( AppContent::Graph( g ) ), None )
         }
+    }
+
+    pub fn graph_content( &self ) -> Option<&AwpakTUIGraph>
+    {
+        match self.content()
+        {
+            AppContent::Graph( g ) => Some( g ),
+            _ => None    
+        }
+    }
+
+    pub fn own_graph_content( self ) -> ( Self, Option<AwpakTUIGraph> )
+    {
+        let ( app, content ) = self.own_content();
+
+        match content
+        {
+            AppContent::Table( t ) => ( app.change_content( AppContent::Table( t ) ), None ),
+            AppContent::Empty => ( app, None ),
+            AppContent::Detail( d ) => ( app.change_content( AppContent::Detail( d ) ), None ),
+            AppContent::Chat( c ) => ( app.change_content( AppContent::Chat( c ) ), None ),
+            AppContent::Graph( g ) => ( app, Some( g ) )
+        }
+    }
+
+    pub fn own_saved_graphs( mut self ) -> ( Self, Vec<SelectableItem<AwpakTUIGraph>> )
+    {
+        let saved = std::mem::replace( &mut self.graphs, vec![] );
+
+        ( self, saved )
+    }
+
+    pub fn change_saved_graphs( mut self, new : Vec<SelectableItem<AwpakTUIGraph>> ) -> Self
+    {
+        self.saved_graphs = new;
+
+        self
+    }
+
+    pub fn save_graph( mut self, graph : AwpakTUIGraph ) -> Self
+    {
+        self.saved_graphs.push( SelectableItem::Idle( graph ) );
+
+        self
+    }
+
+    pub fn saved_graphs( &self ) -> &Vec<SelectableItem<AwpakTUIGraph>>
+    {
+        &self.saved_graphs
+    }
+
+    pub fn own_saved_graph( mut self, idx : usize ) -> ( Self, Option<AwpakTUIGraph> )
+    {
+        if idx >= self.saved_graphs.len() { return ( self, None ) }
+
+        let ( _, chat ) = self.saved_graphs.remove( idx ).own_inner();
+
+        ( self, Some( chat ) )
     }
 
     pub fn save_chat( mut self, chat : Chat ) -> Self
@@ -198,6 +266,7 @@ impl App
             ContentGenerator::Expandable( _ ) |
             ContentGenerator::ExecutableExpandable( _ ) |
             ContentGenerator::Chat( _, _ ) |
+            ContentGenerator::Graph( _, _ ) |
             ContentGenerator::Empty => None,
             ContentGenerator::Detail( parent, id ) => Some( ( parent, id ) )
         }
@@ -211,8 +280,23 @@ impl App
             ContentGenerator::Expandable( _ ) |
             ContentGenerator::ExecutableExpandable( _ ) |
             ContentGenerator::Detail( _, _ ) |
+            ContentGenerator::Graph( _, _ ) |
             ContentGenerator::Empty => None,
             ContentGenerator::Chat( parent, id ) => Some( ( parent, id ) )
+        }
+    }
+
+    pub fn graph_content_generator( &self ) -> Option<( &ContentGenerator, &String )>
+    {
+        match self.content_generator()
+        {
+            ContentGenerator::Directory( _ ) |
+            ContentGenerator::Expandable( _ ) |
+            ContentGenerator::ExecutableExpandable( _ ) |
+            ContentGenerator::Detail( _, _ ) |
+            ContentGenerator::Chat( _, _ ) |
+            ContentGenerator::Empty => None,
+            ContentGenerator::Graph( parent, id ) => Some( ( parent, id ) )
         }
     }
 
@@ -374,6 +458,25 @@ impl App
         self
     }
 
+    pub fn graphs( &self ) -> &Vec<SelectableItem<AwpakTUIGraph>>
+    {
+        &self.graphs
+    }
+
+    pub fn own_graphs( mut self ) -> ( Self, Vec<SelectableItem<AwpakTUIGraph>> )
+    {
+        let old = std::mem::replace( &mut self.graphs, vec![] );
+
+        ( self, old )
+    }
+
+    pub fn change_graphs( mut self, new : Vec<SelectableItem<AwpakTUIGraph>> ) -> Self
+    {
+        self.graphs = new;
+
+        self
+    }
+
     pub fn ai_agents( &self ) -> &Vec<SelectableItem<AIAgent>>
     {
         &self.ai_agents
@@ -401,6 +504,7 @@ pub enum AppContent
     Table( Table ),
     Detail( Box<Detail> ),
     Chat( Chat ),
+    Graph( AwpakTUIGraph ),
     Empty
 }
 
@@ -413,7 +517,8 @@ impl AppContent
             AppContent::Empty => true,
             AppContent::Table( _ ) |
             AppContent::Detail( _ ) |
-            AppContent::Chat { .. } => false    
+            AppContent::Graph( _ ) |
+            AppContent::Chat( _ ) => false    
         }
     }
 }
@@ -461,7 +566,9 @@ pub enum Confirm
 {
     MovibleAction,
     AgentSelection,
-    ChatSelection
+    ChatSelection,
+    GraphSelection,
+    SavedGraphSelection
 }
 
 // pub enum AppResult

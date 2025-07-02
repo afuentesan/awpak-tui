@@ -139,6 +139,10 @@ pub fn regex_search_in_content( app : App ) -> AwpakResult<App>
             AppContent::Chat( c ) =>
             {
                 app.change_content( AppContent::Chat( c ) )
+            },
+            AppContent::Graph( g ) =>
+            {
+                app.change_content( AppContent::Graph( g ) )
             }
         }
     )

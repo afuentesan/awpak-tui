@@ -1,6 +1,6 @@
 use awpak_tui_ai::domain::{agent::agent::AIAgent, chat::chat::Chat};
 
-use crate::{application::app::change_focus::{next_focus, previous_focus}, domain::{app::model::app::{App, AppContent, AppFocus, Confirm}, detail::model::detail::{Detail, DetailContent}, error::Error, result::result::AwpakResult, selectable::{functions::change_selectable::{append_or_remove_next_selection, append_or_remove_previous_selection, select_next_or_first_or_none_if_all_hidden, select_previous_or_last_or_none_if_all_hidden}, model::selectable_item::SelectableItem}, table::model::table::Table}};
+use crate::{application::app::change_focus::{next_focus, previous_focus}, domain::{app::model::app::{App, AppContent, AppFocus, Confirm}, detail::model::detail::{Detail, DetailContent}, error::Error, graph::graph::AwpakTUIGraph, result::result::AwpakResult, selectable::{functions::change_selectable::{append_or_remove_next_selection, append_or_remove_previous_selection, select_next_or_first_or_none_if_all_hidden, select_previous_or_last_or_none_if_all_hidden}, model::selectable_item::SelectableItem}, table::model::table::Table}};
 
 pub fn append_or_remove_next_in_focus( app : App ) -> AwpakResult<App>
 {
@@ -76,6 +76,16 @@ fn select_previous_in_confirm( app : App, confirm : Confirm ) -> AwpakResult<App
             confirm, 
             select_previous_or_last_or_none_if_all_hidden
         ),
+        Confirm::GraphSelection => change_confirm_graph_selection(
+            app, 
+            confirm, 
+            select_previous_or_last_or_none_if_all_hidden
+        ),
+        Confirm::SavedGraphSelection => change_confirm_saved_graph_selection(
+            app, 
+            confirm, 
+            select_previous_or_last_or_none_if_all_hidden
+        ),
         Confirm::MovibleAction => AwpakResult::new_err( app, Error::Ignore )
     }
     
@@ -91,6 +101,16 @@ fn select_next_in_confirm( app : App, confirm : Confirm ) -> AwpakResult<App>
             select_next_or_first_or_none_if_all_hidden
         ),
         Confirm::ChatSelection => change_confirm_chat_selection(
+            app, 
+            confirm, 
+            select_next_or_first_or_none_if_all_hidden
+        ),
+        Confirm::GraphSelection => change_confirm_graph_selection(
+            app, 
+            confirm, 
+            select_next_or_first_or_none_if_all_hidden
+        ),
+        Confirm::SavedGraphSelection => change_confirm_saved_graph_selection(
             app, 
             confirm, 
             select_next_or_first_or_none_if_all_hidden
@@ -116,6 +136,54 @@ fn change_confirm_chat_selection(
             let chats = fn_select( chats );
 
             AwpakResult::new( app.change_saved_chats( chats ) )
+        },
+        Confirm::GraphSelection => AwpakResult::new_err( app, Error::Ignore ),
+        Confirm::SavedGraphSelection => AwpakResult::new_err( app, Error::Ignore )
+    }
+}
+
+fn change_confirm_saved_graph_selection( 
+    app : App,
+    confirm : Confirm,
+    fn_select : impl Fn( Vec<SelectableItem<AwpakTUIGraph>> ) -> Vec<SelectableItem<AwpakTUIGraph>>
+) -> AwpakResult<App>
+{
+    match confirm
+    {
+        Confirm::MovibleAction => AwpakResult::new_err( app, Error::Ignore ),
+        Confirm::AgentSelection => AwpakResult::new_err( app, Error::Ignore ),
+        Confirm::ChatSelection => AwpakResult::new_err( app, Error::Ignore ),
+        Confirm::SavedGraphSelection => AwpakResult::new_err( app, Error::Ignore ),
+        Confirm::GraphSelection =>
+        {
+            let ( app, graphs ) = app.own_saved_graphs();
+
+            let graphs = fn_select( graphs );
+
+            AwpakResult::new( app.change_saved_graphs( graphs ) )
+        }
+    }
+}
+
+fn change_confirm_graph_selection( 
+    app : App,
+    confirm : Confirm,
+    fn_select : impl Fn( Vec<SelectableItem<AwpakTUIGraph>> ) -> Vec<SelectableItem<AwpakTUIGraph>>
+) -> AwpakResult<App>
+{
+    match confirm
+    {
+        Confirm::MovibleAction => AwpakResult::new_err( app, Error::Ignore ),
+        Confirm::AgentSelection => AwpakResult::new_err( app, Error::Ignore ),
+        Confirm::ChatSelection => AwpakResult::new_err( app, Error::Ignore ),
+        Confirm::SavedGraphSelection => AwpakResult::new_err( app, Error::Ignore ),
+        Confirm::GraphSelection =>
+        {
+            let ( app, graphs ) = app.own_graphs();
+
+            let graphs = fn_select( graphs );
+
+            AwpakResult::new( app.change_graphs( graphs ) )
         }
     }
 }
@@ -137,7 +205,9 @@ fn change_confirm_agent_selection(
 
             AwpakResult::new( app.change_ai_agents( agents ) )
         },
-        Confirm::ChatSelection => AwpakResult::new_err( app, Error::Ignore )
+        Confirm::ChatSelection => AwpakResult::new_err( app, Error::Ignore ),
+        Confirm::GraphSelection => AwpakResult::new_err( app, Error::Ignore ),
+        Confirm::SavedGraphSelection => AwpakResult::new_err( app, Error::Ignore )
     }
 }
 
@@ -215,6 +285,13 @@ fn change_content_selection(
         {
             AwpakResult::new_err( 
                 app.change_content( AppContent::Chat( c ) ), 
+                Error::Ignore
+            )
+        },
+        AppContent::Graph( g ) =>
+        {
+            AwpakResult::new_err( 
+                app.change_content( AppContent::Graph( g ) ), 
                 Error::Ignore
             )
         }

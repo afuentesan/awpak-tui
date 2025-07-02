@@ -56,6 +56,10 @@ fn sort_inner_content( content : AppContent, sort_by : SortBy ) -> AppContent
         AppContent::Chat( c ) =>
         {
             AppContent::Chat( c )
+        },
+        AppContent::Graph( g ) =>
+        {
+            AppContent::Graph( g )
         }
     }
 }

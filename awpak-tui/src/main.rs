@@ -5,6 +5,8 @@ use domain::{app::model::app::App, error::Error, selectable::model::selectable_i
 use infrastructure::{action::{action_channel::{init_channels, ActionChannel}, app::action::Action}, channel::channel::init_global_channels, config::functions::{ai_config::ai_config, config::{rows_from_sources_config, sources_config}}, controller::{app_controller::app_controller, async_controller::async_controller, window_controller::window_controller}, event::handle_events::init_handle_events};
 use ratatui::DefaultTerminal;
 
+use crate::infrastructure::config::functions::graph_config::init_graphs_from_config;
+
 
 
 mod domain;
@@ -44,6 +46,9 @@ fn new_app() -> Result<App, Error>
                 ),
                 None => a
             }
+            .change_graphs(
+                init_graphs_from_config().into_iter().map( | g | SelectableItem::Idle( g ) ).collect()
+            )
         }
     )
 }

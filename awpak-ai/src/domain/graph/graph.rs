@@ -5,7 +5,7 @@ use serde_json::Value;
 
 use crate::domain::{data::data::DataType, graph::node::{Node, NodeConfig}};
 
-#[derive(Serialize, Deserialize, Clone)]
+#[derive(Default,Serialize, Deserialize, Clone)]
 pub struct Graph
 {
     pub input : Option<String>,

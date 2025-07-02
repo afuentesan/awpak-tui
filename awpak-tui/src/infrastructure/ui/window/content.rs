@@ -3,7 +3,7 @@ use std::collections::HashMap;
 use awpak_tui_ai::domain::chat::chat::Chat;
 use ratatui::{layout::{Constraint, Rect}, style::Stylize, text::Line, widgets::Cell, Frame};
 
-use crate::{domain::{app::model::app::{App, AppContent, AppFocus}, detail::model::detail::{Detail, DetailContent}, selectable::{functions::selectable_utils::idx_current_selected_item_filter_hidden, model::{selectable::Selectable, selectable_item::SelectableItem}}, table::model::table::Table, util::string_utils::str_len}, infrastructure::{action::window::window_action::CursorDirection, ui::{areas::areas::{content_area, Areas}, color::{palette::Palette, table::TableColors}, table::from_table::{constraints_table_default, constraints_table_detail, idx_visible_columns, render_cell_default, render_cell_detail, ui_from_table}, util::ui_utils::str_lines_width_limited}}};
+use crate::{domain::{app::model::app::{App, AppContent, AppFocus}, detail::model::detail::{Detail, DetailContent}, selectable::{functions::selectable_utils::idx_current_selected_item_filter_hidden, model::{selectable::Selectable, selectable_item::SelectableItem}}, table::model::table::Table, util::string_utils::str_len}, infrastructure::{action::window::window_action::CursorDirection, ui::{areas::areas::{content_area, Areas}, color::{palette::Palette, table::TableColors}, table::from_table::{constraints_table_default, constraints_table_detail, idx_visible_columns, render_cell_default, render_cell_detail, ui_from_table}, util::ui_utils::str_lines_width_limited, window::graph::render_content_graph}}};
 
 use super::{chat::render_content_chat, state::WindowState};
 
@@ -170,6 +170,7 @@ pub fn render_content(
         AppContent::Detail( d ) => render_content_detail( d, app, areas, frame, window_state, palette ),
         AppContent::Empty => {},
         AppContent::Chat( _ ) => render_content_chat( app, areas, frame, window_state, palette ),
+        AppContent::Graph( _ ) => render_content_graph( app, areas, frame, window_state, palette )
     };
 }
 

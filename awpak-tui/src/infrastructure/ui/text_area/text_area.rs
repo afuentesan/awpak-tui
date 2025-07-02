@@ -1,6 +1,6 @@
 use ratatui::{layout::{Alignment, Rect}, style::{Color, Style, Stylize as _}, text::{Line, Span}, widgets::{Paragraph, StatefulWidget, Widget}, Frame};
 
-use crate::{domain::util::string_utils::{divide_str, str_len}, infrastructure::ui::util::ui_utils::str_lines_width_limited};
+use crate::{domain::util::string_utils::{divide_str, str_len}, infrastructure::ui::util::ui_utils::{str_lines_from_line, str_lines_width_limited}};
 
 
 #[derive(Default)]
@@ -204,6 +204,49 @@ pub fn text_area<'a>(
     ( text_area, size )
 }
 
+pub fn text_area_from_vec_of_str<'a>( 
+    text : &'a Vec<String>, 
+    state : &mut ScrollState, 
+    limite_width : Option<u16>,
+    bg : Color,
+    fg : Color,
+    prepend : &'a str
+) -> ( TextAreaWidget<'a>, ( u16, u16 ) )
+{
+    let TextLinesInfo {
+        lines,
+        cursor_position,
+        max_width
+    } = text_lines( 
+        if let Some( limite_width ) = limite_width
+        {
+            // str_lines_width_limited( text, limite_width as usize - 3 )
+            text.iter().flat_map( | s | str_lines_from_line( s, limite_width as usize - 3 ) ).collect()
+        }
+        else
+        {
+            // text.split( "\n" ).collect()
+            text.iter().map( | s | s.as_str() ).collect()
+        }, 
+        state.cursor_position,
+        bg,
+        fg,
+        prepend
+    );
+
+    let size = ( max_width, lines.len() as u16 );
+
+    let text_area = TextAreaWidget 
+    { 
+        lines, 
+        line_col : cursor_position,
+        bg,
+        fg
+    };
+
+    ( text_area, size )
+}
+
 pub fn render_text_area<'a>( 
     text : &'a str, 
     state : &mut ScrollState, 
@@ -224,32 +267,28 @@ pub fn render_text_area<'a>(
         prepend
     );
 
-    // let TextLinesInfo {
-    //     lines,
-    //     cursor_position,
-    //     ..
-    // } = text_lines( 
-    //     if limite_width
-    //     {
-    //         str_lines_width_limited( text, area.width as usize - 3 )
-    //     }
-    //     else
-    //     {
-    //         text.split( "\n" ).collect()
-    //     }, 
-    //     state.cursor_position,
-    //     bg,
-    //     fg,
-    //     prepend
-    // );
+    frame.render_stateful_widget( text_area, area, state );
+}
 
-    // let text_area = TextAreaWidget 
-    // { 
-    //     lines, 
-    //     line_col : cursor_position,
-    //     bg,
-    //     fg
-    // };
+pub fn render_text_area_from_vec_of_str<'a>( 
+    text : &'a Vec<String>, 
+    state : &mut ScrollState, 
+    area : Rect, 
+    frame : &mut Frame,
+    limite_width : bool,
+    bg : Color,
+    fg : Color,
+    prepend : &'a str
+)
+{
+    let ( text_area, _ ) = text_area_from_vec_of_str( 
+        text, 
+        state, 
+        if limite_width { Some( area.width ) } else { None }, 
+        bg, 
+        fg, 
+        prepend
+    );
 
     frame.render_stateful_widget( text_area, area, state );
 }

@@ -2,7 +2,7 @@ use std::{sync::mpsc::{Receiver, Sender}, thread};
 
 use awpak_tui_ai::{domain::chat::chat::ChatChannel, infrastructure::controllers::chat_controller::send_propmt_to_chat};
 
-use crate::infrastructure::{action::{app::action::Action, async_action::async_action::AsyncAction}, channel::channel::{clean_recv_abort_chat, try_recv_abort_chat}};
+use crate::infrastructure::{action::{app::action::Action, async_action::async_action::AsyncAction}, channel::channel::{clean_recv_abort_chat, try_recv_abort_chat}, controller::graph_controller::send_prompt_to_graph};
 
 
 pub fn async_controller(
@@ -48,6 +48,10 @@ async fn execute_async_action( action : AsyncAction, sender : Sender<Action> )
             clean_recv_abort_chat();
             
             send_propmt_to_chat( s, chat_action ).await
+        },
+        AsyncAction::SendGraphRequest( g ) =>
+        {
+            send_prompt_to_graph( g, sender ).await;
         }
     }
 }

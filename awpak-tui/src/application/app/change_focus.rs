@@ -51,7 +51,8 @@ fn change_focus_in_content(
         AppContent::Table( t ) => change_focus_in_content_table_or_default( app, t, fn_change_table_sel, fn_default ),
         AppContent::Detail( d ) => change_focus_in_detail( app, *d, fn_change_table_sel, fn_default ),
         AppContent::Empty => fn_default( app ),
-        AppContent::Chat( c ) => fn_default( app.change_content( AppContent::Chat( c ) ) )
+        AppContent::Chat( c ) => fn_default( app.change_content( AppContent::Chat( c ) ) ),
+        AppContent::Graph( g ) => fn_default( app.change_content( AppContent::Graph( g ) ) )
     }
 }
 

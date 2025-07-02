@@ -7,4 +7,4 @@ pub mod app_sort;
 pub mod app_search;
 pub mod app_detail;
 pub mod app_movible;
-pub mod app_chat;
+pub mod app_graph;

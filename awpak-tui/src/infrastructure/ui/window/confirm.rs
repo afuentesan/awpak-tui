@@ -31,6 +31,8 @@ fn render_confirm_type(
         // Confirm::AgentSelection => render_confirm_agent_selection( app, areas, frame, window_state, palette ),
         Confirm::AgentSelection => render_confirm_selection( areas, frame, window_state, palette, app.ai_agents(), "Select AI" ),
         Confirm::ChatSelection => render_confirm_selection( areas, frame, window_state, palette, app.saved_chats(), "Select Chat" ),
+        Confirm::GraphSelection => render_confirm_selection( areas, frame, window_state, palette, app.graphs(), "Select Graph" ),
+        Confirm::SavedGraphSelection => render_confirm_selection( areas, frame, window_state, palette, app.saved_graphs(), "Select Graph" ),
     }
 }
 

@@ -1,5 +1,34 @@
 use crate::domain::{app::{functions::change_content::{change_app_content, reload_app_content}, model::app::{App, AppContent}}, content_generator::{functions::generator::{generate_content, parent_of_generator}, model::content_generator::ContentGenerator}, error::Error, result::{functions::result_utils::bool_err, result::AwpakResult}};
 
+pub fn back_from_graph( app : App ) -> AwpakResult<App>
+{
+    match app.graph_content_generator()
+    {
+        Some( ( parent, _ ) ) =>
+        {
+            let parent = parent.clone();
+
+            close_graph( app, parent )
+        },
+        None => AwpakResult::new_err( app, Error::Ignore )
+    }
+}
+
+fn close_graph( app : App, parent : ContentGenerator ) -> AwpakResult<App>
+{
+    let app = app.change_content_generator( parent );
+
+    let ( app, graph ) = app.own_graph_content();
+
+    let app = match graph
+    {
+        Some( g ) => app.save_graph( g ),
+        _ => app    
+    };
+
+    AwpakResult::new( reload_app_content( app ) )
+}
+
 pub fn back_from_chat( app : App ) -> AwpakResult<App>
 {
     match app.chat_content_generator()
@@ -137,7 +166,8 @@ fn new_history_result( app : App ) -> AwpakResult<App>
         ContentGenerator::Expandable( _ ) |
         ContentGenerator::Empty => AwpakResult::new( app ),
         ContentGenerator::Detail( _, _ ) => AwpakResult::new_err( app, Error::Ignore ),
-        ContentGenerator::Chat( _, _ ) => AwpakResult::new_err( app, Error::Ignore )
+        ContentGenerator::Chat( _, _ ) => AwpakResult::new_err( app, Error::Ignore ),
+        ContentGenerator::Graph( _, _ ) => AwpakResult::new_err( app, Error::Ignore )
     }
 }
 

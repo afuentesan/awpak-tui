@@ -1,6 +1,6 @@
 use std::sync::mpsc::Sender;
 
-use crate::{application::{field::field::change_edit_field, navigation::navigate::{back_from_chat, back_from_detail, history_back, history_next, parent_navigation}, search::search::{search_line_down, search_line_up}, selectable::change_selection::{append_or_remove_next_in_focus, append_or_remove_previous_in_focus, select_next_in_focus, select_previous_in_focus}}, domain::{app::model::app::{App, AppContent, AppFocus}, content_generator::model::content_generator::ContentGenerator, input::model::input::InputModifier}, infrastructure::action::window::window_action::{CursorDirection, WindowAction}};
+use crate::{application::{field::field::change_edit_field, navigation::navigate::{back_from_chat, back_from_detail, back_from_graph, history_back, history_next, parent_navigation}, search::search::{search_line_down, search_line_up}, selectable::change_selection::{append_or_remove_next_in_focus, append_or_remove_previous_in_focus, select_next_in_focus, select_previous_in_focus}}, domain::{app::model::app::{App, AppContent, AppFocus}, content_generator::model::content_generator::ContentGenerator, input::model::input::InputModifier}, infrastructure::action::window::window_action::{CursorDirection, WindowAction}};
 
 use super::app_utils::app_exec_action;
 
@@ -74,7 +74,8 @@ pub fn app_alt_left( app : App, tx : Sender<WindowAction> ) -> App
         ContentGenerator::ExecutableExpandable( _ ) |
         ContentGenerator::Empty => app_exec_action( app, tx, history_back ),
         ContentGenerator::Detail( _, _ ) => app_exec_action( app, tx, back_from_detail ),
-        ContentGenerator::Chat( _, _ ) => app_exec_action( app, tx, back_from_chat )
+        ContentGenerator::Chat( _, _ ) => app_exec_action( app, tx, back_from_chat ),
+        ContentGenerator::Graph( _, _ ) => app_exec_action( app, tx, back_from_graph )
     }
 }
 

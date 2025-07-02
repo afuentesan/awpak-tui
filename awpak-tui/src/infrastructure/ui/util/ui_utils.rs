@@ -141,7 +141,7 @@ pub fn str_lines_width_limited( text : &str, max_width : usize ) -> Vec<&str>
     .collect()
 }
 
-fn str_lines_from_line( mut line : &str, max_width : usize ) -> Vec<&str>
+pub fn str_lines_from_line( mut line : &str, max_width : usize ) -> Vec<&str>
 {
     let mut lines : Vec<&str> = vec![];
 
