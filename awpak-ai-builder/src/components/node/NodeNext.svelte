@@ -3,7 +3,7 @@
     import { select_options_from_array, select_options_from_enum } from "../../functions/form_utils";
     import { node_ids } from "../../functions/node_functions";
     import { NodeNextVariant, type NodeNext } from "../../model/node";
-    import { change_next_step, change_option_string, graph, remove_from_array } from "../../store";
+    import { change_next_step, change_option_string, element_from_path, graph, remove_from_array } from "../../store";
     import DataToString from "../data/DataToString.svelte";
     import Box from "../form/Box.svelte";
     import Button from "../form/Button.svelte";
@@ -25,6 +25,18 @@
     } : InputProps = $props();
 
     let node_next_options = select_options_from_enum( NodeNextVariant, node_next._variant, false );
+
+    $effect(() => {
+        
+        if( ! node_next?._variant ) return;
+
+        let new_next = element_from_path( $graph, base_path );
+
+        if( ! new_next ) return;
+        // let new_node = node_by_id( $graph, node.id );
+
+        node_next = Object.assign( {}, new_next );
+    });
 
 </script>
 

@@ -37,6 +37,8 @@ export function add_node()
 
     new_graph.nodes.push( new Node( id ) );
 
+    new_graph.nodes = [ ...new_graph.nodes ];
+
     graph.set( new_graph );
 }
 
@@ -50,6 +52,8 @@ export function change_node_id( id : string, new_id : string )
     {
         new_graph.first.id = new_id;
 
+        new_graph.first = Object.assign( {}, new_graph.first );
+
         update_graph_destinations_id( new_graph, id, new_id );
 
         graph.set( new_graph );
@@ -62,9 +66,11 @@ export function change_node_id( id : string, new_id : string )
             if( n.id == id )
             {
                 n.id = new_id;
+
+                return Object.assign( {}, n );
             }
 
-            return n
+            return n;
         }
     );
 
@@ -90,6 +96,8 @@ export function remove_node( idx : number )
 
     new_graph.nodes.splice( idx, 1 );
 
+    new_graph.nodes = [...new_graph.nodes ];
+
     clean_graph_destinations_id( new_graph, id as string );
 
     graph.set( new_graph );
@@ -114,6 +122,8 @@ export function remove_from_array( base_path : string, idx : number )
 
     result[ 0 ].parent[ result[ 0 ].parentProperty ].splice( idx, 1 );
 
+    result[ 0 ].parent[ result[ 0 ].parentProperty ] = [ ...result[ 0 ].parent[ result[ 0 ].parentProperty ] ];
+
     console.log( "New graph: ", new_graph );
 
     graph.set( new_graph );
@@ -128,6 +138,8 @@ export function append_to_array( base_path : string, new_elem : any )
     if( ! result?.length || ! result[ 0 ].parent ) { return; }
 
     result[ 0 ].parent[ result[ 0 ].parentProperty ].push( new_elem );
+
+    result[ 0 ].parent[ result[ 0 ].parentProperty ] = [ ...result[ 0 ].parent[ result[ 0 ].parentProperty ] ];
 
     console.log( "New graph: ", new_graph );
 

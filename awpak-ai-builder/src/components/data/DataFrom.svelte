@@ -3,7 +3,7 @@
     import Self from './DataFrom.svelte'
     import { select_options_from_enum } from "../../functions/form_utils";
     import { DataFromVariant, FromContext, type DataFrom } from "../../model/data";
-    import { append_to_array, chage_data_from_variant, change_boolean, change_option_string, remove_from_array } from "../../store";
+    import { append_to_array, chage_data_from_variant, change_boolean, change_option_string, remove_from_array, graph, element_from_path } from "../../store";
     import Box from "../form/Box.svelte";
     import Button from "../form/Button.svelte";
     import Checkbox from "../form/Checkbox.svelte";
@@ -31,9 +31,21 @@
 
         append_to_array( path, new_item_concat );
     }
+
+    $effect(() => {
+        
+        if( ! from?._variant ) return;
+
+        let new_from = element_from_path( $graph, base_path );
+
+        if( ! new_from ) return;
+        // let new_node = node_by_id( $graph, node.id );
+
+        from = Object.assign( {}, new_from );
+    });
 </script>
 
-{#if from}
+{#if from?._variant}
 <Box title={"DataFrom "+from._variant+". "+label}>
 
     <Select label="From" options={options_from_variants} value={from._variant} change_value={chage_data_from_variant} base_path={base_path} />

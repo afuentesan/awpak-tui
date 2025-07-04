@@ -5,6 +5,7 @@
     import Box from "../form/Box.svelte";
     import Button from "../form/Button.svelte";
     import NodeNext from "./NodeNext.svelte";
+    import { element_from_path, graph } from "../../store";
 
     interface InputProps
     {
@@ -48,6 +49,18 @@
 
         return ret;
     };
+
+    $effect(() => {
+        
+        if( ! destination?.next ) return;
+
+        let new_dest = element_from_path( $graph, base_path );
+
+        if( ! new_dest ) return;
+        // let new_node = node_by_id( $graph, node.id );
+
+        destination = Object.assign( {}, new_dest );
+    });
 
 </script>
 
