@@ -6,13 +6,13 @@ pub fn init_global_channels()
     init_abort_chat_channel();
 }
 
-pub fn send_abort_chat( abort : bool ) -> bool
+pub fn send_abort_chat() -> bool
 {
     match tx_abort_chat().lock().unwrap().as_ref()
     {
         Some( t ) =>
         {
-            let _ = t.send( abort );
+            let _ = t.send( () );
 
             true
         },
@@ -20,7 +20,7 @@ pub fn send_abort_chat( abort : bool ) -> bool
     }
 }
 
-// pub async fn recv_abort_chat() -> Option<bool>
+// pub async fn recv_abort_chat() -> Option<()>
 // {
 //     match rx_abort_chat().lock().unwrap().as_mut()
 //     {
@@ -36,7 +36,7 @@ pub fn send_abort_chat( abort : bool ) -> bool
 //     }
 // }
 
-pub fn try_recv_abort_chat() -> Option<bool>
+pub fn try_recv_abort_chat() -> Option<()>
 {
     match rx_abort_chat().lock().unwrap().as_mut()
     {
@@ -50,21 +50,21 @@ pub fn clean_recv_abort_chat()
     while let Some( _ ) = try_recv_abort_chat() {}
 }
 
-pub fn rx_abort_chat() -> &'static Arc<Mutex<Option<Receiver<bool>>>>
+pub fn rx_abort_chat() -> &'static Arc<Mutex<Option<Receiver<()>>>>
 {
-    static C : OnceLock<Arc<Mutex<Option<Receiver<bool>>>>> = OnceLock::new();
+    static C : OnceLock<Arc<Mutex<Option<Receiver<()>>>>> = OnceLock::new();
     C.get_or_init(|| Arc::new( Mutex::new( None ) ) )
 }
 
-fn tx_abort_chat() -> &'static Arc<Mutex<Option<Sender<bool>>>>
+fn tx_abort_chat() -> &'static Arc<Mutex<Option<Sender<()>>>>
 {
-    static C : OnceLock<Arc<Mutex<Option<Sender<bool>>>>> = OnceLock::new();
+    static C : OnceLock<Arc<Mutex<Option<Sender<()>>>>> = OnceLock::new();
     C.get_or_init(|| Arc::new( Mutex::new( None ) ) )
 }
 
 fn init_abort_chat_channel()
 {
-    let ( tx, rx ) = channel::<bool>();
+    let ( tx, rx ) = channel::<()>();
 
     rx_abort_chat().lock().unwrap().replace( rx );
     tx_abort_chat().lock().unwrap().replace( tx );

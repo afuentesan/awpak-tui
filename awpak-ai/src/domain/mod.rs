@@ -8,3 +8,4 @@ pub mod context_mut;
 pub mod agent;
 pub mod mcp;
 pub mod tracing;
+pub mod signals;

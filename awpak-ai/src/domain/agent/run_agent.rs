@@ -4,9 +4,10 @@ use rig::{agent::Agent, completion::CompletionModel, message::{AssistantContent,
 use tokio_stream::{Stream, StreamExt};
 use tracing::info;
 type StreamingResult = Pin<Box<dyn Stream<Item = Result<Text, Error>> + Send>>;
-use crate::domain::{agent::agent::AIAgent, error::Error, tracing::filter_layer::{AGENT_STREAM, AGENT_TOOL_CALL, AGENT_TOOL_RESULT}};
+use crate::domain::{agent::agent::AIAgent, error::Error, signals::cancel_graph::is_graph_cancelled, tracing::filter_layer::{AGENT_STREAM, AGENT_TOOL_CALL, AGENT_TOOL_RESULT}};
 
 pub async fn run_agent<T: CompletionModel + 'static>( 
+    id : Option<&String>,
     prompt : String, 
     provider : Agent<T>, 
     agent : &AIAgent 
@@ -16,18 +17,19 @@ pub async fn run_agent<T: CompletionModel + 'static>(
     let chat_history_result = chat_history.clone();
 
     let mut result = stream_chat( 
+        match id
+        {
+            Some( id ) => Some( id.clone() ),
+            _ => None
+        },
         provider, 
         prompt, 
         chat_history
     ).await;
     
-    let response = string_from_stream( &mut result ).await?;
+    let response = string_from_stream( id, &mut result ).await?;
 
-    let mut history = match chat_history_result.lock()
-    {
-        Ok( mut h ) => h.split_off( 0 ),
-        Err( mut h ) => h.get_mut().split_off( 0 )
-    };
+    let mut history = chat_history_result.lock().unwrap().split_off( 0 );
 
     history.push( Message::assistant( response.clone() ) );
 
@@ -35,6 +37,7 @@ pub async fn run_agent<T: CompletionModel + 'static>(
 }
 
 async fn string_from_stream(
+    id : Option<&String>,
     stream: &mut StreamingResult
 ) -> Result<String, Error>
 {
@@ -42,6 +45,11 @@ async fn string_from_stream(
 
     while let Some( content ) = stream.next().await
     {
+        if let Some( id ) = id
+        {
+            if is_graph_cancelled( id ) { return Err( Error::Agent( "Graph cancelled".into() ) ) }
+        }
+
         match content 
         {
             Ok( Text { text } ) => 
@@ -61,6 +69,7 @@ async fn string_from_stream(
 }
 
 async fn stream_chat<M>(
+    id : Option<String>,
     agent: Agent<M>,
     prompt: impl Into<Message> + Send,
     chat_history: Arc<Mutex<Vec<Message>>>,
@@ -77,11 +86,7 @@ where
 
         'outer: loop 
         {
-            let h = match chat_history.lock()
-            {
-                Ok( h ) => h.clone(),
-                Err( h ) => h.into_inner().clone()
-            };
+            let h = chat_history.lock().unwrap().clone();
 
             let mut stream = agent
                 .stream_completion(current_prompt.clone(), h )
@@ -91,17 +96,18 @@ where
                 .await
                 .map_err( | e | Error::Agent( e.to_string() ) )?;
 
-            match chat_history.lock()
-            {
-                Ok( mut h ) => h.push( current_prompt.clone() ),
-                Err( mut h ) => h.get_mut().push( current_prompt.clone() )
-            };
+            chat_history.lock().unwrap().push( current_prompt );
             
             let mut tool_calls = vec![];
             let mut tool_results = vec![];
 
             while let Some(content) = stream.next().await 
             {
+                if let Some( ref id ) = id
+                {
+                    if is_graph_cancelled( &id ) { yield Err( Error::Agent( "Graph cancelled".into() ) ) }
+                }
+
                 match content {
                     Ok(AssistantContent::Text(text)) => {
                         yield Ok(Text { text: text.text });
@@ -157,11 +163,7 @@ where
                     content : OneOrMany::many( tool_calls ).expect( "Impossible EmptyListError" ),
                 };
 
-                match chat_history.lock()
-                {
-                    Ok( mut h ) => h.push( m ),
-                    Err( mut h ) => h.get_mut().push( m )
-                };
+                chat_history.lock().unwrap().push( m );
             }
 
             // Add tool results to chat history
@@ -177,20 +179,12 @@ where
                     )
                 };
 
-                match chat_history.lock()
-                {
-                    Ok( mut h ) => h.push( m ),
-                    Err( mut h ) => h.get_mut().push( m )
-                };
+                chat_history.lock().unwrap().push( m );
             }
 
             if ! did_call_tool { break; }
 
-            let last = match chat_history.lock()
-            {
-                Ok( mut h ) => h.pop(),
-                Err( mut h ) => h.get_mut().pop()
-            };
+            let last = chat_history.lock().unwrap().pop();            
 
             // Set the current prompt to the last message in the chat history
             current_prompt = match last

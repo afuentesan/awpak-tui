@@ -1,6 +1,6 @@
 use std::sync::mpsc::Sender;
 
-use crate::{application::{confirm::confirm::discard_action, detail::show_detail::show_detail, message::message::hide_message, navigation::navigate::{back_from_detail, back_from_graph}}, domain::{app::model::app::{App, AppFocus}, error::Error, result::result::AwpakResult}, infrastructure::action::window::window_action::WindowAction};
+use crate::{application::{confirm::confirm::discard_action, detail::show_detail::show_detail, message::message::hide_message, navigation::navigate::{back_from_detail, back_from_graph}}, domain::{app::model::app::{App, AppContent, AppFocus}, error::Error, graph::graph_functions::is_graph_request_empty, result::result::AwpakResult}, infrastructure::{action::window::window_action::WindowAction, channel::channel::send_abort_chat}};
 
 use super::app_utils::{app_exec_action, app_exec_action_allways_refresh, app_exec_actions_while_err};
 
@@ -36,11 +36,16 @@ pub fn app_esc( app : App, tx : Sender<WindowAction> ) -> App
     }
 }
 
-// TODO: Cancel graph
 fn cancel_graph( app : App ) -> AwpakResult<App>
 {
     match app.content()
     {
+        AppContent::Graph( g ) if ! is_graph_request_empty( &g.request ) =>
+        {
+            send_abort_chat();
+
+            AwpakResult::new( app )
+        }
         _ => AwpakResult::new_err( app, Error::Ignore )
     }
 }

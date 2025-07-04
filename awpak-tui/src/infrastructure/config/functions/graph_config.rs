@@ -24,16 +24,17 @@ pub fn current_graph( initial_id : &str, current_id : &str ) -> Result<Graph, Er
     {
         let initial = initial_graphs().lock().unwrap();
         let initial = initial.get( initial_id )
-        .ok_or( Error::Graph( format!( "Graph {} not found.", initial_id ) ) )?;
+        .ok_or( Error::Graph( format!( "Graph {} not found in initial.", initial_id ) ) )?;
 
-        Ok( initial.clone() )
+        current_graphs().lock().unwrap()
+        .insert( current_id.to_string(), initial.clone() );
     }
-    else
-    {
-        let mut lock = current_graphs().lock().unwrap();
+    
+    let lock = current_graphs().lock().unwrap();
 
-        lock.remove( current_id ).ok_or( Error::Graph( format!( "Graph {} not found.", initial_id ) ) )    
-    }
+    let graph = lock.get( current_id ).ok_or( Error::Graph( format!( "Graph {} not found in current.", current_id ) ) )?;
+
+    Ok( graph.clone() )
 }
 
 pub fn save_graph_in_current( id : &str, graph : Graph )

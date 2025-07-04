@@ -1,6 +1,6 @@
 use std::{sync::mpsc::{Receiver, Sender}, thread};
 
-use crate::infrastructure::{action::{app::action::Action, async_action::async_action::AsyncAction}, channel::channel::{clean_recv_abort_chat, try_recv_abort_chat}, controller::graph_controller::{capture_graph_output, send_prompt_to_graph}};
+use crate::infrastructure::{action::{app::action::Action, async_action::async_action::AsyncAction}, controller::graph_controller::{capture_graph_output, send_prompt_to_graph}};
 
 
 pub fn async_controller(

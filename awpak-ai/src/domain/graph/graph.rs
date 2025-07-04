@@ -5,9 +5,10 @@ use serde_json::Value;
 
 use crate::domain::{data::data::DataType, graph::node::{Node, NodeConfig}};
 
-#[derive(Default,Serialize, Deserialize, Clone)]
+#[derive(Default, Serialize, Deserialize, Clone)]
 pub struct Graph
 {
+    pub id : Option<String>,
     pub input : Option<String>,
     pub input_type : Option<DataType>,
     pub parsed_input : Value,
@@ -42,6 +43,7 @@ impl Graph
 
         Self 
         { 
+            id : None,
             input : None, 
             input_type, 
             parsed_input : Value::Null, 

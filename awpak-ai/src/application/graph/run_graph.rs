@@ -78,7 +78,13 @@ async fn execute_node( mut runner : GraphRunner ) -> ( AwpakResult<GraphRunner, 
     {
         NodeExecutor::Command( c ) =>
         {
-            let result = execute_command( runner.graph.input.as_ref(), &runner.graph.parsed_input, &runner.graph.context, c ).await;
+            let result = execute_command( 
+                runner.graph.id.as_ref(), 
+                runner.graph.input.as_ref(), 
+                &runner.graph.parsed_input, 
+                &runner.graph.context, 
+                c 
+            ).await;
 
             (
                 node,
@@ -87,7 +93,13 @@ async fn execute_node( mut runner : GraphRunner ) -> ( AwpakResult<GraphRunner, 
         },
         NodeExecutor::Agent( a ) =>
         {
-            let result = execute_agent( runner.graph.input.as_ref(), &runner.graph.parsed_input, &runner.graph.context, a ).await;
+            let result = execute_agent( 
+                runner.graph.id.as_ref(),
+                runner.graph.input.as_ref(), 
+                &runner.graph.parsed_input, 
+                &runner.graph.context, 
+                a 
+            ).await;
 
             match result
             {

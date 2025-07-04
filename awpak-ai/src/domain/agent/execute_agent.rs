@@ -7,6 +7,7 @@ use crate::domain::{agent::{agent::AIAgent, agent_provider::AIAgentProvider, cre
 
 
 pub async fn execute_agent(
+    id : Option<&String>,
     input : Option<&String>, 
     parsed_input : &Value, 
     context : &HashMap<String, Value>,
@@ -24,11 +25,11 @@ pub async fn execute_agent(
 
     match provider
     {
-        AIAgentProvider::Ollama( p ) => run_agent( prompt, p, agent ).await,
-        AIAgentProvider::OpenAI( p ) => run_agent( prompt, p, agent ).await,
-        AIAgentProvider::Gemini( p ) => run_agent( prompt, p, agent ).await,
-        AIAgentProvider::Anthropic( p ) => run_agent( prompt, p, agent ).await,
-        AIAgentProvider::DeepSeek( p ) => run_agent( prompt, p, agent ).await
+        AIAgentProvider::Ollama( p ) => run_agent( id, prompt, p, agent ).await,
+        AIAgentProvider::OpenAI( p ) => run_agent( id, prompt, p, agent ).await,
+        AIAgentProvider::Gemini( p ) => run_agent( id, prompt, p, agent ).await,
+        AIAgentProvider::Anthropic( p ) => run_agent( id, prompt, p, agent ).await,
+        AIAgentProvider::DeepSeek( p ) => run_agent( id, prompt, p, agent ).await
     }
 }
 
