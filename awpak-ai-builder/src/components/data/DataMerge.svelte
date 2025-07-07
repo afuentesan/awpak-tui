@@ -14,4 +14,16 @@
     );
 </script>
 
-<Select label={label} options={data_merge_options} value={value} change_value={change_data_merge} base_path={base_path} />
+<Select 
+    label={label} 
+    options={
+        select_options_from_enum(
+            DataMerge,
+            value,
+            true
+        )
+    } 
+    value={value} 
+    change_value={change_data_merge} 
+    base_path={base_path} 
+/>

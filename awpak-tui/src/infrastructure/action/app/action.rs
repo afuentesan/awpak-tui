@@ -28,7 +28,8 @@ pub enum Action
     ShiftDown,
     ShiftUp,
     AppendTextToContent( String ),
-    EndChatResponse,
+    AppendTextToContentId { id : String, text : String },
+    EndChatResponse( Option<String> ),
     Render,
     Exit
 }

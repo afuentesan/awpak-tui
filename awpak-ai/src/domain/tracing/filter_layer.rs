@@ -6,18 +6,28 @@ use tracing_subscriber::{layer::Context, Layer};
 
 pub struct AwpakAIFilterLayer
 {
-    pub allowed : Vec<( AwpakAITarget, Sender<String> )>,
+    pub allowed : Vec<( AwpakAITarget, Sender<AwpakTracingMessage> )>,
 }
 
 pub const AGENT_STREAM : &'static str = "agent_stream";
 pub const AGENT_TOOL_CALL : &'static str = "agent_tool_call";
 pub const AGENT_TOOL_RESULT : &'static str = "agent_tool_result";
 
+pub const COMMAND_AND_ARGS : &'static str = "command_and_args";
+pub const COMMAND_RESULT : &'static str = "command_result";
+
+pub const NODE_DESTINATION : &'static str = "node_destination";
+pub const NODE_EXECUTION : &'static str = "node_execution";
+
 pub enum AwpakAITarget
 {
     AgentStream,
     AgentToolCall,
-    AgentToolResult
+    AgentToolResult,
+    CommandAndArgs,
+    CommandResult,
+    NodeDestination,
+    NodeExecution
 }
 
 impl AwpakAITarget
@@ -28,9 +38,20 @@ impl AwpakAITarget
         {
             AwpakAITarget::AgentStream => AGENT_STREAM,
             AwpakAITarget::AgentToolCall => AGENT_TOOL_CALL,
-            AwpakAITarget::AgentToolResult => AGENT_TOOL_RESULT    
+            AwpakAITarget::AgentToolResult => AGENT_TOOL_RESULT,
+            AwpakAITarget::CommandAndArgs => COMMAND_AND_ARGS,
+            AwpakAITarget::CommandResult => COMMAND_RESULT,
+            AwpakAITarget::NodeDestination => NODE_DESTINATION,
+            AwpakAITarget::NodeExecution => NODE_EXECUTION
         }
     }
+}
+
+pub struct AwpakTracingMessage
+{
+    pub id : Option<String>,
+    pub text : String,
+    pub target : String
 }
 
 impl<S> Layer<S> for AwpakAIFilterLayer
@@ -43,21 +64,28 @@ where
 
         event.record( &mut visitor );
 
-        // println!( "Event: {:?}", event.fields() );
-
-        if let Some( text )  = visitor.fields.remove( "text" ) 
+        if let Some( text ) = visitor.fields.remove( "text" )
         {
-            // println!( "Text: {}, {}", text, event.metadata().target() );
-
             let _ = self.allowed.iter()
             .find( | ( t, _ ) | t.as_str() == event.metadata().target() )
             .map( | ( _, c ) | c )
             .map( 
                 | c |
                 {
-                    let _ = c.send( text );
+                    let id = match visitor.fields.remove( "id" )
+                    {
+                        Some( id ) if id.trim() != "" => Some( id ),
+                        _ => None
+                    };
 
-                    // println!( "Despues de send" );
+                    let _ = c.send( 
+                        AwpakTracingMessage 
+                        { 
+                            id,
+                            text,
+                            target : event.metadata().target().to_string()
+                        }
+                    );
                 }
             );
         }

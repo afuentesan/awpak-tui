@@ -15,12 +15,6 @@
     }
 
     let { provider, base_path } : InputProps = $props();
-
-    const provider_options = select_options_from_enum(
-        AIAgentProviderConfigVariant,
-        provider._variant,
-        false
-    );
     
 </script>
 
@@ -28,7 +22,13 @@
 
     <Select 
         label="Provider type" 
-        options={provider_options} 
+        options={
+            select_options_from_enum(
+                AIAgentProviderConfigVariant,
+                provider._variant,
+                false
+            )
+        } 
         value={provider._variant} 
         change_value={change_provider_variant} 
         base_path={base_path} 

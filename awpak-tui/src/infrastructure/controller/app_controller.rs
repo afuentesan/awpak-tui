@@ -64,8 +64,9 @@ fn execute_app_action( action : Action, app : App, tx : Sender<WindowAction> ) -
         Action::CtrlX => app_ctrl_x( app, tx ),
         Action::CtrlD => app_ctrl_d( app, tx ),
         Action::CtrlS => app_ctrl_s( app, tx ),
-        Action::AppendTextToContent( t ) => app_append_text_to_graph_content( app, tx, t.replace( "\t", "    " ) ),
-        Action::EndChatResponse => app_end_graph_response( app, tx )
+        Action::AppendTextToContent( t ) => app_append_text_to_graph_content( app, tx, None, t.replace( "\t", "    " ) ),
+        Action::AppendTextToContentId { id, text } => app_append_text_to_graph_content( app, tx, Some( id ), text.replace( "\t", "    " ) ),
+        Action::EndChatResponse( id ) => app_end_graph_response( id, app, tx )
     }
 }
 

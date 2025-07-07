@@ -234,7 +234,67 @@ pub fn graph_to_waiting( app : App ) -> AwpakResult<App>
     }
 }
 
-pub fn finalize_graph_response( app : App ) -> AwpakResult<App>
+pub fn finalize_graph_response( id : Option<String> ) -> impl Fn( App ) -> AwpakResult<App>
+{
+    move | app |
+    {
+        match &id
+        {
+            Some( id ) => finalize_graph_response_with_id( id, app ),
+            None => finalize_graph_response_without_id( app )
+        }
+    }
+}
+
+fn finalize_graph_response_with_id( id : &str, app : App ) -> AwpakResult<App>
+{
+    match app.content()
+    {
+        AppContent::Graph( g ) if g.id == id =>
+        {
+            finalize_graph_response_without_id( app )
+        },
+        _ => finalize_saved_graph_response( id, app )
+    }
+}
+
+fn finalize_saved_graph_response( id : &str, app : App ) -> AwpakResult<App>
+{
+    let ( app, saved ) = app.own_saved_graphs();
+
+    let mut changed = false;
+
+    let saved = saved.into_iter()
+    .map(
+        | g |
+        {
+            let ( s, g ) = g.own_inner();
+
+            if g.id == id
+            {
+                changed = true;
+
+                let g = g.change_request( GraphRequest::Empty );
+
+                let g = append_string_to_graph_response( "\n".into(), g );
+
+                s.change_inner( g )
+            }
+            else
+            {
+                s.change_inner( g )
+            }
+        }    
+    ).collect::<Vec<_>>();
+
+    match changed
+    {
+        true => AwpakResult::new( app.change_saved_graphs( saved ) ),
+        false => AwpakResult::new_err( app.change_saved_graphs( saved ), Error::Graph( format!( "Graph with id {} not found", id ) ) ),
+    }
+}
+
+pub fn finalize_graph_response_without_id( app : App ) -> AwpakResult<App>
 {
     match app.content()
     {
@@ -275,17 +335,86 @@ fn append_request_to_response( graph : AwpakTUIGraph ) -> AwpakResult<AwpakTUIGr
     .read()
 }
 
-pub fn append_text_to_graph_content( text : String ) -> impl Fn( App ) -> AwpakResult<App>
+pub fn append_text_to_graph_content( id : Option<String>, text : String ) -> impl Fn( App ) -> AwpakResult<App>
 {
     move | app |
     {
-        let ( app, content ) = app.own_content();
-
-        match content
+        match &id
         {
-            AppContent::Graph( c ) => append_text_to_graph( app, c, text.as_str() ),
-            _ => AwpakResult::new_err( app.change_content( content ), Error::Ignore )
+            Some( id ) => append_text_to_graph_with_id( id, app, &text ),
+            None => append_text_to_graph_without_id( app, &text )
         }
+        
+    }
+}
+
+fn append_text_to_graph_with_id(
+    id : &str,
+    app : App,
+    text : &str
+) -> AwpakResult<App>
+{
+    let ( app, content ) = app.own_content();
+
+    match content
+    {
+        AppContent::Graph( c ) if c.id == id => append_text_to_graph( app, c, text ),
+        _ => 
+        {
+            let app = app.change_content( content );
+
+            append_text_to_saved_graph( id, app, &text )
+        }
+    }
+}
+
+fn append_text_to_saved_graph( 
+    id : &str,
+    app : App,
+    text : &str
+) -> AwpakResult<App>
+{
+    let ( app, mut saved ) = app.own_saved_graphs();
+
+    let mut changed = false;
+
+    saved = saved.into_iter()
+    .map(
+        | s |
+        {
+            let ( s, inner ) = s.own_inner();
+
+            if inner.id == id
+            {
+                changed = true;
+
+                s.change_inner( append_string_to_graph_response( text.to_string(), inner ) )
+            }
+            else
+            {
+                s.change_inner( inner )
+            }
+        }
+    ).collect();
+
+    match changed
+    {
+        true => AwpakResult::new( app.change_saved_graphs( saved ) ),
+        false => AwpakResult::new_err( app.change_saved_graphs( saved ), Error::Graph( format!( "Graph with id {} not found", id ) ) )
+    }
+}
+
+fn append_text_to_graph_without_id(
+    app : App,
+    text : &str
+) -> AwpakResult<App>
+{
+    let ( app, content ) = app.own_content();
+
+    match content
+    {
+        AppContent::Graph( c ) => append_text_to_graph( app, c, text ),
+        _ => AwpakResult::new_err( app.change_content( content ), Error::Ignore )
     }
 }
 

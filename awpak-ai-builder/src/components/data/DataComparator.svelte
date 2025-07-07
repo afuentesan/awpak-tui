@@ -19,30 +19,36 @@
 
     let { comparator, base_path, is_grid } : InputProps = $props();
 
-    let data_type_options = select_options_from_enum(
-        DataComparatorVariant,
-        comparator._variant,
-        false
-    );
+    // let data_type_options = select_options_from_enum(
+    //     DataComparatorVariant,
+    //     comparator._variant,
+    //     false
+    // );
 
-    $effect(() => {
+    // $effect(() => {
         
-        if( ! comparator?._variant ) return;
+    //     if( ! comparator?._variant ) return;
 
-        let new_comp = element_from_path( $graph, base_path );
+    //     let new_comp = element_from_path( $graph, base_path );
 
-        if( ! new_comp ) return;
-        // let new_node = node_by_id( $graph, node.id );
+    //     if( ! new_comp ) return;
+    //     // let new_node = node_by_id( $graph, node.id );
 
-        comparator = Object.assign( {}, new_comp );
-    });
+    //     comparator = Object.assign( {}, new_comp );
+    // });
 </script>
 
 <Box title={"Comparator "+comparator._variant} is_grid={is_grid}>
 
     <Select 
         label="Comparator type" 
-        options={data_type_options} 
+        options={
+            select_options_from_enum(
+                DataComparatorVariant,
+                comparator._variant,
+                false
+            )
+        } 
         value={comparator._variant} 
         change_value={chage_data_comparator} 
         base_path={base_path} 

@@ -9,18 +9,24 @@
 
     let { operation, base_path } = $props();
 
-    let data_type_options = select_options_from_enum(
-        DataOperationVariant,
-        operation._variant,
-        false
-    );
+    // let data_type_options = select_options_from_enum(
+    //     DataOperationVariant,
+    //     operation._variant,
+    //     false
+    // );
 </script>
 
 <Box title={"Operation " + operation._variant}>
 
     <Select 
         label="Operation" 
-        options={data_type_options} 
+        options={
+            select_options_from_enum(
+                DataOperationVariant,
+                operation._variant,
+                false
+            )
+        } 
         value={operation._variant} 
         change_value={change_data_operation} 
         base_path={base_path} 

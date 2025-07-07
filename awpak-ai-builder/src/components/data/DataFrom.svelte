@@ -21,7 +21,7 @@
     
     let { from, base_path, label, remove_from_loop } : InputProps = $props();
 
-    let options_from_variants = select_options_from_enum( DataFromVariant, from._variant, false );
+    // let options_from_variant = $state( select_options_from_enum( DataFromVariant, from._variant, false ) );
 
     function send_add_item_concat()
     {
@@ -32,23 +32,24 @@
         append_to_array( path, new_item_concat );
     }
 
-    $effect(() => {
+    // $effect(() => {
         
-        if( ! from?._variant ) return;
+    //     if( ! from?._variant ) return;
 
-        let new_from = element_from_path( $graph, base_path );
+    //     let new_from = element_from_path( $graph, base_path );
 
-        if( ! new_from ) return;
-        // let new_node = node_by_id( $graph, node.id );
+    //     if( ! new_from ) return;
+        
+    //     options_from_variant = select_options_from_enum( DataFromVariant, new_from._variant, false );
 
-        from = Object.assign( {}, new_from );
-    });
+    //     from = Object.assign( {}, new_from );
+    // });
 </script>
 
 {#if from?._variant}
 <Box title={"DataFrom "+from._variant+". "+label}>
 
-    <Select label="From" options={options_from_variants} value={from._variant} change_value={chage_data_from_variant} base_path={base_path} />
+    <Select label="From" options={select_options_from_enum( DataFromVariant, from._variant, false )} value={from._variant} change_value={chage_data_from_variant} base_path={base_path} />
 
     {#if 
         from._variant == DataFromVariant.Context || 

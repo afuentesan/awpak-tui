@@ -1,6 +1,6 @@
 use std::{io::Write as _, sync::mpsc::{self}};
 
-use awpak_ai::{domain::{error::Error, graph::graph::Graph, tracing::filter_layer::{AwpakAIFilterLayer, AwpakAITarget}}, infrastructure::graph::{build_graph::graph_from_path, run_graph::run_graph}};
+use awpak_ai::{domain::{error::Error, graph::graph::Graph, tracing::filter_layer::{AwpakAIFilterLayer, AwpakAITarget, AwpakTracingMessage}}, infrastructure::graph::{build_graph::graph_from_path, run_graph::run_graph}};
 use text_io::read;
 use tracing_subscriber::{layer::SubscriberExt, util::SubscriberInitExt};
 
@@ -10,8 +10,6 @@ async fn main() -> Result<(), ()>
 {
     if std::env::args().len() < 2
     {
-        eprintln!( "Graph path not found" );
-
         return Err( () );
     }
 
@@ -46,14 +44,19 @@ async fn main() -> Result<(), ()>
 
 fn subscribe_tracing()
 {
-    let ( tx, rx ) = mpsc::channel::<String>();
+    let ( tx, rx ) = mpsc::channel::<AwpakTracingMessage>();
+    let ( tx_stream, rx_stream ) = mpsc::channel::<AwpakTracingMessage>();
 
     let layer = AwpakAIFilterLayer 
     {
         allowed : vec![ 
-            // ( AwpakAITarget::AgentStream, tx.clone() ),
+            ( AwpakAITarget::AgentStream, tx_stream.clone() ),
             ( AwpakAITarget::AgentToolCall, tx.clone() ),
-            ( AwpakAITarget::AgentToolResult, tx )
+            ( AwpakAITarget::AgentToolResult, tx.clone() ),
+            ( AwpakAITarget::CommandAndArgs, tx.clone() ),
+            ( AwpakAITarget::CommandResult, tx.clone() ),
+            ( AwpakAITarget::NodeExecution, tx.clone() ),
+            ( AwpakAITarget::NodeDestination, tx.clone() )
         ],
     };
 
@@ -69,7 +72,25 @@ fn subscribe_tracing()
                 {
                     Ok( s ) => 
                     {
-                        print!( "{}", s );
+                        println!( "\n{}", s.text );
+                        let _ = std::io::stdout().flush();
+                    },
+                    _ => break    
+                }
+            }
+            
+        }
+    );
+
+    std::thread::spawn( move || 
+        {
+            loop
+            {
+                match rx_stream.recv()
+                {
+                    Ok( s ) => 
+                    {
+                        print!( "{}", s.text );
                         let _ = std::io::stdout().flush();
                     },
                     _ => break    

@@ -30,12 +30,6 @@
 
     let { node_executor, base_path } : InputProps = $props();
 
-    const node_executor_options = select_options_from_enum(
-        NodeExecutorVariant,
-        node_executor._variant,
-        false
-    );
-
     function send_add_prompt_part()
     {
         let path = base_path + ".value.prompt";
@@ -49,7 +43,19 @@
 
 <Box title="Node executor">
 
-    <Select label="Executor type" options={node_executor_options} value={node_executor._variant} change_value={change_node_executor_variant} base_path={base_path} />
+    <Select 
+        label="Executor type" 
+        options={
+            select_options_from_enum(
+                NodeExecutorVariant,
+                node_executor._variant,
+                false
+            )
+        } 
+        value={node_executor._variant} 
+        change_value={change_node_executor_variant} 
+        base_path={base_path} 
+    />
 
     {#if node_executor._variant == NodeExecutorVariant.Agent}
 

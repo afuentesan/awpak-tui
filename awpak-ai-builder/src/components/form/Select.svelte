@@ -31,6 +31,18 @@
         }
     }
 
+    // $effect(() => {
+        
+        
+    //     if( value || ! value || base_path )
+    //     {
+    //         console.log( "Options: ", options );
+
+    //         options = options.map( ( o : any ) => Object.assign( {}, o ) );
+    //     }
+        
+    // });
+
 </script>
 
 <div>

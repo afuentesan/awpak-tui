@@ -1,7 +1,5 @@
 use std::{collections::HashMap, sync::{Arc, Mutex, OnceLock}};
 
-
-
 fn graphs_cancel_state() -> &'static Arc<Mutex<HashMap<String, bool>>>
 {
     static I : OnceLock<Arc<Mutex<HashMap<String, bool>>>> = OnceLock::new();

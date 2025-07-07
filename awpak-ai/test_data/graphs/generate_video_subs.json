@@ -1,0 +1,191 @@
+{
+    "context": {
+        "name_mp3": "au.mp3",
+        "name_str": "eng.srt",
+        "working_dir": "/tmp/"
+    },
+    "input_type": "Object",
+    "preserve_context": false,
+    "first": {
+        "Node": {
+            "id": "generate audio",
+            "executor": {
+                "Command": {
+                    "command": "cvlc",
+                    "args": [
+                        {
+                            "ParsedInput": {
+                                "path": "video"
+                            }
+                        },
+                        {
+                            "Static": "--no-sout-video"
+                        },
+                        {
+                            "Static": "--sout-audio"
+                        },
+                        {
+                            "Concat": [
+                                {
+                                    "Static": "--sout=#transcode{acodec=mp3,ab=320,channels=2,samplerate=48000}:std{access=file,mux=raw,dst="
+                                },
+                                {
+                                    "Context": {
+                                        "path": "working_dir"
+                                    }
+                                },
+                                {
+                                    "Context": {
+                                        "path": "name_mp3"
+                                    }
+                                },
+                                {
+                                    "Static": "}"
+                                }
+                            ]
+                        },
+                        {
+                            "Static": "vlc://quit"
+                        }
+                    ],
+                    "output": [
+                        {
+                            "Success": {}
+                        }
+                    ]
+                }
+            },
+            "output": {
+                "path": "result_vid2au",
+                "ty": "Bool",
+                "merge": "Insert"
+            },
+            "destination": [
+                {
+                    "next": {
+                        "Node": "generate eng srt"
+                    },
+                    "condition": {
+                        "Eq": {
+                            "from_1": {
+                                "Context": {
+                                    "path": "result_vid2au"
+                                }
+                            },
+                            "from_2": {
+                                "Static": true
+                            }
+                        }
+                    }
+                },
+                {
+                    "next": {
+                        "ExitErr": [
+                            {
+                                "from": {
+                                    "Static": "Se han producido errores al generar el audio"
+                                }
+                            }
+                        ]
+                    },
+                    "condition": "True"
+                }
+            ]
+        }
+    },
+    "nodes": [
+        {
+            "Node": {
+                "id": "generate eng srt",
+                "executor": {
+                    "Command": {
+                        "command": "whisper",
+                        "args": [
+                            {
+                                "Concat": [
+                                    {
+                                        "Context": {
+                                            "path": "working_dir"
+                                        }
+                                    },
+                                    {
+                                        "Context": {
+                                            "path": "name_mp3"
+                                        }
+                                    }
+                                ]
+                            },
+                            {
+                                "Static": "--model"
+                            },
+                            {
+                                "Static": "medium.en"
+                            },
+                            {
+                                "Static": "--output_format"
+                            },
+                            {
+                                "Static": "srt"
+                            },
+                            {
+                                "Static": "--output_dir"
+                            },
+                            {
+                                "Context": {
+                                    "path": "working_dir"
+                                }
+                            }
+                        ],
+                        "output": [
+                            {
+                                "Success": {}
+                            }
+                        ]
+                    }
+                },
+                "output": {
+                    "path": "result_au2srt",
+                    "ty": "Bool",
+                    "merge": "Insert"
+                },
+                "destination": [
+                    {
+                        "next": {
+                            "ExitOk": [
+                                {
+                                    "from": {
+                                        "Static": "srt generado correctamente"
+                                    }
+                                }
+                            ]
+                        },
+                        "condition": {
+                            "Eq": {
+                                "from_1": {
+                                    "Context": {
+                                        "path": "result_au2srt"
+                                    }
+                                },
+                                "from_2": {
+                                    "Static": true
+                                }
+                            }
+                        }
+                    },
+                    {
+                        "next": {
+                            "ExitErr": [
+                                {
+                                    "from": {
+                                        "Static": "Se ha producido un error al generar el srt en inglés"
+                                    }
+                                }
+                            ]
+                        },
+                        "condition": "True"
+                    }
+                ]
+            }
+        }
+    ]
+}

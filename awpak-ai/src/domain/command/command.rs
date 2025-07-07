@@ -39,3 +39,17 @@ pub struct CommandResult
     pub success : bool,
     pub code : Option<i32>
 }
+
+impl ToString for CommandResult
+{
+    fn to_string( &self ) -> String 
+    {
+        format!(
+            "Success: {}\nCode: {:?}\nOutput:\n{:?}\nError:\n{:?}",
+            self.success,
+            self.code,
+            self.out,
+            self.err
+        )
+    }
+}

@@ -1,8 +1,9 @@
 use awpak_utils::result::result::AwpakResult;
 use serde_json::Value;
 use async_recursion::async_recursion;
+use tracing::info;
 
-use crate::{application::graph::execute_graph::execute_graph, domain::{agent::execute_agent::execute_agent, command::execute_command::execute_command, context_mut::change_context::change_context, data::{data::{DataComparator, DataType}, data_compare::compare_data, data_insert::str_to_context, data_selection::data_to_string, data_utils::str_to_value}, error::Error, graph::{graph::Graph, node::{NodeDestination, NodeExecutor, NodeNext}}}};
+use crate::{application::graph::execute_graph::execute_graph, domain::{agent::execute_agent::execute_agent, command::execute_command::execute_command, context_mut::change_context::change_context, data::{data::{DataComparator, DataType}, data_compare::compare_data, data_insert::str_to_context, data_selection::data_to_string, data_utils::str_to_value}, error::Error, graph::{graph::Graph, node::{NodeDestination, NodeExecutor, NodeNext}}, tracing::filter_layer::{NODE_DESTINATION, NODE_EXECUTION}, utils::string_utils::option_string_to_str}};
 
 
 struct GraphRunner
@@ -73,6 +74,8 @@ async fn next_step( runner : GraphRunner ) -> ( AwpakResult<GraphRunner, Error>,
 async fn execute_node( mut runner : GraphRunner ) -> ( AwpakResult<GraphRunner, Error>, bool )
 {
     let mut node = runner.graph.nodes.remove( runner.next.as_str() ).unwrap();
+
+    info!( target:NODE_EXECUTION, id=option_string_to_str( runner.graph.id.as_ref() ), text=format!( "{}", node.id ) );
 
     let ( node, result ) = match &node.executor
     {
@@ -216,7 +219,7 @@ async fn redirect_or_exit( runner : GraphRunner ) -> ( AwpakResult<GraphRunner, 
             {
                 let d = d.clone();
 
-                return update_next( runner, d ).await
+                return update_next( node.id.clone(), runner, d ).await
             }
             Ok( _ ) => continue,
             Err( e ) => return ( AwpakResult::new_err( runner, e ), false )
@@ -224,6 +227,11 @@ async fn redirect_or_exit( runner : GraphRunner ) -> ( AwpakResult<GraphRunner, 
     }
 
     ( AwpakResult::new_err( runner, Error::NodeNotFound( "Destination not found".into() ) ), false )
+}
+
+fn trace_node_destination( from : String, to : &str, graph_id : Option<&String> )
+{
+    info!( target:NODE_DESTINATION, id=option_string_to_str( graph_id ), text=format!( "From: {}, to: {}", from, to ) );
 }
 
 fn check_node_destination_condition( graph : &Graph, comparator : &DataComparator ) -> Result<bool, Error>
@@ -236,12 +244,14 @@ fn check_node_destination_condition( graph : &Graph, comparator : &DataComparato
     )
 }
 
-async fn update_next( mut runner : GraphRunner, destination : NodeDestination ) -> ( AwpakResult<GraphRunner, Error>, bool )
+async fn update_next( from : String, mut runner : GraphRunner, destination : NodeDestination ) -> ( AwpakResult<GraphRunner, Error>, bool )
 {
     match destination.next
     {
         NodeNext::ExitOk( o ) =>
         {
+            trace_node_destination( from, "ExitOK", runner.graph.id.as_ref() );
+
             let o = data_to_string( 
                 runner.graph.input.as_ref(), 
                 &runner.graph.parsed_input, 
@@ -255,6 +265,8 @@ async fn update_next( mut runner : GraphRunner, destination : NodeDestination ) 
         },
         NodeNext::ExitErr( o ) =>
         {
+            trace_node_destination( from, "ExitErr", runner.graph.id.as_ref() );
+
             let o = data_to_string( 
                 runner.graph.input.as_ref(), 
                 &runner.graph.parsed_input, 
@@ -272,6 +284,8 @@ async fn update_next( mut runner : GraphRunner, destination : NodeDestination ) 
             {
                 Some( _ ) =>
                 {
+                    trace_node_destination( from, n.as_str(), runner.graph.id.as_ref() );
+
                     runner.next = n;
 
                     ( AwpakResult::new( runner ), true )

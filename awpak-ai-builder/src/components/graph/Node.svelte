@@ -3,7 +3,7 @@
     import { select_options_from_enum } from "../../functions/form_utils";
     import { DataToString as OutputDataToString } from "../../model/data";
     import { GraphNodeOutputOut, NodeTypeVariant, type NodeType } from "../../model/node";
-    import { add_node_destination, add_node_exit_text, change_node_type, change_node_id, change_option_string, append_to_array, remove_from_array, element_from_path } from "../../store";
+    import { add_node_destination, add_node_exit_text, change_node_type, change_node_id, change_option_string, append_to_array, remove_from_array, element_from_path, swap_array_items } from "../../store";
     import DataToContext from "../data/DataToContext.svelte";
     import DataToString from "../data/DataToString.svelte";
     import Box from "../form/Box.svelte";
@@ -26,11 +26,11 @@
 
     let { node, base_path, remove_from_loop, is_grid } : InputProps = $props();
 
-    const node_type_options = select_options_from_enum(
-        NodeTypeVariant,
-        node._variant,
-        false
-    );
+    // const node_type_options = select_options_from_enum(
+    //     NodeTypeVariant,
+    //     node._variant,
+    //     false
+    // );
 
     function send_change_node_type( base_path : string, value : any )
     {
@@ -75,17 +75,17 @@
         append_to_array( path, new_output );
     }
 
-    $effect(() => {
+    // $effect(() => {
         
-        if( ! node?.id ) return;
+    //     if( ! node?.id ) return;
 
-        let new_node = element_from_path( $graph, base_path );
+    //     let new_node = element_from_path( $graph, base_path );
 
-        if( ! new_node ) return;
-        // let new_node = node_by_id( $graph, node.id );
+    //     if( ! new_node ) return;
+    //     // let new_node = node_by_id( $graph, node.id );
 
-        node = Object.assign( {}, new_node );
-    });
+    //     node = Object.assign( {}, new_node );
+    // });
 
 </script>
 
@@ -93,7 +93,19 @@
 
     <div>
         <Input label="Id" value={node.id} change_value={send_change_node_id} base_path={undefined} />
-        <Select label="Node type" options={node_type_options} value={node._variant} change_value={send_change_node_type} base_path={base_path} />
+        <Select 
+            label="Node type" 
+            options={
+                select_options_from_enum(
+                    NodeTypeVariant,
+                    node._variant,
+                    false
+                )
+            } 
+            value={node._variant} 
+            change_value={send_change_node_type} 
+            base_path={base_path} 
+        />
 
         {#if node._variant == NodeTypeVariant.GraphNode}
             <Input label="Path" value={node.path} change_value={change_option_string} base_path={base_path+".path"} />
@@ -116,7 +128,13 @@
                     base_path={base_path+".input["+i+"]"} 
                     remove_from_loop={
                         () => remove_from_array( base_path+".input", i )
-                    } 
+                    }
+                    swap_items_in_array={
+                        ( up : boolean ) =>
+                        {
+                            swap_array_items( base_path+".input", i, ( up ? i - 1 : i + 1 ) );
+                        }
+                    }
                 />
             {/each}
             <div class="text-center">

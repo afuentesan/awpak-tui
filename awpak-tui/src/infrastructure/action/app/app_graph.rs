@@ -1,21 +1,21 @@
 use std::sync::mpsc::Sender;
 
-use crate::{application::graph::graph::{append_text_to_graph_content, finalize_graph_response, graph_to_waiting, open_new_graph, open_saved_graph, pending_graph}, domain::app::model::app::App, infrastructure::action::{async_action::async_action::AsyncAction, window::window_action::{CursorDirection, WindowAction}}};
+use crate::{application::graph::graph::{finalize_graph_response, append_text_to_graph_content, graph_to_waiting, open_new_graph, open_saved_graph, pending_graph}, domain::app::model::app::App, infrastructure::action::{async_action::async_action::AsyncAction, window::window_action::{CursorDirection, WindowAction}}};
 
 use super::app_utils::app_exec_action;
 
-pub fn app_end_graph_response( app : App, tx : Sender<WindowAction> ) -> App
+pub fn app_end_graph_response( id : Option<String>, app : App, tx : Sender<WindowAction> ) -> App
 {
-    let app = app_exec_action( app, tx.clone(), finalize_graph_response );
+    let app = app_exec_action( app, tx.clone(), finalize_graph_response( id ) );
 
     let _ = tx.send( WindowAction::MoveCursorContent( CursorDirection::End ) );
 
     app
 }
 
-pub fn app_append_text_to_graph_content( app : App, tx : Sender<WindowAction>, text : String ) -> App
+pub fn app_append_text_to_graph_content( app : App, tx : Sender<WindowAction>, id : Option<String>, text : String ) -> App
 {
-    app_exec_action( app, tx, append_text_to_graph_content( text ) )
+    app_exec_action( app, tx, append_text_to_graph_content( id, text ) )
 }
 
 pub fn app_alt_a( app : App, tx : Sender<WindowAction> ) -> App

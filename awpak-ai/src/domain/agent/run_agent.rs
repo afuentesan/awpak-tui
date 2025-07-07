@@ -4,7 +4,7 @@ use rig::{agent::Agent, completion::CompletionModel, message::{AssistantContent,
 use tokio_stream::{Stream, StreamExt};
 use tracing::info;
 type StreamingResult = Pin<Box<dyn Stream<Item = Result<Text, Error>> + Send>>;
-use crate::domain::{agent::agent::AIAgent, error::Error, signals::cancel_graph::is_graph_cancelled, tracing::filter_layer::{AGENT_STREAM, AGENT_TOOL_CALL, AGENT_TOOL_RESULT}};
+use crate::domain::{agent::agent::AIAgent, error::Error, signals::cancel_graph::is_graph_cancelled, tracing::filter_layer::{AGENT_STREAM, AGENT_TOOL_CALL, AGENT_TOOL_RESULT}, utils::string_utils::option_string_to_str};
 
 pub async fn run_agent<T: CompletionModel + 'static>( 
     id : Option<&String>,
@@ -54,7 +54,7 @@ async fn string_from_stream(
         {
             Ok( Text { text } ) => 
             {
-                info!( target:AGENT_STREAM, text );
+                info!( target:AGENT_STREAM, id=option_string_to_str( id ), text=text );
 
                 ret.push_str( text.as_str() );
             },
@@ -123,6 +123,7 @@ where
 
                         info!( 
                             target:AGENT_TOOL_CALL,  
+                            id=option_string_to_str( id.as_ref() ),
                             text=msg_tool_call
                         );
 
@@ -138,6 +139,7 @@ where
 
                         info!( 
                             target:AGENT_TOOL_RESULT, 
+                            id=option_string_to_str( id.as_ref() ),
                             text=msg_tool_result 
                         );
 

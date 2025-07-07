@@ -43,7 +43,26 @@ async fn execute_async_action( action : AsyncAction, sender : Sender<Action> )
     {
         AsyncAction::SendGraphRequest( g ) =>
         {
-            send_prompt_to_graph( g, sender ).await;
+            // execute_send_graph_request( g, sender );
+            send_prompt_to_graph( g, sender ).await
         }
     }
 }
+
+// fn execute_send_graph_request(
+//     graph : AwpakTUIGraph,
+//     channel : Sender<Action>
+// )
+// {
+//     let handle = tokio::runtime::Handle::current();
+
+//     let _ = std::thread::spawn( move ||
+//         {
+//             handle.block_on( async move
+//                 {
+//                     send_prompt_to_graph( graph, channel ).await;
+//                 }
+//             )
+//         }
+//     );
+// }

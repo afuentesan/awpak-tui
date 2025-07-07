@@ -5,9 +5,10 @@
     import Graph from "./graph/Graph.svelte";
     import GraphView from "./graph/GraphView.svelte";
     import Node from "./graph/Node.svelte";
-    import { add_node_exit_text, graph } from '../store';
+    import { add_node_exit_text, graph, load_new_graph } from '../store';
     import { type NodeType } from "../model/node";
     import NodeDestination from "./node/NodeDestination.svelte";
+    import InputFile from "./form/InputFile.svelte";
 
 
     let view_type = $state( ViewType.Graph );
@@ -32,6 +33,29 @@
         }
     }
 
+    function load_json( event : any )
+    {
+        if( ! event.target.files[ 0 ] ) { return; }
+
+        let file = event.target.files[ 0 ];
+
+        let reader = new FileReader();
+
+        reader.readAsText( file, "UTF-8" );
+
+        reader.onload = ( evt : any ) =>
+        {
+            let text = evt.target.result;
+
+            load_new_graph( text );
+        }
+
+        reader.onerror = ( e : any ) =>
+        {
+            console.log( "Error read file. ", e );
+        }
+    }
+
 </script>
 
 <div class="w-full text-center">
@@ -52,8 +76,15 @@
         }
         color="blue"
     />
+    <InputFile
+        id="load_json_file"
+        text="Load JSON"
+        change={load_json}
+        color="blue"
+    />
 </div>
 
+{#key $graph}
 {#if view_type == ViewType.Graph}
     <Graph />
 {:else if view_type == ViewType.GraphView}
@@ -91,3 +122,4 @@
         is_grid={true}
     />
 {/if}
+{/key}

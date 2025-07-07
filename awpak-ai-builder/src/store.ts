@@ -10,6 +10,7 @@ import type { DataComparatorVariant } from './model/data_comparator';
 import type { NodeExecutorVariant } from './model/node_executor';
 import type { CommandOutputVariant } from './model/command';
 import type { AIAgentProviderConfigVariant } from './model/agent';
+import { load_graph_from_json } from './functions/load_json';
 
 let g = new Graph();
 
@@ -19,6 +20,28 @@ g.preserve_context = false;
 g.first = new Node( "first_node" );
 
 export const graph = atom( g );
+
+export function load_new_graph( json_str : string )
+{
+    if( ! json_str?.trim() ) { return; }
+
+    try
+    {
+        let json = JSON.parse( json_str );
+
+        console.log( "JSON: ", json );
+
+        let new_graph = load_graph_from_json( json );
+
+        if( ! new_graph ) return;
+
+        graph.set( new_graph );
+    }
+    catch( e )
+    {
+        console.log( "Error load new graph. ", e );
+    }
+}
 
 export function element_from_path( graph : Graph, path : string ) : any
 {
@@ -100,6 +123,29 @@ export function remove_node( idx : number )
 
     clean_graph_destinations_id( new_graph, id as string );
 
+    graph.set( new_graph );
+}
+
+export function swap_array_items( base_path : string, from : number, to : number )
+{
+    if( from < 0 || to < 0 || from == to ) return;
+
+    let new_graph = Object.assign( {}, graph.get() );
+
+    const result = JSONPath( { path : base_path, json : new_graph, resultType : "all" } );
+
+    if( ! result?.length || ! result[ 0 ].parent ) { return; }
+
+    if( ! result[ 0 ]?.value?.length || from >= result[ 0 ]?.value?.length || to >= result[ 0 ]?.value?.length ) { return; }
+
+    let item_from = Object.assign( {}, result[ 0 ].parent[ result[ 0 ].parentProperty ][ to ] );
+    let item_to = Object.assign( {}, result[ 0 ].parent[ result[ 0 ].parentProperty ][ from ] );
+
+    result[ 0 ].parent[ result[ 0 ].parentProperty ][ to ] = item_to;
+    result[ 0 ].parent[ result[ 0 ].parentProperty ][ from ] = item_from;
+
+    result[ 0 ].parent[ result[ 0 ].parentProperty ] = [ ...result[ 0 ].parent[ result[ 0 ].parentProperty ] ];
+    
     graph.set( new_graph );
 }
 

@@ -1,5 +1,13 @@
 use crate::domain::error::Error;
 
+pub fn option_string_to_str( string : Option<&String> ) -> &str
+{
+    match string
+    {
+        Some( s ) => s.as_str(),
+        _ => ""
+    }
+}
 
 pub fn bytes_to_str( output : &Vec<u8> ) -> Result<String, Error>
 {

@@ -24,25 +24,31 @@
         is_grid
     } : InputProps = $props();
 
-    let node_next_options = select_options_from_enum( NodeNextVariant, node_next._variant, false );
-
-    $effect(() => {
+    // $effect(() => {
         
-        if( ! node_next?._variant ) return;
+    //     if( ! node_next?._variant ) return;
 
-        let new_next = element_from_path( $graph, base_path );
+    //     let new_next = element_from_path( $graph, base_path );
 
-        if( ! new_next ) return;
-        // let new_node = node_by_id( $graph, node.id );
+    //     if( ! new_next ) return;
+    //     // let new_node = node_by_id( $graph, node.id );
 
-        node_next = Object.assign( {}, new_next );
-    });
+    //     node_next = Object.assign( {}, new_next );
+    // });
 
 </script>
 
 <Box title={"NodeNext "+node_next._variant} is_grid={is_grid}>
 
-    <Select label="Next step" value={node_next._variant} options={node_next_options} change_value={change_next_step} base_path={base_path} />
+    <Select 
+        label="Next step" 
+        value={node_next._variant} 
+        options={
+            select_options_from_enum( NodeNextVariant, node_next._variant, false )
+        } 
+        change_value={change_next_step} 
+        base_path={base_path} 
+    />
 
     {#if node_next._variant == NodeNextVariant.Node}
     <Select 

@@ -6,11 +6,18 @@
 
     let { label, value, change_value, base_path } = $props();
 
-    let data_type_options = select_options_from_enum(
-        DataType,
-        value,
-        true
-    );
 </script>
 
-<Select label={label} options={data_type_options} value={value} change_value={change_value} base_path={base_path} />
+<Select 
+    label={label} 
+    options={
+        select_options_from_enum(
+            DataType,
+            value,
+            true
+        )
+    } 
+    value={value} 
+    change_value={change_value} 
+    base_path={base_path} 
+/>

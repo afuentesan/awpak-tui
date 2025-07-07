@@ -17,12 +17,6 @@
     }
 
     let { label, graph_node_output, base_path, remove_from_loop } : InputProps = $props();
-
-    const graph_node_output_options = select_options_from_enum(
-        GraphNodeOutputVariant,
-        graph_node_output._variant,
-        false
-    );
     
 </script>
 
@@ -32,7 +26,13 @@
 
     <Select 
         label="Graph node output source" 
-        options={graph_node_output_options} 
+        options={
+            select_options_from_enum(
+                GraphNodeOutputVariant,
+                graph_node_output._variant,
+                false
+            )
+        } 
         value={graph_node_output._variant} 
         change_value={change_graph_node_output} 
         base_path={base_path} 
