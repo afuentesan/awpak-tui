@@ -5,7 +5,6 @@
     import Box from "../form/Box.svelte";
     import Button from "../form/Button.svelte";
     import NodeNext from "./NodeNext.svelte";
-    import { element_from_path, graph } from "../../store";
 
     interface InputProps
     {
@@ -15,7 +14,8 @@
         from? : string,
         label? : string,
         remove_from_loop? : () => void | undefined,
-        is_grid? : boolean
+        is_grid? : boolean,
+        swap_items_in_array? : ( up : boolean ) => void | undefined
     };
 
     let { 
@@ -25,7 +25,8 @@
         from,
         label,
         remove_from_loop,
-        is_grid
+        is_grid,
+        swap_items_in_array
     } : InputProps = $props();
 
     const label_str = () =>
@@ -64,7 +65,7 @@
 
 </script>
 
-<Box title={label_str()}>
+<Box title={label_str()} base_path={base_path}>
 
     {#if destination?.next}
     <NodeNext 
@@ -82,6 +83,10 @@
     {#if typeof( remove_from_loop ) == "function"}
     <div class="text-center">
         <Button text="Remove NodeDestination" click={remove_from_loop} color="red" />
+        {#if typeof( swap_items_in_array ) == "function"}
+        <Button text="Up" click={() => swap_items_in_array( true )} color="blue" />
+        <Button text="Down" click={() => swap_items_in_array( false )} color="blue" />
+        {/if}
     </div>
     {/if}
 </Box>

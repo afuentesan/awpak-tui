@@ -3,7 +3,7 @@
     import { select_options_from_enum } from "../../functions/form_utils";
     import { DataToString as OutputDataToString } from "../../model/data";
     import { GraphNodeOutputOut, NodeTypeVariant, type NodeType } from "../../model/node";
-    import { add_node_destination, add_node_exit_text, change_node_type, change_node_id, change_option_string, append_to_array, remove_from_array, element_from_path, swap_array_items } from "../../store";
+    import { add_node_destination, add_node_exit_text, change_node_type, change_node_id, change_option_string, append_to_array, remove_from_array, element_from_path, swap_array_items, make_node_first } from "../../store";
     import DataToContext from "../data/DataToContext.svelte";
     import DataToString from "../data/DataToString.svelte";
     import Box from "../form/Box.svelte";
@@ -89,7 +89,7 @@
 
 </script>
 
-<Box title={node._variant + " " + node.id} is_grid={is_grid}>
+<Box title={node._variant + " " + node.id} is_grid={is_grid} base_path={base_path}>
 
     <div>
         <Input label="Id" value={node.id} change_value={send_change_node_id} base_path={undefined} />
@@ -120,7 +120,7 @@
     {/if}
     {#if node._variant == NodeTypeVariant.GraphNode}
 
-        <Box title="Graph input">
+        <Box title="Graph input" base_path={base_path+".input"}>
             {#each node.input as _, i}
                 <DataToString 
                     label={"Graph input "+i} 
@@ -142,7 +142,7 @@
             </div>
         </Box>
 
-        <Box title="Graph output">
+        <Box title="Graph output" base_path={base_path+".output"}>
             {#each node.output as _, i}
                 <GraphNodeOutput 
                     label={"Graph output "+i} 
@@ -150,7 +150,13 @@
                     base_path={base_path+".output["+i+"]"}
                     remove_from_loop={
                         () => remove_from_array( base_path+".output", i )
-                    } 
+                    }
+                    swap_items_in_array={
+                        ( up : boolean ) =>
+                        {
+                            swap_array_items( base_path+".output", i, ( up ? i - 1 : i + 1 ) );
+                        }
+                    }
                 />
             {/each}
             <div class="text-center">
@@ -180,6 +186,12 @@
             remove_from_loop={
                 () => remove_from_array( base_path+"."+( node._variant == NodeTypeVariant.Node ? "destination" : "node_destination" ), i )
             }
+            swap_items_in_array={
+                ( up : boolean ) =>
+                {
+                    swap_array_items( base_path+"."+( node._variant == NodeTypeVariant.Node ? "destination" : "node_destination" ), i, ( up ? i - 1 : i + 1 ) );
+                }
+            }
         />
     {/each}
 
@@ -188,7 +200,12 @@
         
         {#if typeof( remove_from_loop ) == "function"}
         <hr class="h-px my-2 bg-gray-200 border-0 dark:bg-gray-700">
-        <Button text="Remove Node" click={remove_from_loop} color="red" />
+        <div class="text-center">
+            <Button text="Remove Node" click={remove_from_loop} color="red" />
+            {#if base_path != "$.first"}
+            <Button text="Execute first" click={() => make_node_first( base_path )} color="blue" />
+            {/if}
+        </div>
         {/if}
     </div>
 </Box>

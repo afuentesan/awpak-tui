@@ -13,6 +13,7 @@
     "@tailwindcss/vite": "4.1.11",
     "astro": "5.10.1",
     "cytoscape": "^3.32.0",
+    "cytoscape-edgehandles": "^4.0.1",
     "cytoscape-klay": "^3.1.4",
     "flowbite": "^3.1.2",
     "jsonpath-plus": "^10.3.0",
@@ -23,6 +24,7 @@
     "uuid": "^11.1.0"
   },
   "devDependencies": {
+    "@types/cytoscape-edgehandles": "^4.0.4",
     "@types/cytoscape-klay": "^3.1.4"
   }
 }

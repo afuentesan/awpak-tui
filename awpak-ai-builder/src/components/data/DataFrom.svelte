@@ -3,7 +3,7 @@
     import Self from './DataFrom.svelte'
     import { select_options_from_enum } from "../../functions/form_utils";
     import { DataFromVariant, FromContext, type DataFrom } from "../../model/data";
-    import { append_to_array, chage_data_from_variant, change_boolean, change_option_string, remove_from_array, graph, element_from_path } from "../../store";
+    import { append_to_array, chage_data_from_variant, change_boolean, change_option_string, remove_from_array, graph, element_from_path, swap_array_items } from "../../store";
     import Box from "../form/Box.svelte";
     import Button from "../form/Button.svelte";
     import Checkbox from "../form/Checkbox.svelte";
@@ -16,10 +16,11 @@
         from : DataFrom,
         base_path : string,
         label : string,
-        remove_from_loop? : () => void | undefined
+        remove_from_loop? : () => void | undefined,
+        swap_items_in_array? : ( up : boolean ) => void | undefined
     }
     
-    let { from, base_path, label, remove_from_loop } : InputProps = $props();
+    let { from, base_path, label, remove_from_loop, swap_items_in_array } : InputProps = $props();
 
     // let options_from_variant = $state( select_options_from_enum( DataFromVariant, from._variant, false ) );
 
@@ -47,7 +48,7 @@
 </script>
 
 {#if from?._variant}
-<Box title={"DataFrom "+from._variant+". "+label}>
+<Box title={"DataFrom "+from._variant+". "+label} base_path={base_path}>
 
     <Select label="From" options={select_options_from_enum( DataFromVariant, from._variant, false )} value={from._variant} change_value={chage_data_from_variant} base_path={base_path} />
 
@@ -67,7 +68,7 @@
     {/if}
 
     {#if from._variant == DataFromVariant.Concat}
-        <Box title="Concat items">
+        <Box title="Concat items" base_path={base_path+".value"}>
             {#each from.value as _, i}
                 <Self
                     label={"Concat "+from.value[i]._variant + " " + i}
@@ -75,7 +76,13 @@
                     base_path={base_path+".value["+i+"]"}
                     remove_from_loop={
                         () => remove_from_array( base_path+".value", i )
-                    } 
+                    }
+                    swap_items_in_array={
+                        ( up : boolean ) =>
+                        {
+                            swap_array_items( base_path+".value", i, ( up ? i - 1 : i + 1 ) );
+                        }
+                    }
                 />
             {/each}
             <div class="text-center">
@@ -95,6 +102,10 @@
     {#if typeof( remove_from_loop ) == "function"}
     <div class="text-center">
         <Button text="Remove DataFrom" click={remove_from_loop} color="red" />
+        {#if typeof( swap_items_in_array ) == "function"}
+        <Button text="Up" click={() => swap_items_in_array( true )} color="blue" />
+        <Button text="Down" click={() => swap_items_in_array( false )} color="blue" />
+        {/if}
     </div>
     {/if}
 </Box>

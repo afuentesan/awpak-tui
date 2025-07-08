@@ -2,7 +2,7 @@
 <script lang="ts">
     import { FromContext, type DataFrom as ExecutorDataFrom } from "../../model/data";
     import { NodeExecutorVariant, type NodeExecutor } from "../../model/node_executor";
-    import { append_to_array, change_boolean, change_node_executor_variant, change_option_string, remove_from_array } from "../../store";
+    import { append_to_array, change_boolean, change_node_executor_variant, change_option_string, remove_from_array, swap_array_items } from "../../store";
     import DataFrom from "../data/DataFrom.svelte";
     import DataToContext from "../data/DataToContext.svelte";
     import { DataToContext as ContextMutDataToContext } from "../../model/data";
@@ -41,7 +41,7 @@
 
 </script>
 
-<Box title="Node executor">
+<Box title="Node executor" base_path={base_path}>
 
     <Select 
         label="Executor type" 
@@ -71,7 +71,7 @@
             base_path={base_path+".value.system_prompt"}
         />
 
-        <Box title="Prompt">
+        <Box title="Prompt" base_path={base_path+".value.prompt"}>
             {#each node_executor.value.prompt as _, i}
                 <DataToString 
                     label={"Prompt part "+i} 
@@ -79,7 +79,13 @@
                     base_path={base_path+".value.prompt["+i+"]"} 
                     remove_from_loop={
                         () => remove_from_array( base_path+".value.prompt", i )
-                    } 
+                    }
+                    swap_items_in_array={
+                        ( up : boolean ) =>
+                        {
+                            swap_array_items( base_path+".value.prompt", i, ( up ? i - 1 : i + 1 ) );
+                        }
+                    }
                 />
             {/each}
             <div class="text-center">
@@ -87,7 +93,7 @@
             </div>
         </Box>
 
-        <Box title="MCP Servers">
+        <Box title="MCP Servers" base_path={base_path+".value.servers"}>
             {#each node_executor.value.servers as _, i}
                 <NodeMcpServer
                     mcp_server={node_executor.value.servers[i]}
@@ -121,7 +127,7 @@
             change_value={change_option_string}
             base_path={base_path+".value.command"}
         />
-        <Box title="Arguments">
+        <Box title="Arguments" base_path={base_path+".value.args"}>
             {#each node_executor.value.args as _, i}
                 <DataFrom
                     label={"Arg "+i}
@@ -129,7 +135,13 @@
                     base_path={base_path+".value.args["+i+"]"}
                     remove_from_loop={
                         () => remove_from_array( base_path+".value.args", i )
-                    } 
+                    }
+                    swap_items_in_array={
+                        ( up : boolean ) =>
+                        {
+                            swap_array_items( base_path+".value.args", i, ( up ? i - 1 : i + 1 ) );
+                        }
+                    }
                 />
             {/each}
             <div class="text-center">
@@ -141,7 +153,7 @@
                 />
             </div>
         </Box>
-        <Box title="Command output">
+        <Box title="Command output" base_path={base_path+".value.output"}>
             {#each node_executor.value.output as _, i}
                 <CommandOutput
                     label={"CommandOutput "+i}
@@ -149,7 +161,13 @@
                     base_path={base_path+".value.output["+i+"]"}
                     remove_from_loop={
                         () => remove_from_array( base_path+".value.output", i )
-                    } 
+                    }
+                    swap_items_in_array={
+                        ( up : boolean ) =>
+                        {
+                            swap_array_items( base_path+".value.output", i, ( up ? i - 1 : i + 1 ) );
+                        }
+                    }
                 />
             {/each}
             <div class="text-center">
@@ -163,7 +181,7 @@
         </Box>
     {:else if node_executor._variant == NodeExecutorVariant.ContextMut}
         {#each node_executor.value as _, i}
-            <Box title={"ContextMut "+i}>
+            <Box title={"ContextMut "+i} base_path={base_path+".value["+i+"]"}>
                 <DataFrom 
                     base_path={base_path+".value["+i+"].from"} 
                     from={node_executor.value[i].from as ExecutorDataFrom } 
@@ -181,6 +199,20 @@
                             () => remove_from_array( base_path+".value", i )
                         }
                         color="red"
+                    />
+                    <Button 
+                        text="Up" 
+                        click={
+                            () => swap_array_items( base_path+".value", i, i - 1 )
+                        } 
+                        color="blue" 
+                    />
+                    <Button 
+                        text="Down" 
+                        click={
+                            () => swap_array_items( base_path+".value", i, i + 1 )
+                        } 
+                        color="blue" 
                     />
                 </div>
             </Box>

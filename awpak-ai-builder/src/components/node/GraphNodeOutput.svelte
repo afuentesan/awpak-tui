@@ -13,14 +13,15 @@
         label : string,
         graph_node_output : GraphNodeOutput,
         base_path : string,
-        remove_from_loop? : () => void | undefined
+        remove_from_loop? : () => void | undefined,
+        swap_items_in_array? : ( up : boolean ) => void | undefined
     }
 
-    let { label, graph_node_output, base_path, remove_from_loop } : InputProps = $props();
+    let { label, graph_node_output, base_path, remove_from_loop, swap_items_in_array } : InputProps = $props();
     
 </script>
 
-<Box title={label}>
+<Box title={label} base_path={base_path}>
 
     <Input label="Prefix" value={graph_node_output.prefix} change_value={change_option_string} base_path={base_path+".prefix"} />
 
@@ -43,6 +44,10 @@
     {#if typeof( remove_from_loop ) == "function"}
     <div class="text-center">
         <Button text="Remove graph node output" click={remove_from_loop} color="red" />
+        {#if typeof( swap_items_in_array ) == "function"}
+        <Button text="Up" click={() => swap_items_in_array( true )} color="blue" />
+        <Button text="Down" click={() => swap_items_in_array( false )} color="blue" />
+        {/if}
     </div>
     {/if}
 </Box>

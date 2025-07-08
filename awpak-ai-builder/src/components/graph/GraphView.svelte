@@ -1,5 +1,6 @@
 <script lang="ts">
     import cytoscape from 'cytoscape';
+    import edgehandles from 'cytoscape-edgehandles';
     import klay from 'cytoscape-klay';
     import { onMount } from 'svelte';
     import { element_from_path, graph } from '../../store';
@@ -100,6 +101,7 @@
     let container: HTMLDivElement;
 
     cytoscape.use( klay );
+    cytoscape.use( edgehandles );
 
     // Actualiza el grafo si el store cambia
     const unsubscribe = graph.subscribe( ( data ) => 
@@ -191,9 +193,53 @@
                 layout: { name: layout }
             }
         );
+
+        // the default values of each option are outlined below:
+        let defaults = {
+        canConnect: function( _src : any, _target : any ){
+            // whether an edge can be created between source and target
+            return true;
+        },
+        edgeParams: function( _src : any, _target : any ){
+            // for edges between the specified source and target
+            // return element object to be passed to cy.add() for edge
+            return {};
+        },
+        hoverDelay: 150, // time spent hovering over a target node before it is considered selected
+        snap: true, // when enabled, the edge can be drawn by just moving close to a target node (can be confusing on compound graphs)
+        snapThreshold: 50, // the target node must be less than or equal to this many pixels away from the cursor/finger
+        snapFrequency: 15, // the number of times per second (Hz) that snap checks done (lower is less expensive)
+        noEdgeEventsInDraw: true, // set events:no to edges during draws, prevents mouseouts on compounds
+        disableBrowserGestures: true // during an edge drawing gesture, disable browser gestures such as two-finger trackpad swipe and pinch-to-zoom
+        };
+
+        // let eh = cy.edgehandles( defaults as any );
+
+        // eh.enableDrawMode();
         
         cy.nodes().on( "click", click_on_node );
         cy.edges().on( "click", click_on_edge );
+
+        // cy.nodes().on( 
+        //     "mousedown", 
+        //     ( event : any ) => 
+        //     {
+        //         const node = event.target;
+        //         const clickPos = event.renderedPosition;
+
+        //         const box = node.boundingBox({ rendered: true });
+
+        //         const relativeX = clickPos.x - box.x1;
+        //         const relativeY = clickPos.y - box.y1;
+
+        //         const width = box.w;
+        //         const height = box.h;
+
+        //         console.log(
+        //             `Click relativo dentro del nodo: x=${relativeX}, y=${relativeY}, width=${width}, height=${height}`
+        //         );
+        //     }
+        // );
 
         return () => 
         {

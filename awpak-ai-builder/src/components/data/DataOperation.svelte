@@ -16,7 +16,7 @@
     // );
 </script>
 
-<Box title={"Operation " + operation._variant}>
+<Box title={"Operation " + operation._variant} base_path={base_path}>
 
     <Select 
         label="Operation" 

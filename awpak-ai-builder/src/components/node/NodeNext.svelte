@@ -3,7 +3,7 @@
     import { select_options_from_array, select_options_from_enum } from "../../functions/form_utils";
     import { node_ids } from "../../functions/node_functions";
     import { NodeNextVariant, type NodeNext } from "../../model/node";
-    import { change_next_step, change_option_string, element_from_path, graph, remove_from_array } from "../../store";
+    import { change_next_step, change_option_string, element_from_path, graph, remove_from_array, swap_array_items } from "../../store";
     import DataToString from "../data/DataToString.svelte";
     import Box from "../form/Box.svelte";
     import Button from "../form/Button.svelte";
@@ -38,7 +38,7 @@
 
 </script>
 
-<Box title={"NodeNext "+node_next._variant} is_grid={is_grid}>
+<Box title={"NodeNext "+node_next._variant} is_grid={is_grid} base_path={base_path}>
 
     <Select 
         label="Next step" 
@@ -68,6 +68,12 @@
             label={node_next._variant + " " + i} 
             remove_from_loop={
                 () => remove_from_array( base_path+".value", i )
+            }
+            swap_items_in_array={
+                ( up : boolean ) =>
+                {
+                    swap_array_items( base_path+".value", i, ( up ? i - 1 : i + 1 ) );
+                }
             }
         />
     {/each}

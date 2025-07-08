@@ -38,7 +38,7 @@
     // });
 </script>
 
-<Box title={"Comparator "+comparator._variant} is_grid={is_grid}>
+<Box title={"Comparator "+comparator._variant} is_grid={is_grid} base_path={base_path}>
 
     <Select 
         label="Comparator type" 

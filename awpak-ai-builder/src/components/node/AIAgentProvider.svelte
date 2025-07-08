@@ -18,7 +18,7 @@
     
 </script>
 
-<Box title={"Provider "+provider._variant}>
+<Box title={"Provider "+provider._variant} base_path={base_path}>
 
     <Select 
         label="Provider type" 

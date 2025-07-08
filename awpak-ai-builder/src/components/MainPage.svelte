@@ -9,6 +9,7 @@
     import { type NodeType } from "../model/node";
     import NodeDestination from "./node/NodeDestination.svelte";
     import InputFile from "./form/InputFile.svelte";
+    import { save_graph_to_file } from "../functions/save_to_file";
 
 
     let view_type = $state( ViewType.Graph );
@@ -81,6 +82,14 @@
         text="Load JSON"
         change={load_json}
         color="blue"
+    />
+    <Button
+        text="Save JSON"
+        click={ 
+            () => {
+               save_graph_to_file( $graph );
+            }
+        }
     />
 </div>
 

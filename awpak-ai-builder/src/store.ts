@@ -126,6 +126,24 @@ export function remove_node( idx : number )
     graph.set( new_graph );
 }
 
+export function make_node_first( base_path : string )
+{
+    if( ! base_path?.trim() || base_path == "$.first" ) return;
+
+    let new_graph = Object.assign( {}, graph.get() );
+
+    const result = JSONPath( { path : base_path, json : new_graph, resultType : "all" } );
+
+    if( ! result?.length || ! result[ 0 ].parent ) { return; }
+
+    let first = new_graph.first;
+    new_graph.first = result[ 0 ].parent[ result[ 0 ].parentProperty ];
+
+    result[ 0 ].parent[ result[ 0 ].parentProperty ] = first;
+
+    graph.set( new_graph );
+}
+
 export function swap_array_items( base_path : string, from : number, to : number )
 {
     if( from < 0 || to < 0 || from == to ) return;
@@ -138,13 +156,13 @@ export function swap_array_items( base_path : string, from : number, to : number
 
     if( ! result[ 0 ]?.value?.length || from >= result[ 0 ]?.value?.length || to >= result[ 0 ]?.value?.length ) { return; }
 
-    let item_from = Object.assign( {}, result[ 0 ].parent[ result[ 0 ].parentProperty ][ to ] );
-    let item_to = Object.assign( {}, result[ 0 ].parent[ result[ 0 ].parentProperty ][ from ] );
+    let item_from = result[ 0 ].parent[ result[ 0 ].parentProperty ][ to ];
+    let item_to = result[ 0 ].parent[ result[ 0 ].parentProperty ][ from ];
 
     result[ 0 ].parent[ result[ 0 ].parentProperty ][ to ] = item_to;
     result[ 0 ].parent[ result[ 0 ].parentProperty ][ from ] = item_from;
 
-    result[ 0 ].parent[ result[ 0 ].parentProperty ] = [ ...result[ 0 ].parent[ result[ 0 ].parentProperty ] ];
+    // result[ 0 ].parent[ result[ 0 ].parentProperty ] = [ ...result[ 0 ].parent[ result[ 0 ].parentProperty ] ];
     
     graph.set( new_graph );
 }

@@ -13,7 +13,7 @@
     } = $props();
 </script>
 
-<Box title={label}>
+<Box title={label} base_path={base_path}>
 
     <Input label={"Path"} value={node_output?.path} change_value={change_option_string} base_path={base_path+".path"} />
     <DataType label={"Type"} value={node_output?.ty} change_value={change_data_type} base_path={base_path+".ty"} />

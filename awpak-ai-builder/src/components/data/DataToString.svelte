@@ -30,7 +30,7 @@
     // });
 </script>
 
-<Box title={label}>
+<Box title={label} base_path={base_path}>
 
     <Input label="Prefix" value={data.prefix} change_value={change_option_string} base_path={base_path+".prefix"} />
     <DataFrom from={data.from as DTSDataFrom} base_path={base_path+".from"} label={label+" from"} />

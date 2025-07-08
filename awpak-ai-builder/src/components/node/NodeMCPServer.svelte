@@ -2,7 +2,7 @@
 <script lang="ts">
     import { NodeMCPServer } from "../../model/agent";
     import { FromContext } from "../../model/data";
-    import { append_to_array, change_option_string, remove_from_array } from "../../store";
+    import { append_to_array, change_option_string, remove_from_array, swap_array_items } from "../../store";
     import DataFrom from "../data/DataFrom.svelte";
     import Box from "../form/Box.svelte";
     import Button from "../form/Button.svelte";
@@ -20,7 +20,7 @@
 
 </script>
 
-<Box title={"MCP server " + mcp_server.command}>
+<Box title={"MCP server " + mcp_server.command} base_path={base_path}>
 
     <Input
         label="Command"
@@ -29,7 +29,7 @@
         base_path={base_path+".command"}
     />
 
-    <Box title="Arguments">
+    <Box title="Arguments" base_path={base_path+".args"}>
         {#each mcp_server.args as _, i}
             <DataFrom
                 label={"Arg "+i}
@@ -37,7 +37,13 @@
                 base_path={base_path+".args["+i+"]"}
                 remove_from_loop={
                     () => remove_from_array( base_path+".args", i )
-                } 
+                }
+                swap_items_in_array={
+                    ( up : boolean ) =>
+                    {
+                        swap_array_items( base_path+".args", i, ( up ? i - 1 : i + 1 ) );
+                    }
+                }
             />
         {/each}
         <div class="text-center">

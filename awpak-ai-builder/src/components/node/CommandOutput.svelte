@@ -14,10 +14,11 @@
         output : CommandOutput,
         label : string,
         base_path : string,
-        remove_from_loop? : () => void | undefined
+        remove_from_loop? : () => void | undefined,
+        swap_items_in_array? : ( up : boolean ) => void | undefined
     }
 
-    let { output, label, base_path, remove_from_loop } : InputProps = $props();
+    let { output, label, base_path, remove_from_loop, swap_items_in_array } : InputProps = $props();
 
     const command_output_options = select_options_from_enum(
         CommandOutputVariant,
@@ -27,7 +28,7 @@
 
 </script>
 
-<Box title={label+" "+output._variant}>
+<Box title={label+" "+output._variant} base_path={base_path}>
     <Input label="Prefix" value={output.prefix} change_value={change_option_string} base_path={base_path+".prefix"} />
 
     <Select 
@@ -43,6 +44,10 @@
     {#if typeof( remove_from_loop ) == "function"}
     <div class="text-center">
         <Button text="Remove command node output" click={remove_from_loop} color="red" />
+        {#if typeof( swap_items_in_array ) == "function"}
+        <Button text="Up" click={() => swap_items_in_array( true )} color="blue" />
+        <Button text="Down" click={() => swap_items_in_array( false )} color="blue" />
+        {/if}
     </div>
     {/if}
 </Box>
