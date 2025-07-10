@@ -1,6 +1,6 @@
 use std::{sync::mpsc::{self, Sender}, time::Duration};
 
-use awpak_ai::{domain::{graph::graph::Graph, signals::cancel_graph::{cancel_graph, init_cancel_state}, tracing::filter_layer::{AwpakAIFilterLayer, AwpakAITarget, AwpakTracingMessage, AGENT_STREAM, AGENT_TOOL_CALL, AGENT_TOOL_RESULT, COMMAND_AND_ARGS, COMMAND_RESULT, NODE_DESTINATION, NODE_EXECUTION}}, infrastructure::graph::run_graph::run_graph};
+use awpak_ai::{domain::{graph::graph::Graph, signals::cancel_graph::{cancel_graph, init_cancel_state}, tracing::filter_layer::{AwpakAIFilterLayer, AwpakAITarget, AwpakTracingMessage, AGENT_STREAM, AGENT_SYNC, AGENT_TOOL_CALL, AGENT_TOOL_RESULT, COMMAND_AND_ARGS, COMMAND_RESULT, NODE_DESTINATION, NODE_EXECUTION}}, infrastructure::graph::run_graph::run_graph};
 use tracing_subscriber::{layer::SubscriberExt, util::SubscriberInitExt};
 
 use crate::{domain::{graph::graph::AwpakTUIGraph, util::file_utils::append_text_to_file}, infrastructure::{action::app::action::Action, channel::channel::{clean_recv_abort_chat, try_recv_abort_chat}, config::{functions::graph_config::{current_graph, graph_output_config, save_graph_in_current}, model::graph_config::{AwpakTUIGraphOutputConfig, AwpakTUIGraphOutputDestinationConfig}}}};
@@ -159,6 +159,7 @@ pub fn capture_graph_output( channel : Sender<Action> )
     {
         allowed : vec![ 
             ( AwpakAITarget::AgentStream, tx.clone() ),
+            ( AwpakAITarget::AgentSync, tx.clone() ),
             ( AwpakAITarget::AgentToolCall, tx.clone() ),
             ( AwpakAITarget::AgentToolResult, tx.clone() ),
             ( AwpakAITarget::CommandAndArgs, tx.clone() ),
@@ -219,6 +220,12 @@ fn proccess_message_from_config(
     match target.as_str()
     {
         AGENT_STREAM => proccess_message_from_destinations( id, config.agent_stream, text, channel ),
+        AGENT_SYNC => proccess_message_from_destinations( 
+            id, 
+            config.agent_sync, 
+            format!( "\n{}\n", text ), 
+            channel 
+        ),
         AGENT_TOOL_CALL => proccess_message_from_destinations(
             id, 
             config.agent_tool_call, 

@@ -21,7 +21,13 @@ pub struct AIAgent
     pub prompt : Vec<DataToString>,
 
     #[serde(default)]
-    pub history : Vec<Message>
+    pub history : Vec<Message>,
+
+    #[serde(default)]
+    pub is_stream : bool,
+
+    #[serde(default)]
+    pub turns : Option<usize>
 }
 
 impl Default for AIAgent
@@ -35,7 +41,9 @@ impl Default for AIAgent
             save_history : false, 
             servers : vec![], 
             prompt : vec![], 
-            history: vec![]
+            history: vec![],
+            is_stream : false,
+            turns : None
         }
     }
 }

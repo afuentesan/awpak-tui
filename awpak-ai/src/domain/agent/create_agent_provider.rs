@@ -1,6 +1,6 @@
 use std::collections::HashMap;
 
-use rig::client::CompletionClient;
+use rig::{agent::Agent, client::CompletionClient};
 use serde_json::Value;
 
 use crate::domain::{agent::{agent::{AIAgent, AIAgentProviderConfig, AnthropicConfig, DeepSeekConfig, GeminiConfig, OllamaConfig, OpenAIConfig}, agent_provider::AIAgentProvider}, error::Error, mcp::mcp_functions::add_mcp_clients_to_agent};
@@ -125,6 +125,20 @@ async fn openai_agent_provider(
     }
     
     let agent = agent.build();
+
+    let agent = Agent 
+    {
+        model: agent.model.completions_api(),
+        preamble: agent.preamble,
+        static_context: agent.static_context,
+        static_tools: agent.static_tools,
+        temperature: agent.temperature,
+        max_tokens: agent.max_tokens,
+        additional_params: agent.additional_params,
+        dynamic_context: agent.dynamic_context,
+        dynamic_tools: agent.dynamic_tools,
+        tools: agent.tools,
+    };
 
     Ok( AIAgentProvider::OpenAI( agent ) )
 }

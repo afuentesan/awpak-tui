@@ -19,6 +19,8 @@ pub struct AwpakTUIGraphOutputConfig
     #[serde(default)]
     pub agent_stream : Vec<AwpakTUIGraphOutputDestinationConfig>,
     #[serde(default)]
+    pub agent_sync : Vec<AwpakTUIGraphOutputDestinationConfig>,
+    #[serde(default)]
     pub agent_tool_call : Vec<AwpakTUIGraphOutputDestinationConfig>,
     #[serde(default)]
     pub agent_tool_result : Vec<AwpakTUIGraphOutputDestinationConfig>,
@@ -42,6 +44,7 @@ impl Default for AwpakTUIGraphOutputConfig
         Self 
         { 
             agent_stream : vec![ AwpakTUIGraphOutputDestinationConfig::Console ], 
+            agent_sync : vec![ AwpakTUIGraphOutputDestinationConfig::Console ], 
             agent_tool_call : Default::default(), 
             agent_tool_result : Default::default(), 
             command_and_args : vec![ AwpakTUIGraphOutputDestinationConfig::Console ],

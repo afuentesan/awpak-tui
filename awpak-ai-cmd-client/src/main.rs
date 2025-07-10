@@ -1,23 +1,32 @@
-use std::{io::Write as _, sync::mpsc::{self}};
+use std::{io::Write as _, sync::mpsc::{self}, time::Duration};
 
 use awpak_ai::{domain::{error::Error, graph::graph::Graph, tracing::filter_layer::{AwpakAIFilterLayer, AwpakAITarget, AwpakTracingMessage}}, infrastructure::graph::{build_graph::graph_from_path, run_graph::run_graph}};
+use clap::{arg, Command};
 use text_io::read;
+use tokio::time::sleep;
 use tracing_subscriber::{layer::SubscriberExt, util::SubscriberInitExt};
 
 
 #[tokio::main]
 async fn main() -> Result<(), ()>
 {
-    if std::env::args().len() < 2
-    {
-        return Err( () );
-    }
+    let matches = Command::new("Awpak AI SHELL")
+        .version("0.1.0")
+        .about("Client for Awpak AI")
+        .arg(arg!(--path <VALUE>).required(true))
+        .arg(arg!(--input <VALUE>))
+        .arg(arg!(--chat))
+        .get_matches();
+    
+    let path = matches.get_one::<String>( "path" ).ok_or( Error::Ignore ).map_err( | _ | () )?;
+    let input = matches.get_one::<String>( "input" );
+    let chat = matches.get_flag( "chat" );
 
     subscribe_tracing();
 
-    let path = std::env::args().nth( 1 ).ok_or( Error::Ignore ).map_err( | _ | () )?;
+    // let path = std::env::args().nth( 1 ).ok_or( Error::Ignore ).map_err( | _ | () )?;
 
-    let mut graph = match graph_from_path( &path )
+    let mut graph = match graph_from_path( path )
     {
         Ok( g ) => g,
         Err( e ) =>
@@ -28,15 +37,22 @@ async fn main() -> Result<(), ()>
         }
     };
 
-    loop
+    if chat
     {
-        let input = user_input();
+        loop
+        {
+            let input = user_input();
 
-        if input.trim() == "" { continue; }
+            if input.trim() == "" { continue; }
 
-        if input.trim() == "exit" { break; }
+            if input.trim() == "exit" { break; }
 
-        graph = execute_graph( graph, input ).await;
+            graph = execute_graph( graph, input ).await;
+        }
+    }
+    else
+    {
+        execute_graph( graph, input.unwrap_or( &String::new() ).to_string() ).await;
     }
     
     Ok( () )
@@ -51,6 +67,7 @@ fn subscribe_tracing()
     {
         allowed : vec![ 
             ( AwpakAITarget::AgentStream, tx_stream.clone() ),
+            ( AwpakAITarget::AgentSync, tx.clone() ),
             ( AwpakAITarget::AgentToolCall, tx.clone() ),
             ( AwpakAITarget::AgentToolResult, tx.clone() ),
             ( AwpakAITarget::CommandAndArgs, tx.clone() ),
@@ -104,12 +121,15 @@ fn subscribe_tracing()
 fn user_input() -> String
 {
     print!( "Prompt: " );
+    let _ = std::io::stdout().flush();
     read!( "{}\n" )
 }
 
 async fn execute_graph( graph : Graph, input : String ) -> Graph
 {
     let result = run_graph( input, graph ).await;
+
+    let _ = sleep( Duration::from_millis( 1000 ) ).await;
 
     match result.collect()
     {
@@ -122,7 +142,7 @@ async fn execute_graph( graph : Graph, input : String ) -> Graph
         ( g, Some( e ) ) => 
         {
             println!( "Error: {}", e.to_string() );
-
+            let _ = std::io::stdout().flush();
             g
         }
     }
@@ -134,9 +154,21 @@ fn show_graph_result( graph : &Graph )
     {
         Some( o ) => match o
         {
-            Ok( m ) => println!( "ExitOk: {}", m ),
-            Err( e ) => println!( "ExitErr: {}", e )
+            Ok( m ) => 
+            {
+                println!( "\nExitOk: {}", m );
+                let _ = std::io::stdout().flush();
+            },
+            Err( e ) => 
+            {
+                println!( "\nExitErr: {}", e );
+                let _ = std::io::stdout().flush();
+            }
         },
-        None => println!( "End graph execution without output" )
+        None => 
+        {
+            println!( "End graph execution without output" );
+            let _ = std::io::stdout().flush();
+        }
     }
 }

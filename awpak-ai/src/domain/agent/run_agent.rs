@@ -1,12 +1,26 @@
 use std::{pin::Pin, sync::{Arc, Mutex}};
 
-use rig::{agent::Agent, completion::CompletionModel, message::{AssistantContent, Message, Text, ToolResultContent, UserContent}, streaming::StreamingCompletion, OneOrMany};
+use rig::{agent::Agent, completion::{CompletionModel, Prompt}, message::{AssistantContent, Message, Text, ToolResultContent, UserContent}, streaming::StreamingCompletion, OneOrMany};
 use tokio_stream::{Stream, StreamExt};
 use tracing::info;
 type StreamingResult = Pin<Box<dyn Stream<Item = Result<Text, Error>> + Send>>;
-use crate::domain::{agent::agent::AIAgent, error::Error, signals::cancel_graph::is_graph_cancelled, tracing::filter_layer::{AGENT_STREAM, AGENT_TOOL_CALL, AGENT_TOOL_RESULT}, utils::string_utils::option_string_to_str};
+use crate::domain::{agent::agent::AIAgent, error::Error, signals::cancel_graph::is_graph_cancelled, tracing::filter_layer::{AGENT_STREAM, AGENT_SYNC, AGENT_TOOL_CALL, AGENT_TOOL_RESULT}, utils::string_utils::option_string_to_str};
 
 pub async fn run_agent<T: CompletionModel + 'static>( 
+    id : Option<&String>,
+    prompt : String, 
+    provider : Agent<T>, 
+    agent : &AIAgent 
+) -> Result<( String, Vec<Message> ), Error>
+{
+    match agent.is_stream
+    {
+        true => run_stream_agent( id, prompt, provider, agent ).await,
+        false => run_sync_agent( id, prompt, provider, agent ).await
+    }
+}
+
+pub async fn run_stream_agent<T: CompletionModel + 'static>( 
     id : Option<&String>,
     prompt : String, 
     provider : Agent<T>, 
@@ -33,6 +47,32 @@ pub async fn run_agent<T: CompletionModel + 'static>(
 
     history.push( Message::assistant( response.clone() ) );
 
+    Ok( ( response, history ) )
+}
+
+async fn run_sync_agent<T: CompletionModel + 'static>( 
+    id : Option<&String>,
+    prompt : String, 
+    provider : Agent<T>, 
+    agent : &AIAgent 
+) -> Result<( String, Vec<Message> ), Error>
+{
+    let mut history = agent.history.clone();
+
+    let response = provider
+    .prompt( prompt )
+    .multi_turn( 
+        match agent.servers.len()
+        {
+            0 => 0,
+            _ => agent.turns.unwrap_or( 25 )
+        }
+    )
+    .with_history( &mut history )
+    .await.map_err( | e | Error::Agent( e.to_string() ) )?;
+
+    info!( target:AGENT_SYNC, id=option_string_to_str( id ), text=response );
+    
     Ok( ( response, history ) )
 }
 
@@ -162,6 +202,7 @@ where
             {
                 let m = Message::Assistant 
                 {
+                    id : None,
                     content : OneOrMany::many( tool_calls ).expect( "Impossible EmptyListError" ),
                 };
 

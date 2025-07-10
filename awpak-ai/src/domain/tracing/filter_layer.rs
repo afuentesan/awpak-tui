@@ -10,6 +10,7 @@ pub struct AwpakAIFilterLayer
 }
 
 pub const AGENT_STREAM : &'static str = "agent_stream";
+pub const AGENT_SYNC : &'static str = "agent_sync";
 pub const AGENT_TOOL_CALL : &'static str = "agent_tool_call";
 pub const AGENT_TOOL_RESULT : &'static str = "agent_tool_result";
 
@@ -22,6 +23,7 @@ pub const NODE_EXECUTION : &'static str = "node_execution";
 pub enum AwpakAITarget
 {
     AgentStream,
+    AgentSync,
     AgentToolCall,
     AgentToolResult,
     CommandAndArgs,
@@ -37,6 +39,7 @@ impl AwpakAITarget
         match self
         {
             AwpakAITarget::AgentStream => AGENT_STREAM,
+            AwpakAITarget::AgentSync => AGENT_SYNC,
             AwpakAITarget::AgentToolCall => AGENT_TOOL_CALL,
             AwpakAITarget::AgentToolResult => AGENT_TOOL_RESULT,
             AwpakAITarget::CommandAndArgs => COMMAND_AND_ARGS,
