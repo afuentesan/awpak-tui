@@ -7,14 +7,15 @@ export class Command
     output : Array<CommandOutput> = [];
 }
 
-export type CommandOutput = CommandOutputOut | CommandOutputErr | CommandOutputSuccess | CommandOutputCode;
+export type CommandOutput = CommandOutputOut | CommandOutputErr | CommandOutputSuccess | CommandOutputCode | CommandOutputObject;
 
 export enum CommandOutputVariant
 {
     Out = "Out",
     Err = "Err",
     Success = "Success",
-    Code = "Code"
+    Code = "Code",
+    Object = "Object"
 }
 
 export class CommandOutputOut
@@ -44,6 +45,14 @@ export class CommandOutputSuccess
 export class CommandOutputCode
 {
     readonly _variant = CommandOutputVariant.Code;
+
+    prefix : string | undefined;
+    suffix : string | undefined;
+}
+
+export class CommandOutputObject
+{
+    readonly _variant = CommandOutputVariant.Object;
 
     prefix : string | undefined;
     suffix : string | undefined;

@@ -1,3 +1,4 @@
+
 use serde_json::{Number, Value};
 
 use crate::domain::error::Error;
@@ -36,6 +37,7 @@ pub fn f64_from_value( value : Value ) -> Result<f64, Error>
     match value
     {
         Value::Number( n ) => n.as_f64().ok_or( Error::ParseData( format!( "{:?} invalid f64", n ) ) ),
+        Value::String( s ) if s.trim() != "" => s.parse().map_err( | _ | Error::ParseData( format!( "{:?} invalid f64", s ) ) ),
         v => Err( Error::ParseData( format!( "Value is not a number. {:?}", v ) ) )
     }
 }

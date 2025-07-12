@@ -1,10 +1,11 @@
 import { AIAgent, AIAgentProviderAnthropic, AIAgentProviderDeepSeek, AIAgentProviderGemini, AIAgentProviderOllama, AIAgentProviderOpenAI, NodeMCPServer, type AIAgentProvider } from "../model/agent";
-import { Command, CommandOutputCode, CommandOutputErr, CommandOutputOut, CommandOutputSuccess, type CommandOutput } from "../model/command";
-import { DataMerge, DataOperationAdd, DataOperationLen, DataOperationSubstract, DataToContext, DataToString, DataType, FromConcat, FromContext, FromInput, FromOperation, FromParsedInput, FromStatic, type DataFrom } from "../model/data";
+import { Command, CommandOutputCode, CommandOutputErr, CommandOutputObject, CommandOutputOut, CommandOutputSuccess, type CommandOutput } from "../model/command";
+import { DataMerge, DataOperationAdd, DataOperationLen, DataOperationSubstract, DataToContext, DataToString, DataType, FromConcat, FromContext, FromInput, FromNull, FromOperation, FromParsedInput, FromStatic, type DataFrom } from "../model/data";
 import { DataComparatorAnd, DataComparatorEq, DataComparatorFalse, DataComparatorGt, DataComparatorLt, DataComparatorNot, DataComparatorNotEq, DataComparatorOr, DataComparatorRegex, DataComparatorTrue, type DataComparator } from "../model/data_comparator";
 import { Graph } from "../model/graph";
 import { GraphNode, GraphNodeOutputErr, GraphNodeOutputOut, Node, NodeDestination, NodeNextExitErr, NodeNextExitOk, NodeNextNode, type GraphNodeOutput, type NodeNext, type NodeType } from "../model/node";
 import { NodeExecutorAgent, NodeExecutorCommand, NodeExecutorContextMut, type NodeExecutor } from "../model/node_executor";
+import { is_empty } from "./data_functions";
 import { is_type_in_enum } from "./form_utils";
 
 export function load_graph_from_json( json : any ) : Graph
@@ -155,14 +156,18 @@ function load_command_output( output : any ) : CommandOutput
     {
         return load_command_output_prefix_suffix( output[ "Code" ], new CommandOutputCode() );
     }
+    else if( output?.[ "Object" ] )
+    {
+        return load_command_output_prefix_suffix( output[ "Object" ], new CommandOutputObject() );
+    }
 
     throw new Error( "CommandOutput not found. " + JSON.stringify( output ) );
 }
 
 function load_command_output_prefix_suffix( 
     output : any, 
-    src : CommandOutputOut | CommandOutputErr | CommandOutputSuccess | CommandOutputCode
-) : CommandOutputOut | CommandOutputErr | CommandOutputSuccess | CommandOutputCode
+    src : CommandOutputOut | CommandOutputErr | CommandOutputSuccess | CommandOutputCode | CommandOutputObject
+) : CommandOutputOut | CommandOutputErr | CommandOutputSuccess | CommandOutputCode | CommandOutputObject
 {
     src.prefix = output.prefix;
     src.suffix = output.suffix;
@@ -287,7 +292,8 @@ function load_data_to_context( data : any ) : DataToContext
     return {
         path : data.path,
         ty : load_data_type( data.ty ),
-        merge : load_merge( data.merge )
+        merge : load_merge( data.merge ),
+        optional : data.optional || false
     }
 }
 
@@ -462,29 +468,33 @@ function load_vec_data_from( data : Array<any> ) : Array<DataFrom>
 
 function load_data_from( data : any ) : DataFrom
 {
-    if( data?.[ "Context" ] )
+    if( ! is_empty( data?.[ "Context" ] ) )
     {
         return load_from_context( data[ "Context" ] );
     }
-    else if( data?.[ "ParsedInput" ] )
+    else if( ! is_empty( data?.[ "ParsedInput" ] ) )
     {
         return load_from_parsed_input( data[ "ParsedInput" ] );
     }
-    else if( data?.[ "Static" ] )
+    else if( ! is_empty( data?.[ "Static" ] ) )
     {
         return load_from_static( data[ "Static" ] );
     }
-    else if( data?.[ "Input" ] )
+    else if( ! is_empty( data?.[ "Input" ] ) )
     {
         return load_from_input( data[ "Input" ] );
     }
-    else if( data?.[ "Operation" ] )
+    else if( ! is_empty( data?.[ "Operation" ] ) )
     {
         return load_from_operation( data[ "Operation" ] );
     }
-    else if( data?.[ "Concat" ] )
+    else if( ! is_empty( data?.[ "Concat" ] ) )
     {
         return load_from_concat( data[ "Concat" ] );
+    }
+    else if( typeof( data ) === "string" && data === "Null" )
+    {
+        return new FromNull();
     }
     
     throw new Error( "DataFrom not found. " + JSON.stringify( data ) );

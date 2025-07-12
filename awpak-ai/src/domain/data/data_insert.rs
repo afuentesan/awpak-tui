@@ -17,7 +17,7 @@ pub fn str_to_context(
     .zip_result(
         | _ |
         {
-            str_to_value( &output, &conf.ty )
+            str_to_value( &output, &conf.ty, conf.optional )
         }
     )
     .write()
@@ -447,7 +447,8 @@ mod tests
         { 
             path : "/root/inner/3".to_string(), 
             ty : DataType::String, 
-            merge : DataMerge::Insert
+            merge : DataMerge::Insert,
+            optional : false
         };
 
         let context = value_to_context( context, value, conf );
@@ -516,7 +517,8 @@ mod tests
         { 
             path : "/root/inner/3".to_string(), 
             ty : DataType::String, 
-            merge : DataMerge::Insert
+            merge : DataMerge::Insert,
+            optional : false
         };
 
         let context = value_to_context( context, value, conf );
@@ -604,7 +606,8 @@ mod tests
         { 
             path : "/root/inner/3".to_string(), 
             ty : DataType::String, 
-            merge : DataMerge::Append
+            merge : DataMerge::Append,
+            optional : false
         };
 
         let context = value_to_context( context, value, conf );
@@ -673,7 +676,8 @@ mod tests
         { 
             path : "/root/inner/3".to_string(), 
             ty : DataType::String, 
-            merge : DataMerge::Append
+            merge : DataMerge::Append,
+            optional : false
         };
 
         let context = value_to_context( context, value, conf );

@@ -5,16 +5,18 @@
     import Graph from "./graph/Graph.svelte";
     import GraphView from "./graph/GraphView.svelte";
     import Node from "./graph/Node.svelte";
-    import { add_node_exit_text, graph, load_new_graph } from '../store';
+    import { add_node, add_node_exit_text, graph, load_new_graph } from '../store';
     import { type NodeType } from "../model/node";
     import NodeDestination from "./node/NodeDestination.svelte";
     import InputFile from "./form/InputFile.svelte";
     import { save_graph_to_file } from "../functions/save_to_file";
 
 
-    let view_type = $state( ViewType.Graph );
+    let view_type = $state( ViewType.GraphView );
 
     let partial_view_data = $state( {} as any );
+
+    let graph_view_edit_mode = $state( false );
 
     function change_view( view : ViewType, data? : any )
     {
@@ -59,7 +61,8 @@
 
 </script>
 
-<div class="w-full text-center">
+<div class="w-full text-center h-14 border-b border-gray-200 dark:border-gray-700">
+    {#if view_type != ViewType.Graph}
     <Button
         text="Graph data"
         click={ 
@@ -67,7 +70,10 @@
                change_view( ViewType.Graph );
             }
         }
+        color="blue"
     />
+    {/if}
+    {#if view_type != ViewType.GraphView}
     <Button
         text="Graph view"
         click={ 
@@ -77,11 +83,35 @@
         }
         color="blue"
     />
+    {:else}
+    <Button
+        text={graph_view_edit_mode ? "End edit mode" : "Start edit mode"}
+        click={ 
+            () => {
+               graph_view_edit_mode = ! graph_view_edit_mode;
+            }
+        }
+        color={graph_view_edit_mode ? "red" : "light"}
+    />
+    {/if}
+
+    {#if view_type == ViewType.Graph || view_type == ViewType.GraphView}
+    <Button
+        text="Add node"
+        click={ 
+            () => {
+               add_node();
+            }
+        }
+        color="green"
+    />
+    {/if}
+
     <InputFile
         id="load_json_file"
         text="Load JSON"
         change={load_json}
-        color="blue"
+        color="purple"
     />
     <Button
         text="Save JSON"
@@ -90,14 +120,15 @@
                save_graph_to_file( $graph );
             }
         }
+        color="purple"
     />
 </div>
 
 {#key $graph}
-{#if view_type == ViewType.Graph}
+{#if view_type == ViewType.GraphView}
+    <GraphView change_view={change_view} edit_mode={graph_view_edit_mode} />
+{:else if view_type == ViewType.Graph}
     <Graph />
-{:else if view_type == ViewType.GraphView}
-    <GraphView change_view={change_view} />
 {:else if view_type == ViewType.NodeView}
     <Node
         base_path={partial_view_data.base_path}

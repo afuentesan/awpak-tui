@@ -14,6 +14,7 @@ export class DataToContext
     path : string | undefined;
     ty : DataType | undefined;
     merge : DataMerge | undefined;
+    optional : boolean = false;
 }
 
 
@@ -36,7 +37,7 @@ export class DataToString
     }
 }
 
-export type DataFrom = FromContext | FromParsedInput | FromInput | FromStatic | FromConcat | FromOperation;
+export type DataFrom = FromContext | FromParsedInput | FromInput | FromStatic | FromConcat | FromOperation | FromNull;
 
 export enum DataFromVariant
 {
@@ -45,7 +46,8 @@ export enum DataFromVariant
     Static = "Static",
     Input = "Input",
     Operation = "Operation",
-    Concat = "Concat"
+    Concat = "Concat",
+    Null = "Null"
 }
 
 export class FromContext
@@ -95,6 +97,11 @@ export class FromConcat
     readonly _variant = DataFromVariant.Concat;
 
     value : Array<DataFrom> = [];
+}
+
+export class FromNull
+{
+    readonly _variant = DataFromVariant.Null;
 }
 
 export type DataOperation = DataOperationLen | DataOperationSubstract | DataOperationAdd;

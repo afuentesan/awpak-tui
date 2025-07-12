@@ -5,6 +5,7 @@ import { DataComparatorVariant, type DataComparator } from "../model/data_compar
 import type { Graph } from "../model/graph";
 import { GraphNode, GraphNodeOutputVariant, NodeDestination, NodeNextVariant, NodeTypeVariant, type GraphNodeOutput, type Node, type NodeNext, type NodeType } from "../model/node";
 import { NodeExecutorAgent, NodeExecutorCommand, NodeExecutorContextMut, NodeExecutorVariant, type NodeExecutor } from "../model/node_executor";
+import { is_empty } from "./data_functions";
 
 export function generate_json( graph : Graph ) : string
 {
@@ -192,7 +193,8 @@ function json_command_output( output : CommandOutput ) : any
         output._variant == CommandOutputVariant.Out ||
         output._variant == CommandOutputVariant.Err ||
         output._variant == CommandOutputVariant.Success ||
-        output._variant == CommandOutputVariant.Code
+        output._variant == CommandOutputVariant.Code ||
+        output._variant == CommandOutputVariant.Object
     )
     {
         return {
@@ -280,10 +282,22 @@ function json_data_from( data_from : DataFrom ) : any
             [data_from._variant] : data_from.value ? json_data_operation( data_from.value ) : undefined
         }
     }
+    else if( data_from._variant == DataFromVariant.Null )
+    {
+        return "Null"
+    }
 }
 
 function json_from_any( input : any ) : any
 {
+    if( is_empty( input ) ) return "";
+
+    if( typeof( input ) === "string" && input.trim() === "" ) return input;
+
+    if( typeof( input ) === "number" ) return input;
+
+    if( typeof( input ) === "boolean" ) return input;
+
     try
     {
         let json = JSON.parse( input );
@@ -318,7 +332,7 @@ function json_number_or_string( input : any ) : number | string
 function json_node_from_graph_node( node : GraphNode ) : any
 {
     let json : any = { 
-        "GraphNode" : {
+        "Graph" : {
             id : node.id,
             path : node.path,
             input : json_vec_data_to_string( node.input ),
@@ -338,7 +352,8 @@ function json_data_to_context( data : DataToContext | undefined ) : any
     return {
         path : data.path,
         ty : data.ty,
-        merge : data.merge
+        merge : data.merge,
+        optional : data.optional || false
     }
 }
 

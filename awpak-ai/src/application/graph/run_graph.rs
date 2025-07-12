@@ -1,3 +1,4 @@
+
 use awpak_utils::result::result::AwpakResult;
 use serde_json::Value;
 use async_recursion::async_recursion;
@@ -300,6 +301,11 @@ async fn output_to_context( output : String, mut runner : GraphRunner ) -> Awpak
 {
     let node = runner.graph.nodes.get( runner.next.as_str() ).unwrap();
 
+    if let NodeExecutor::ContextMut( _ ) = &node.executor
+    {
+        return AwpakResult::new( runner );
+    }
+
     match &node.output
     {
         Some( c ) =>
@@ -333,7 +339,7 @@ fn graph_parsed_input(
 {
     match input_type
     {
-        Some( t ) => str_to_value( input, t ),
+        Some( t ) => str_to_value( input, t, false ),
         None => Ok( Value::Null )
     }
 }

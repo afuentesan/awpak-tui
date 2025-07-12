@@ -1,6 +1,11 @@
-import { DataFromVariant, DataOperationAdd, DataOperationLen, DataOperationSubstract, DataOperationVariant, FromConcat, FromContext, FromInput, FromOperation, FromParsedInput, FromStatic, type DataFrom, type DataOperation } from "../model/data";
+import { DataFromVariant, DataOperationAdd, DataOperationLen, DataOperationSubstract, DataOperationVariant, FromConcat, FromContext, FromInput, FromNull, FromOperation, FromParsedInput, FromStatic, type DataFrom, type DataOperation } from "../model/data";
 import { DataComparatorAnd, DataComparatorEq, DataComparatorFalse, DataComparatorGt, DataComparatorLt, DataComparatorNot, DataComparatorNotEq, DataComparatorOr, DataComparatorRegex, DataComparatorTrue, DataComparatorVariant, type DataComparator } from "../model/data_comparator";
 import { is_type_in_enum } from "./form_utils";
+
+export function is_empty( data : any ) : boolean
+{
+    return typeof( data ) === "undefined" || data === null;
+}
 
 export function new_data_operation_variant( old : DataOperation, new_variant : string ) : DataOperation | undefined
 {
@@ -109,6 +114,10 @@ export function new_data_from_variant( old : DataFrom, new_variant : string ) : 
     else if( new_variant == DataFromVariant.Concat )
     {
         return new FromConcat();
+    }
+    else if( new_variant == DataFromVariant.Null )
+    {
+        return new FromNull();
     }
     else
     {

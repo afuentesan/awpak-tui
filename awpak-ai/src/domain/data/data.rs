@@ -21,7 +21,8 @@ pub enum DataFrom
     Input { #[serde(default)] required : bool },
     Static( Value ),
     Concat( Vec<DataFrom> ),
-    Operation( Box<DataOperation> )
+    Operation( Box<DataOperation> ),
+    Null
 }
 
 #[derive(Serialize, Deserialize, Clone)]
@@ -66,7 +67,9 @@ pub struct DataToContext
     #[serde(default)]
     pub ty : DataType,
     #[serde(default)]
-    pub merge : DataMerge
+    pub merge : DataMerge,
+    #[serde(default)]
+    pub optional : bool
 }
 
 #[derive(Serialize, Deserialize, Clone, Default)]

@@ -57,7 +57,8 @@ pub fn data_selection(
         DataFrom::Input { required } => data_from_input( input, *required ),
         DataFrom::Static( v ) => Ok( v.clone() ),
         DataFrom::Concat( f ) => concat_data_from( input, parsed_input, context, f ),
-        DataFrom::Operation( o ) => operation_data_from( input, parsed_input, context, o )
+        DataFrom::Operation( o ) => operation_data_from( input, parsed_input, context, o ),
+        DataFrom::Null => Ok( Value::Null )
     }
 }
 

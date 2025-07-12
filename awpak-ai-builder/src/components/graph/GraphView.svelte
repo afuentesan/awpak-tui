@@ -2,22 +2,24 @@
     import cytoscape from 'cytoscape';
     import edgehandles from 'cytoscape-edgehandles';
     import klay from 'cytoscape-klay';
-    import { onMount } from 'svelte';
-    import { element_from_path, graph } from '../../store';
+    import { onMount, tick } from 'svelte';
+    import { add_node_destination, element_from_path, graph } from '../../store';
     import { change_graph_positions, graph_positions } from '../../positions_store';
     import { graph_to_cytoscape, ID_EXIT_ERR, ID_EXIT_OK } from '../../functions/graph_to_cytoscape';
     import { NodeTypeVariant } from '../../model/node';
     import { ViewType } from '../../model/view_type';
     import { node_and_base_path_from_id } from '../../functions/node_functions';
     import type { Graph } from '../../model/graph';
+    import { NodeExecutorVariant } from '../../model/node_executor';
 
 
     interface InputProps
     {
-        change_view : ( view : ViewType, data? : any ) => void
+        change_view : ( view : ViewType, data? : any ) => void,
+        edit_mode : boolean
     }
 
-    let { change_view } : InputProps = $props();
+    let { change_view, edit_mode } : InputProps = $props();
 
     const click_on_edge = ( event : cytoscape.EventObject ) =>
     {
@@ -99,6 +101,7 @@
 
     let cy: cytoscape.Core;
     let container: HTMLDivElement;
+    let eh: edgehandles.EdgeHandlesInstance;
 
     cytoscape.use( klay );
     cytoscape.use( edgehandles );
@@ -123,11 +126,27 @@
         } 
     );
 
-    onMount(() => 
-    {        
-        const [ nodes_and_edges, layout ] = nodes_and_layout( $graph );
+    $effect(
+        () => 
+        {
+            edit_mode;
 
-        console.log( "onMount: ", $graph, nodes_and_edges );
+            if( ! eh ) return;
+
+            if( edit_mode )
+            {
+                eh.enableDrawMode();
+            }
+            else
+            {
+                eh.disableDrawMode();
+            }
+        }
+    );
+
+    onMount( () => 
+    {
+        const [ nodes_and_edges, layout ] = nodes_and_layout( $graph );
 
         cy = cytoscape(
             {
@@ -164,6 +183,24 @@
                         }
                     },
                     {
+                        selector: `node[ty = "${NodeExecutorVariant.Command}"]`,
+                        style: {
+                        'background-color': '#1D4ED8'
+                        }
+                    },
+                    {
+                        selector: `node[ty = "${NodeExecutorVariant.Agent}"]`,
+                        style: {
+                        'background-color': '#8E4B10'
+                        }
+                    },
+                    {
+                        selector: `node[ty = "${NodeExecutorVariant.ContextMut}"]`,
+                        style: {
+                        'background-color': '#BF125D'
+                        }
+                    },
+                    {
                         selector: `node[ty = "${ID_EXIT_OK}"]`,
                         style: {
                         'background-color': '#047857'
@@ -196,50 +233,45 @@
 
         // the default values of each option are outlined below:
         let defaults = {
-        canConnect: function( _src : any, _target : any ){
-            // whether an edge can be created between source and target
-            return true;
-        },
-        edgeParams: function( _src : any, _target : any ){
-            // for edges between the specified source and target
-            // return element object to be passed to cy.add() for edge
-            return {};
-        },
-        hoverDelay: 150, // time spent hovering over a target node before it is considered selected
-        snap: true, // when enabled, the edge can be drawn by just moving close to a target node (can be confusing on compound graphs)
-        snapThreshold: 50, // the target node must be less than or equal to this many pixels away from the cursor/finger
-        snapFrequency: 15, // the number of times per second (Hz) that snap checks done (lower is less expensive)
-        noEdgeEventsInDraw: true, // set events:no to edges during draws, prevents mouseouts on compounds
-        disableBrowserGestures: true // during an edge drawing gesture, disable browser gestures such as two-finger trackpad swipe and pinch-to-zoom
+            canConnect: function( src : any, _target : any )
+            {
+                if( ! src?.id() || src.id() == ID_EXIT_OK || src.id() == ID_EXIT_ERR )
+                {
+                    return false;
+                }
+                
+                return true;
+            },
+            edgeParams: function( _src : any, _target : any ){
+                // for edges between the specified source and target
+                // return element object to be passed to cy.add() for edge
+                return {};
+            },
+            hoverDelay: 150, // time spent hovering over a target node before it is considered selected
+            snap: true, // when enabled, the edge can be drawn by just moving close to a target node (can be confusing on compound graphs)
+            snapThreshold: 50, // the target node must be less than or equal to this many pixels away from the cursor/finger
+            snapFrequency: 15, // the number of times per second (Hz) that snap checks done (lower is less expensive)
+            noEdgeEventsInDraw: true, // set events:no to edges during draws, prevents mouseouts on compounds
+            disableBrowserGestures: true // during an edge drawing gesture, disable browser gestures such as two-finger trackpad swipe and pinch-to-zoom
         };
 
-        // let eh = cy.edgehandles( defaults as any );
+        eh = cy.edgehandles( defaults as any );
 
-        // eh.enableDrawMode();
-        
+        cy.on( 'ehcomplete', ( _event, src, target, _edge ) => 
+            {
+                if( ! src?.id() || ! target?.id() ) return;
+                
+                add_node_destination( src.id(), target.id() );
+            }
+        );
+
+        if( edit_mode )
+        {
+            eh.enableDrawMode();
+        }
+
         cy.nodes().on( "click", click_on_node );
         cy.edges().on( "click", click_on_edge );
-
-        // cy.nodes().on( 
-        //     "mousedown", 
-        //     ( event : any ) => 
-        //     {
-        //         const node = event.target;
-        //         const clickPos = event.renderedPosition;
-
-        //         const box = node.boundingBox({ rendered: true });
-
-        //         const relativeX = clickPos.x - box.x1;
-        //         const relativeY = clickPos.y - box.y1;
-
-        //         const width = box.w;
-        //         const height = box.h;
-
-        //         console.log(
-        //             `Click relativo dentro del nodo: x=${relativeX}, y=${relativeY}, width=${width}, height=${height}`
-        //         );
-        //     }
-        // );
 
         return () => 
         {
@@ -247,9 +279,10 @@
 
             unsubscribe();
 
+            eh.destroy();
             cy.destroy();
         };
     });
 </script>
 
-<div bind:this={container} class="w-full min-h-screen"></div>
+<div bind:this={container} class="overflow-hidden"></div>

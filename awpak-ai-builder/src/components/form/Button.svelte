@@ -26,12 +26,12 @@
     //     btn_cls = "text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 me-2 mb-2 dark:bg-blue-600 dark:hover:bg-blue-700 focus:outline-none dark:focus:ring-blue-800";
     // }
 
-    let btn_cls = btn_classes( color );
+    // let btn_cls = btn_classes( color );
 
 </script>
 
 <button 
     type="button" 
-    class={"mt-2 "+btn_cls}
+    class={"mt-2 "+btn_classes( color )}
     onclick={click}
 >{text}</button>

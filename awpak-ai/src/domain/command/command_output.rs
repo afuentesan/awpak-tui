@@ -38,6 +38,16 @@ fn item_command_output(
         CommandOutput::Err { prefix, suffix } =>
         {
             Ok( prefix_str_suffix( prefix.as_ref(), suffix.as_ref(), str_from_option( result.err.clone() ).as_str() ) )
+        },
+        CommandOutput::Object { prefix, suffix } =>
+        {
+            Ok( 
+                prefix_str_suffix( 
+                    prefix.as_ref(), 
+                    suffix.as_ref(), 
+                    &serde_json::to_string( result ).map_err( | e | Error::ParseData( e.to_string() ) )?
+                ) 
+            )
         }
     }
 }

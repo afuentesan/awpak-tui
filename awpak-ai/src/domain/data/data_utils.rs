@@ -2,7 +2,19 @@ use std::collections::HashMap;
 
 use serde_json::{Map, Number, Value};
 
-use crate::domain::{data::data::DataType, error::Error, path::expand_path::expand_path};
+use crate::domain::{data::{data::DataType, data_operations::f64_from_value}, error::Error, path::expand_path::expand_path};
+
+pub fn values_are_equals( val_1 : &Value, val_2 : &Value ) -> bool
+{
+    let n1 = f64_from_value( val_1.clone() );
+    let n2 = if n1.is_ok() { f64_from_value( val_2.clone() ) } else { Err( Error::Ignore ) };
+
+    match ( n1, n2 )
+    {
+        ( Ok( n1 ), Ok( n2 ) ) => n1 == n2,
+        _ => val_1.to_string() == val_2.to_string()    
+    }
+}
 
 pub fn value_to_string( val : &Value ) -> String
 {
@@ -83,9 +95,12 @@ pub fn value_from_map_path_expanded(
 
 pub fn str_to_value( 
     input : &str,
-    val_type : &DataType
+    val_type : &DataType,
+    optional : bool
 ) -> Result<Value, Error>
 {
+    if optional && input == "" { return Ok( Value::Null ) }
+
     match val_type
     {
         DataType::Null => Ok( Value::Null ),

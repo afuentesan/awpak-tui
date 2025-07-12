@@ -3,7 +3,7 @@ use std::collections::HashMap;
 use regex::Regex;
 use serde_json::{Number, Value};
 
-use crate::domain::{data::{data::DataComparator, data_operations::f64_from_value, data_selection::data_selection, data_utils::value_to_string}, error::Error};
+use crate::domain::{data::{data::DataComparator, data_selection::data_selection, data_utils::{value_to_string, values_are_equals}}, error::Error};
 
 
 pub fn compare_data(
@@ -20,21 +20,14 @@ pub fn compare_data(
             let a = data_selection( input, parsed_input, context, from_1 )?;
             let b = data_selection( input, parsed_input, context, from_2 )?;
 
-            let n1 = f64_from_value( a.clone() );
-            let n2 = f64_from_value( b.clone() );
-
-            match ( n1, n2 )
-            {
-                ( Ok( n1 ), Ok( n2 ) ) => Ok( n1 == n2 ),
-                _ => Ok( a.to_string() == b.to_string() )
-            }
+            Ok( values_are_equals( &a, &b ) )
         },
         DataComparator::NotEq { from_1, from_2 } =>
         {
             let a = data_selection( input, parsed_input, context, from_1 )?;
             let b = data_selection( input, parsed_input, context, from_2 )?;
 
-            Ok( a.to_string() != b.to_string() )
+            Ok( ! values_are_equals( &a, &b ) )
         },
         DataComparator::Gt { from_1, from_2 } =>
         {
@@ -103,6 +96,14 @@ fn number_from_value( value : Value ) -> Result<Number, Error>
     match value
     {
         Value::Number( n ) => Ok( n ),
+        Value::String( s ) if s.trim() != "" => 
+        {
+            Ok(
+                Number::from_f64(
+                    s.parse::<f64>().map_err( | _ | Error::ParseData( format!( "{:?} is not a number", s ) ) )?
+                ).ok_or( Error::ParseData( format!( "{:?} is not a number", s ) ) )?
+            )
+        },
         _ => Err( Error::ParseData( format!( "{:?} is not a number", value ) ) )    
     }
 }

@@ -1,16 +1,17 @@
 import { atom } from 'nanostores';
 import { Graph } from './model/graph';
-import { GraphNodeOutputVariant, Node, NodeDestination, NodeNextExitErr, NodeNextExitOk, NodeNextNode, NodeNextVariant, NodeTypeVariant, type NodeNext, type NodeType } from './model/node';
-import { DataFromVariant, DataMerge, DataToContext, DataToString, FromConcat, FromContext, FromInput, FromOperation, FromParsedInput, FromStatic, DataType, DataOperationVariant } from './model/data';
-import { change_node_next_variant, change_node_variant, clean_graph_destinations_id, new_agent_provider_variant, new_command_node_output_variant, new_graph_node_output_variant, new_node_executor_variant, node_by_id, update_graph_destinations_id } from './functions/node_functions';
+import { GraphNodeOutputVariant, Node, NodeDestination, NodeNextExitErr, NodeNextExitOk, NodeNextNode, NodeNextVariant, NodeTypeVariant, type NodeType } from './model/node';
+import { DataFromVariant, DataMerge, DataToContext, DataToString, DataType, DataOperationVariant } from './model/data';
+import { change_node_next_variant, change_node_variant, clean_graph_destinations_id, new_agent_provider_variant, new_command_node_output_variant, new_graph_node_output_variant, new_node_executor_variant, next_node_id, node_by_id, update_graph_destinations_id } from './functions/node_functions';
 import { JSONPath } from 'jsonpath-plus';
 import { new_data_comparator_variant, new_data_from_variant, new_data_operation_variant } from './functions/data_functions';
-import { is_type_in_enum, random_id } from './functions/form_utils';
+import { is_type_in_enum } from './functions/form_utils';
 import type { DataComparatorVariant } from './model/data_comparator';
 import type { NodeExecutorVariant } from './model/node_executor';
 import type { CommandOutputVariant } from './model/command';
 import type { AIAgentProviderConfigVariant } from './model/agent';
 import { load_graph_from_json } from './functions/load_json';
+import { ID_EXIT_ERR, ID_EXIT_OK } from './functions/graph_to_cytoscape';
 
 let g = new Graph();
 
@@ -56,7 +57,7 @@ export function add_node()
 {
     let new_graph = Object.assign( {}, graph.get() );
 
-    let id = random_id();
+    let id = next_node_id( new_graph );
 
     new_graph.nodes.push( new Node( id ) );
 
@@ -472,25 +473,52 @@ export function change_input_data_type( input_data_type : DataType | undefined )
     graph.set( new_graph );
 }
 
-export function add_node_destination( id : string )
+export function add_node_destination( id : string, dest_node? : string )
 {
     let new_graph = Object.assign( {}, graph.get() );
+
+    if( 
+        dest_node?.trim() && 
+        dest_node != ID_EXIT_OK &&
+        dest_node != ID_EXIT_ERR &&
+        ! node_by_id( new_graph, dest_node ) 
+    ) return;
 
     let node = node_by_id( new_graph, id );
 
     if( ! node ) { return; }
 
+    let new_destination = new NodeDestination();
+
+    if( dest_node?.trim() ) 
+    {
+        if( dest_node == ID_EXIT_OK )
+        {
+            new_destination.next = new NodeNextExitOk();
+        }
+        else if( dest_node == ID_EXIT_ERR )
+        {
+            new_destination.next = new NodeNextExitErr();
+        }
+        else
+        {
+            new_destination.next = new NodeNextNode();
+
+            new_destination.next.value = dest_node;
+        }
+    }
+
     if( node._variant == NodeTypeVariant.Node )
     {
         if( ! node.destination ) { node.destination = []; }        
 
-        node.destination.push( new NodeDestination() );
+        node.destination.push( new_destination );
     }
     else if( node._variant == NodeTypeVariant.GraphNode )
     {
         if( ! node.node_destination ) { node.node_destination = []; }        
 
-        node.node_destination.push( new NodeDestination() );
+        node.node_destination.push( new_destination );
     }
     else
     {

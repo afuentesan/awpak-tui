@@ -21,6 +21,8 @@ pub enum CommandOutput
 
     Success { #[serde(default)] prefix : Option<String>, #[serde(default)] suffix : Option<String> },
     Code { #[serde(default)] prefix : Option<String>, #[serde(default)] suffix : Option<String> },
+
+    Object { #[serde(default)] prefix : Option<String>, #[serde(default)] suffix : Option<String> },
 }
 
 impl Default for CommandOutput
@@ -31,12 +33,17 @@ impl Default for CommandOutput
     }
 }
 
+#[derive(Serialize, Deserialize, Clone)]
 pub struct CommandResult
 {
+    #[serde(default)]
     pub out : Option<String>,
+    #[serde(default)]
     pub err : Option<String>,
     
+    #[serde(default)]
     pub success : bool,
+    #[serde(default)]
     pub code : Option<i32>
 }
 

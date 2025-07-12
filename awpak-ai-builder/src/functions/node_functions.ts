@@ -1,5 +1,5 @@
 import { AIAgentProviderAnthropic, AIAgentProviderConfigVariant, AIAgentProviderDeepSeek, AIAgentProviderGemini, AIAgentProviderOllama, AIAgentProviderOpenAI, type AIAgentProvider } from "../model/agent";
-import { CommandOutputCode, CommandOutputErr, CommandOutputOut, CommandOutputSuccess, CommandOutputVariant, type CommandOutput } from "../model/command";
+import { CommandOutputCode, CommandOutputErr, CommandOutputObject, CommandOutputOut, CommandOutputSuccess, CommandOutputVariant, type CommandOutput } from "../model/command";
 import type { Graph } from "../model/graph";
 import { GraphNode, GraphNodeOutputErr, GraphNodeOutputOut, GraphNodeOutputVariant, Node, NodeDestination, NodeNextExitErr, NodeNextExitOk, NodeNextNode, NodeNextVariant, NodeTypeVariant, type GraphNodeOutput, type NodeNext, type NodeType } from "../model/node";
 import { NodeExecutorAgent, NodeExecutorCommand, NodeExecutorContextMut, NodeExecutorVariant, type NodeExecutor } from "../model/node_executor";
@@ -83,6 +83,24 @@ export function node_ids( graph : Graph ) : Array<string>
     graph.nodes.forEach( ( v : NodeType ) => ids.push( v.id as string ) );
 
     return ids;
+}
+
+export function next_node_id( graph : Graph ) : string
+{
+    let ids = node_ids( graph );
+
+    let i = 1 + graph.nodes.length;
+
+    let id = "node " + i;
+
+    while( ids.includes( id ) )
+    {
+        i++;
+
+        id = "node " + i;
+    }
+
+    return id;
 }
 
 export function node_by_id( graph : Graph, id : string ) : NodeType | undefined
@@ -255,6 +273,10 @@ export function new_command_node_output_variant( old : CommandOutput, new_varian
     else if( new_variant == CommandOutputVariant.Code )
     {
         new_output = new CommandOutputCode();
+    }
+    else if( new_variant == CommandOutputVariant.Object )
+    {
+        new_output = new CommandOutputObject();
     }
 
     if( ! new_output ) { return undefined; }

@@ -1,4 +1,5 @@
 import { v4 as uuidv4 } from 'uuid';
+import type { Graph } from '../model/graph';
 
 export interface SelectOption
 {
@@ -118,6 +119,18 @@ export function btn_classes( color? : string ) : string
     else if( color == "blue" )
     {
         btn_cls = "text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 me-2 mb-2 dark:bg-blue-600 dark:hover:bg-blue-700 focus:outline-none dark:focus:ring-blue-800";
+    }
+    else if( color == "purple" )
+    {
+        btn_cls = "focus:outline-none text-white bg-purple-700 hover:bg-purple-800 focus:ring-4 focus:ring-purple-300 font-medium rounded-lg text-sm px-5 py-2.5 mb-2 dark:bg-purple-600 dark:hover:bg-purple-700 dark:focus:ring-purple-900";
+    }
+    else if( color == "yellow" )
+    {
+        btn_cls = "focus:outline-none text-white bg-yellow-400 hover:bg-yellow-500 focus:ring-4 focus:ring-yellow-300 font-medium rounded-lg text-sm px-5 py-2.5 me-2 mb-2 dark:focus:ring-yellow-900";
+    }
+    else if( color == "light" )
+    {
+        btn_cls = "text-gray-900 bg-white border border-gray-300 focus:outline-none hover:bg-gray-100 focus:ring-4 focus:ring-gray-100 font-medium rounded-lg text-sm px-5 py-2.5 me-2 mb-2 dark:bg-gray-800 dark:text-white dark:border-gray-600 dark:hover:bg-gray-700 dark:hover:border-gray-600 dark:focus:ring-gray-700";
     }
 
     return btn_cls;

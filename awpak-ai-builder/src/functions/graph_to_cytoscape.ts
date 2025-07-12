@@ -82,25 +82,36 @@ function graph_node( node : NodeType, position? : cytoscape.Position | undefined
         data : { 
             id : node.id, 
             label : label_node( node ),
-            ty : node._variant
+            ty : graph_node_ty( node )
         },
         position : clone_position( position )
     }
 }
 
+function graph_node_ty( node : NodeType ) : string
+{
+    if( node._variant == NodeTypeVariant.GraphNode ) return node._variant;
+
+    if( node.executor ) return node.executor._variant;
+
+    return node._variant;
+}
+
 function label_node( node : NodeType ) : string
 {
-    if( node._variant == NodeTypeVariant.GraphNode )
-    {
-        return "Graph " + node.id;
-    }
+    return node.id || node._variant;
 
-    if( ! node.executor )
-    {
-        return node.id + "";
-    }
+    // if( node._variant == NodeTypeVariant.GraphNode )
+    // {
+    //     return "Graph " + node.id;
+    // }
 
-    return node.executor._variant + " " + node.id;
+    // if( ! node.executor )
+    // {
+    //     return node.id + "";
+    // }
+
+    // return node.executor._variant + " " + node.id;
 }
 
 function graph_edges( graph : Graph ) : Array<any>
