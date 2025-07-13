@@ -5,6 +5,7 @@
     import Box from "../form/Box.svelte";
     import Button from "../form/Button.svelte";
     import Input from "../form/Input.svelte";
+    import TextArea from "../form/TextArea.svelte";
     import DataFrom from "./DataFrom.svelte";
 
     interface InputProps
@@ -32,9 +33,9 @@
 
 <Box title={label} base_path={base_path}>
 
-    <Input label="Prefix" value={data.prefix} change_value={change_option_string} base_path={base_path+".prefix"} />
+    <TextArea label="Prefix" value={data.prefix} change_value={change_option_string} base_path={base_path+".prefix"} />
     <DataFrom from={data.from as DTSDataFrom} base_path={base_path+".from"} label={label+" from"} />
-    <Input label="Suffix" value={data.suffix} change_value={change_option_string} base_path={base_path+".suffix"} />
+    <TextArea label="Suffix" value={data.suffix} change_value={change_option_string} base_path={base_path+".suffix"} />
 
     {#if typeof( remove_from_loop ) == "function"}
     <div class="text-center">

@@ -7,6 +7,7 @@
     import Button from "../form/Button.svelte";
     import Input from "../form/Input.svelte";
     import Select from "../form/Select.svelte";
+    import TextArea from "../form/TextArea.svelte";
 
 
     interface InputProps
@@ -29,7 +30,7 @@
 </script>
 
 <Box title={label+" "+output._variant} base_path={base_path}>
-    <Input label="Prefix" value={output.prefix} change_value={change_option_string} base_path={base_path+".prefix"} />
+    <TextArea label="Prefix" value={output.prefix} change_value={change_option_string} base_path={base_path+".prefix"} />
 
     <Select 
         label="Command node output source" 
@@ -39,7 +40,7 @@
         base_path={base_path} 
     />
 
-    <Input label="Suffix" value={output.suffix} change_value={change_option_string} base_path={base_path+".suffix"} />
+    <TextArea label="Suffix" value={output.suffix} change_value={change_option_string} base_path={base_path+".suffix"} />
 
     {#if typeof( remove_from_loop ) == "function"}
     <div class="text-center">

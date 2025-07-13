@@ -16,6 +16,8 @@ pub async fn execute_agent(
 {
     let prompt = agent_prompt( input, parsed_input, context, &agent.prompt ).await;
 
+    println!( "Prompt: {}", prompt );
+
     let provider = create_agent_provider( 
         input,
         parsed_input,

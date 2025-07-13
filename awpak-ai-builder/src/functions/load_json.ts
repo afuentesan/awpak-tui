@@ -378,7 +378,7 @@ function load_data_comparator( data : any ) : DataComparator
     }
     else if( data?.[ "Lt" ] )
     {
-        return load_data_comparator_from_1_from_2( data[ "Gt" ], new DataComparatorLt() );
+        return load_data_comparator_from_1_from_2( data[ "Lt" ], new DataComparatorLt() );
     }
     else if( data?.[ "Regex" ] )
     {

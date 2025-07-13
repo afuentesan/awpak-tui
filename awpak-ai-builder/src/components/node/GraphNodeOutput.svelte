@@ -7,6 +7,7 @@
     import Button from "../form/Button.svelte";
     import Input from "../form/Input.svelte";
     import Select from "../form/Select.svelte";
+    import TextArea from "../form/TextArea.svelte";
 
     interface InputProps
     {
@@ -23,7 +24,7 @@
 
 <Box title={label} base_path={base_path}>
 
-    <Input label="Prefix" value={graph_node_output.prefix} change_value={change_option_string} base_path={base_path+".prefix"} />
+    <TextArea label="Prefix" value={graph_node_output.prefix} change_value={change_option_string} base_path={base_path+".prefix"} />
 
     <Select 
         label="Graph node output source" 
@@ -39,7 +40,7 @@
         base_path={base_path} 
     />
 
-    <Input label="Suffix" value={graph_node_output.suffix} change_value={change_option_string} base_path={base_path+".suffix"} />
+    <TextArea label="Suffix" value={graph_node_output.suffix} change_value={change_option_string} base_path={base_path+".suffix"} />
 
     {#if typeof( remove_from_loop ) == "function"}
     <div class="text-center">
