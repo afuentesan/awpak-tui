@@ -1,0 +1,3 @@
+[workspace]
+members = ["crates/awpak-ai-nodejs"]
+resolver = "3"
