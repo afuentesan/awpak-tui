@@ -122,6 +122,7 @@ dependencies = [
  "async-recursion",
  "async-stream",
  "awpak-utils",
+ "awpak-web-client",
  "mcp-core",
  "regex",
  "rig-core",
@@ -164,6 +165,15 @@ name = "awpak-utils"
 version = "0.1.0"
 dependencies = [
  "unicode-segmentation",
+]
+
+[[package]]
+name = "awpak-web-client"
+version = "0.1.0"
+dependencies = [
+ "reqwest",
+ "serde",
+ "serde_json",
 ]
 
 [[package]]

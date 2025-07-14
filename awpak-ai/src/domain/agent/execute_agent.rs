@@ -2,8 +2,9 @@ use std::collections::HashMap;
 
 use rig::message::Message;
 use serde_json::Value;
+use tracing::info;
 
-use crate::domain::{agent::{agent::AIAgent, agent_provider::AIAgentProvider, create_agent_provider::create_agent_provider, run_agent::run_agent}, data::{data::DataToString, data_selection::data_to_string}, error::Error};
+use crate::domain::{agent::{agent::AIAgent, agent_provider::AIAgentProvider, create_agent_provider::create_agent_provider, run_agent::run_agent}, data::{data::DataToString, data_selection::data_to_string}, error::Error, tracing::filter_layer::AGENT_PROMPT, utils::string_utils::option_string_to_str};
 
 
 pub async fn execute_agent(
@@ -16,7 +17,11 @@ pub async fn execute_agent(
 {
     let prompt = agent_prompt( input, parsed_input, context, &agent.prompt ).await;
 
-    println!( "Prompt: {}", prompt );
+    info!(
+        target:AGENT_PROMPT, 
+        id=option_string_to_str( id ), 
+        text=prompt
+    );
 
     let provider = create_agent_provider( 
         input,

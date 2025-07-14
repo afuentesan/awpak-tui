@@ -16,7 +16,7 @@ pub struct AwpakRequest
     pub body : Option<AwpakBody>
 }
 
-#[derive(Serialize, Deserialize, Clone)]
+#[derive(Debug, Serialize, Deserialize, Clone)]
 pub enum AwpakMethod
 {
     Options,
@@ -49,28 +49,28 @@ impl From<AwpakMethod> for Method
     }
 }
 
-#[derive(Serialize, Deserialize, Clone)]
+#[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct AwpakQueryParam
 {
     pub name : String,
     pub value : String
 }
 
-#[derive(Serialize, Deserialize, Clone)]
+#[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct AwpakHeader
 {
     pub name : String,
     pub value : String
 }
 
-#[derive(Serialize, Deserialize, Clone)]
+#[derive(Debug, Serialize, Deserialize, Clone)]
 pub enum AwpakBody
 {
     Json( Value ),
     Form( Vec<AwpakFormField> )
 }
 
-#[derive(Serialize, Deserialize, Clone)]
+#[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct AwpakFormField
 {
     pub name : String,

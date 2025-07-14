@@ -4,7 +4,7 @@ use serde_json::Value;
 use async_recursion::async_recursion;
 use tracing::info;
 
-use crate::{application::graph::execute_graph::execute_graph, domain::{agent::execute_agent::execute_agent, command::execute_command::execute_command, context_mut::change_context::change_context, data::{data::{DataComparator, DataType}, data_compare::compare_data, data_insert::str_to_context, data_selection::data_to_string, data_utils::str_to_value}, error::Error, graph::{graph::Graph, node::{NodeDestination, NodeExecutor, NodeNext}}, tracing::filter_layer::{NODE_DESTINATION, NODE_EXECUTION}, utils::string_utils::option_string_to_str}};
+use crate::{application::graph::execute_graph::execute_graph, domain::{agent::execute_agent::execute_agent, command::execute_command::execute_command, context_mut::change_context::change_context, data::{data::{DataComparator, DataType}, data_compare::compare_data, data_insert::str_to_context, data_selection::data_to_string, data_utils::str_to_value}, error::Error, graph::{graph::Graph, node::{NodeDestination, NodeExecutor, NodeNext}}, tracing::filter_layer::{NODE_DESTINATION, NODE_EXECUTION, NODE_OUTPUT}, utils::string_utils::option_string_to_str}};
 
 
 struct GraphRunner
@@ -201,6 +201,12 @@ async fn execute_node( mut runner : GraphRunner ) -> ( AwpakResult<GraphRunner, 
 
 async fn proccess_result( str_result : String, runner : GraphRunner ) -> ( AwpakResult<GraphRunner, Error>, bool )
 {
+    info!(
+        target:NODE_OUTPUT, 
+        id=option_string_to_str( runner.graph.id.as_ref() ), 
+        text=str_result
+    );
+
     match output_to_context( str_result, runner ).await.collect()
     {
         ( g, None ) => redirect_or_exit( g ).await,

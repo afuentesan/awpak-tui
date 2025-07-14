@@ -9,6 +9,7 @@ pub struct AwpakAIFilterLayer
     pub allowed : Vec<( AwpakAITarget, Sender<AwpakTracingMessage> )>,
 }
 
+pub const AGENT_PROMPT : &'static str = "agent_prompt";
 pub const AGENT_STREAM : &'static str = "agent_stream";
 pub const AGENT_SYNC : &'static str = "agent_sync";
 pub const AGENT_TOOL_CALL : &'static str = "agent_tool_call";
@@ -17,19 +18,31 @@ pub const AGENT_TOOL_RESULT : &'static str = "agent_tool_result";
 pub const COMMAND_AND_ARGS : &'static str = "command_and_args";
 pub const COMMAND_RESULT : &'static str = "command_result";
 
+pub const WEB_CLIENT_REQUEST : &'static str = "web_client_request";
+pub const WEB_CLIENT_REQUEST_BODY : &'static str = "web_client_request_body";
+pub const WEB_CLIENT_REQUEST_HEADERS : &'static str = "web_client_request_headers";
+pub const WEB_CLIENT_REQUEST_QUERY_PARAMS : &'static str = "web_client_request_query_params";
+
 pub const NODE_DESTINATION : &'static str = "node_destination";
 pub const NODE_EXECUTION : &'static str = "node_execution";
+pub const NODE_OUTPUT : &'static str = "node_output";
 
 pub enum AwpakAITarget
 {
+    AgentPrompt,
     AgentStream,
     AgentSync,
     AgentToolCall,
     AgentToolResult,
     CommandAndArgs,
     CommandResult,
+    WebClientRequest,
+    WebClientRequestBody,
+    WebClientRequestHeaders,
+    WebClientRequestQueryParams,
     NodeDestination,
-    NodeExecution
+    NodeExecution,
+    NodeOutput
 }
 
 impl AwpakAITarget
@@ -38,14 +51,20 @@ impl AwpakAITarget
     {
         match self
         {
+            AwpakAITarget::AgentPrompt => AGENT_PROMPT,
             AwpakAITarget::AgentStream => AGENT_STREAM,
             AwpakAITarget::AgentSync => AGENT_SYNC,
             AwpakAITarget::AgentToolCall => AGENT_TOOL_CALL,
             AwpakAITarget::AgentToolResult => AGENT_TOOL_RESULT,
             AwpakAITarget::CommandAndArgs => COMMAND_AND_ARGS,
             AwpakAITarget::CommandResult => COMMAND_RESULT,
+            AwpakAITarget::WebClientRequest => WEB_CLIENT_REQUEST,
+            AwpakAITarget::WebClientRequestBody => WEB_CLIENT_REQUEST_BODY,
+            AwpakAITarget::WebClientRequestHeaders => WEB_CLIENT_REQUEST_HEADERS,
+            AwpakAITarget::WebClientRequestQueryParams => WEB_CLIENT_REQUEST_QUERY_PARAMS,
             AwpakAITarget::NodeDestination => NODE_DESTINATION,
-            AwpakAITarget::NodeExecution => NODE_EXECUTION
+            AwpakAITarget::NodeExecution => NODE_EXECUTION,
+            AwpakAITarget::NodeOutput => NODE_OUTPUT
         }
     }
 }

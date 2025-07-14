@@ -1,0 +1,243 @@
+use std::collections::HashMap;
+
+use awpak_web_client::{request::{AwpakBody, AwpakFormField, AwpakHeader, AwpakMethod, AwpakQueryParam, AwpakRequest}, response::AwpakResponse, send_request};
+use serde_json::Value;
+use tracing::info;
+
+use crate::domain::{data::{data_selection::data_selection, data_utils::value_to_string}, error::Error, tracing::filter_layer::{WEB_CLIENT_REQUEST, WEB_CLIENT_REQUEST_BODY, WEB_CLIENT_REQUEST_HEADERS, WEB_CLIENT_REQUEST_QUERY_PARAMS}, utils::string_utils::{option_string_to_str, prefix_str_suffix}, web_client::web_client::{WebClient, WebClientBody, WebClientNameValue, WebClientOutput}};
+
+
+pub async fn execute_web_client(
+    id : Option<&String>,
+    input : Option<&String>, 
+    parsed_input : &Value, 
+    context : &HashMap<String, Value>,
+    client : &WebClient
+) -> Result<String, Error>
+{
+    let request = request( id, input, parsed_input, context, client )?;
+
+    let response = send_request( request ).await.map_err( | e | Error::WebClient( e.to_string() ) )?;
+
+    output(
+        id, 
+        &client.output, 
+        response
+    )
+}
+
+fn output(
+    id : Option<&String>,
+    output : &Vec<WebClientOutput>,
+    response : AwpakResponse,
+) -> Result<String, Error>
+{
+    let mut ret = String::new();
+
+    for out in output
+    {
+        ret.push_str( item_output( out, &response )?.as_str() );
+    }
+
+    Ok( ret )
+}
+
+fn item_output(
+    output : &WebClientOutput,
+    response : &AwpakResponse
+) -> Result<String, Error>
+{
+    match output
+    {
+        WebClientOutput::Version { prefix, suffix } =>
+        {
+            Ok( prefix_str_suffix( prefix.as_ref(), suffix.as_ref(), response.version.as_str() ) )
+        },
+        WebClientOutput::Status { prefix, suffix } =>
+        {
+            Ok( prefix_str_suffix( prefix.as_ref(), suffix.as_ref(), response.status.to_string().as_str() ) )
+        },
+        WebClientOutput::Header { name, prefix, suffix } =>
+        {
+            Ok( 
+                prefix_str_suffix( 
+                    prefix.as_ref(), 
+                    suffix.as_ref(), 
+                    response.headers.get( name ).unwrap_or( &"".to_string() )
+                ) 
+            )
+        },
+        WebClientOutput::Body { prefix, suffix } =>
+        {
+            Ok( prefix_str_suffix( prefix.as_ref(), suffix.as_ref(), &response.text ) )
+        },
+        WebClientOutput::Object { prefix, suffix } =>
+        {
+            Ok( 
+                prefix_str_suffix( 
+                    prefix.as_ref(), 
+                    suffix.as_ref(), 
+                    &serde_json::to_string( response ).map_err( | e | Error::ParseData( e.to_string() ) )?
+                ) 
+            )
+        }
+    }
+}
+
+fn request( 
+    id : Option<&String>,
+    input : Option<&String>, 
+    parsed_input : &Value, 
+    context : &HashMap<String, Value>,
+    client : &WebClient
+) -> Result<AwpakRequest, Error>
+{
+    let url = value_to_string( &data_selection( input, parsed_input, context, &client.url )? );
+    let method = client.method.clone();
+    let headers = request_headers( input, parsed_input, context, &client.headers )?;
+    let query_params = request_query_params( input, parsed_input, context, &client.query_params )?;
+    let body = body( input, parsed_input, context, client.body.as_ref() )?;
+
+    let request = AwpakRequest 
+    { 
+        url, 
+        method, 
+        headers, 
+        query_params, 
+        body
+    };
+
+    trace_request( id, &request );
+
+    Ok( request )
+}
+
+fn trace_request(
+    graph_id : Option<&String>,
+    request : &AwpakRequest
+)
+{
+    info!(
+        target:WEB_CLIENT_REQUEST, 
+        id=option_string_to_str( graph_id ), 
+        text=format!(
+            "URL: {}\nMethod: {:?}",
+            request.url,
+            request.method
+        )
+    );
+
+    info!(
+        target:WEB_CLIENT_REQUEST_BODY, 
+        id=option_string_to_str( graph_id ), 
+        text=format!( "{:?}", request.body )
+    );
+
+    info!(
+        target:WEB_CLIENT_REQUEST_HEADERS, 
+        id=option_string_to_str( graph_id ), 
+        text=format!( "{:?}", request.headers )
+    );
+
+    info!(
+        target:WEB_CLIENT_REQUEST_QUERY_PARAMS, 
+        id=option_string_to_str( graph_id ), 
+        text=format!( "{:?}", request.query_params )
+    );
+}
+
+fn body(
+    input : Option<&String>, 
+    parsed_input : &Value, 
+    context : &HashMap<String, Value>,
+    body : Option<&WebClientBody>
+) -> Result<Option<AwpakBody>, Error>
+{
+    match body
+    {
+        Some( b ) =>
+        {
+            match b
+            {
+                WebClientBody::Json( j ) =>
+                {
+                    Ok(
+                        Some(
+                            AwpakBody::Json(
+                                data_selection( input, parsed_input, context, j )?
+                            )
+                        )
+                    )
+                },
+                WebClientBody::Form( f ) =>
+                {
+                    let mut fields = vec![];
+
+                    for field in f
+                    {
+                        fields.push(
+                            AwpakFormField
+                            {
+                                name : value_to_string( &data_selection( input, parsed_input, context, &field.name )? ),
+                                value : value_to_string( &data_selection( input, parsed_input, context, &field.value )? )
+                            }
+                        );
+                    }
+
+                    Ok(
+                        Some(
+                            AwpakBody::Form( fields )
+                        )
+                    )
+                }
+            }
+        },
+        _ => Ok( None )    
+    }
+}
+
+fn request_headers(
+    input : Option<&String>, 
+    parsed_input : &Value, 
+    context : &HashMap<String, Value>,
+    headers : &Vec<WebClientNameValue>
+) -> Result<Vec<AwpakHeader>, Error>
+{
+    let mut ret = vec![];
+
+    for h in headers
+    {
+        ret.push(
+            AwpakHeader 
+            { 
+                name : value_to_string( &data_selection( input, parsed_input, context, &h.name )? ), 
+                value : value_to_string( &data_selection( input, parsed_input, context, &h.value )? )
+            }
+        );
+    }
+
+    Ok( ret )
+}
+
+fn request_query_params(
+    input : Option<&String>, 
+    parsed_input : &Value, 
+    context : &HashMap<String, Value>,
+    query_params : &Vec<WebClientNameValue>
+) -> Result<Vec<AwpakQueryParam>, Error>
+{
+    let mut ret = vec![];
+
+    for q in query_params
+    {
+        ret.push(
+            AwpakQueryParam 
+            { 
+                name : value_to_string( &data_selection( input, parsed_input, context, &q.name )? ), 
+                value : value_to_string( &data_selection( input, parsed_input, context, &q.value )? )
+            }
+        );
+    }
+
+    Ok( ret )
+}
