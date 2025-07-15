@@ -10,6 +10,7 @@
     import Input from "../form/Input.svelte";
     import Select from "../form/Select.svelte";
     import DataOperation from "./DataOperation.svelte";
+    import TextArea from '../form/TextArea.svelte';
 
     interface InputProps
     {
@@ -60,7 +61,7 @@
     {/if}
 
     {#if from._variant == DataFromVariant.Static}
-    <Input label="Static" value={from.value} change_value={change_option_string} base_path={base_path+".value"} />
+    <TextArea label="Static" value={from.value} change_value={change_option_string} base_path={base_path+".value"} />
     {/if}
 
     {#if from._variant == DataFromVariant.Operation}

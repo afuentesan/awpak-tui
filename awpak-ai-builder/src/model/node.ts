@@ -1,5 +1,5 @@
 import { DataToContext, type DataToString } from "./data";
-import { DataComparatorEq, type DataComparator } from "./data_comparator";
+import { DataComparatorEq, DataComparatorTrue, type DataComparator } from "./data_comparator";
 import { NodeExecutorCommand, type NodeExecutor } from "./node_executor";
 
 export type NodeType = Node | GraphNode;
@@ -84,7 +84,7 @@ export class NodeDestination
     constructor()
     {
         this.next = new NodeNextNode();
-        this.condition = new DataComparatorEq();
+        this.condition = new DataComparatorTrue();
     }
 }
 

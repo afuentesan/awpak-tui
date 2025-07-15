@@ -4,7 +4,7 @@ use serde_json::Value;
 use async_recursion::async_recursion;
 use tracing::info;
 
-use crate::{application::graph::execute_graph::execute_graph, domain::{agent::execute_agent::execute_agent, command::execute_command::execute_command, context_mut::change_context::change_context, data::{data::{DataComparator, DataType}, data_compare::compare_data, data_insert::str_to_context, data_selection::data_to_string, data_utils::str_to_value}, error::Error, graph::{graph::Graph, node::{NodeDestination, NodeExecutor, NodeNext}}, tracing::filter_layer::{NODE_DESTINATION, NODE_EXECUTION, NODE_OUTPUT}, utils::string_utils::option_string_to_str}};
+use crate::{application::graph::execute_graph::execute_graph, domain::{agent::execute_agent::execute_agent, command::execute_command::execute_command, context_mut::change_context::change_context, data::{data::{DataComparator, DataType}, data_compare::compare_data, data_insert::str_to_context, data_selection::data_to_string, data_utils::str_to_value}, error::Error, graph::{graph::Graph, node::{NodeDestination, NodeExecutor, NodeNext}}, tracing::filter_layer::{GRAPH_INPUT, GRAPH_OUTPUT, NODE_DESTINATION, NODE_EXECUTION, NODE_OUTPUT}, utils::string_utils::option_string_to_str, web_client::execute_web_client::execute_web_client}};
 
 
 struct GraphRunner
@@ -19,6 +19,8 @@ pub async fn run_graph(
     graph : Graph 
 ) -> AwpakResult<Graph, Error>
 {
+    trace_graph_input( graph.id.as_ref(), &input );
+
     let graph = match init_graph( input, graph ).collect()
     {
         ( g, None ) => g,
@@ -35,9 +37,42 @@ pub async fn run_graph(
     .await
     .finalize()
     .unzip( 
-        | r | r.graph
+        | r | 
+        {
+            trace_graph_output( r.graph.id.as_ref(), r.graph.final_output.as_ref() );
+
+            r.graph
+        }
     )
     .read()
+}
+
+fn trace_graph_input( graph_id : Option<&String>, input : &str )
+{
+    info!(
+        target:GRAPH_INPUT, 
+        id=option_string_to_str( graph_id ), 
+        text=input
+    );
+}
+
+fn trace_graph_output( graph_id : Option<&String>, final_output : Option<&Result<String, String>> )
+{
+    let text = match final_output
+    {
+        Some( r ) => match r
+        {
+            Ok( s ) => format!( "ExitOk:\n{}", s ),
+            Err( s ) => format!( "ExitErr:\n{}", s )
+        },
+        None => return
+    };
+
+    info!(
+        target:GRAPH_OUTPUT, 
+        id=option_string_to_str( graph_id ), 
+        text=text
+    );
 }
 
 fn init_graph(
@@ -80,6 +115,21 @@ async fn execute_node( mut runner : GraphRunner ) -> ( AwpakResult<GraphRunner, 
 
     let ( node, result ) = match &node.executor
     {
+        NodeExecutor::WebClient( c ) =>
+        {
+            let result = execute_web_client( 
+                runner.graph.id.as_ref(), 
+                runner.graph.input.as_ref(), 
+                &runner.graph.parsed_input, 
+                &runner.graph.context, 
+                c 
+            ).await;
+
+            (
+                node,
+                result
+            )
+        },
         NodeExecutor::Command( c ) =>
         {
             let result = execute_command( 

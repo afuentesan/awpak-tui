@@ -9,6 +9,9 @@ pub struct AwpakAIFilterLayer
     pub allowed : Vec<( AwpakAITarget, Sender<AwpakTracingMessage> )>,
 }
 
+pub const GRAPH_INPUT : &'static str = "graph_input";
+pub const GRAPH_OUTPUT : &'static str = "graph_output";
+
 pub const AGENT_PROMPT : &'static str = "agent_prompt";
 pub const AGENT_STREAM : &'static str = "agent_stream";
 pub const AGENT_SYNC : &'static str = "agent_sync";
@@ -22,6 +25,9 @@ pub const WEB_CLIENT_REQUEST : &'static str = "web_client_request";
 pub const WEB_CLIENT_REQUEST_BODY : &'static str = "web_client_request_body";
 pub const WEB_CLIENT_REQUEST_HEADERS : &'static str = "web_client_request_headers";
 pub const WEB_CLIENT_REQUEST_QUERY_PARAMS : &'static str = "web_client_request_query_params";
+pub const WEB_CLIENT_RESPONSE : &'static str = "web_client_response";
+pub const WEB_CLIENT_RESPONSE_HEADERS : &'static str = "web_client_response_headers";
+pub const WEB_CLIENT_RESPONSE_BODY : &'static str = "web_client_response_body";
 
 pub const NODE_DESTINATION : &'static str = "node_destination";
 pub const NODE_EXECUTION : &'static str = "node_execution";
@@ -29,6 +35,8 @@ pub const NODE_OUTPUT : &'static str = "node_output";
 
 pub enum AwpakAITarget
 {
+    GraphInput,
+    GraphOutput,
     AgentPrompt,
     AgentStream,
     AgentSync,
@@ -40,6 +48,9 @@ pub enum AwpakAITarget
     WebClientRequestBody,
     WebClientRequestHeaders,
     WebClientRequestQueryParams,
+    WebClientResponse,
+    WebClientResponseHeaders,
+    WebClientResponseBody,
     NodeDestination,
     NodeExecution,
     NodeOutput
@@ -51,6 +62,8 @@ impl AwpakAITarget
     {
         match self
         {
+            AwpakAITarget::GraphInput => GRAPH_INPUT,
+            AwpakAITarget::GraphOutput => GRAPH_OUTPUT,
             AwpakAITarget::AgentPrompt => AGENT_PROMPT,
             AwpakAITarget::AgentStream => AGENT_STREAM,
             AwpakAITarget::AgentSync => AGENT_SYNC,
@@ -62,6 +75,9 @@ impl AwpakAITarget
             AwpakAITarget::WebClientRequestBody => WEB_CLIENT_REQUEST_BODY,
             AwpakAITarget::WebClientRequestHeaders => WEB_CLIENT_REQUEST_HEADERS,
             AwpakAITarget::WebClientRequestQueryParams => WEB_CLIENT_REQUEST_QUERY_PARAMS,
+            AwpakAITarget::WebClientResponse => WEB_CLIENT_RESPONSE,
+            AwpakAITarget::WebClientResponseHeaders => WEB_CLIENT_RESPONSE_HEADERS,
+            AwpakAITarget::WebClientResponseBody => WEB_CLIENT_RESPONSE_BODY,
             AwpakAITarget::NodeDestination => NODE_DESTINATION,
             AwpakAITarget::NodeExecution => NODE_EXECUTION,
             AwpakAITarget::NodeOutput => NODE_OUTPUT

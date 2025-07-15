@@ -2,9 +2,9 @@ import { atom } from 'nanostores';
 import { Graph } from './model/graph';
 import { GraphNodeOutputVariant, Node, NodeDestination, NodeNextExitErr, NodeNextExitOk, NodeNextNode, NodeNextVariant, NodeTypeVariant, type NodeType } from './model/node';
 import { DataFromVariant, DataMerge, DataToContext, DataToString, DataType, DataOperationVariant } from './model/data';
-import { change_node_next_variant, change_node_variant, clean_graph_destinations_id, new_agent_provider_variant, new_command_node_output_variant, new_graph_node_output_variant, new_node_executor_variant, next_node_id, node_by_id, update_graph_destinations_id } from './functions/node_functions';
+import { change_node_next_variant, change_node_variant, clean_graph_destinations_id, new_agent_provider_variant, new_command_node_output_variant, new_graph_node_output_variant, new_node_executor_variant, new_web_client_output_variant, next_node_id, node_by_id, update_graph_destinations_id } from './functions/node_functions';
 import { JSONPath } from 'jsonpath-plus';
-import { new_data_comparator_variant, new_data_from_variant, new_data_operation_variant } from './functions/data_functions';
+import { new_body_variant, new_data_comparator_variant, new_data_from_variant, new_data_operation_variant } from './functions/data_functions';
 import { is_type_in_enum } from './functions/form_utils';
 import type { DataComparatorVariant } from './model/data_comparator';
 import type { NodeExecutorVariant } from './model/node_executor';
@@ -12,6 +12,7 @@ import type { CommandOutputVariant } from './model/command';
 import type { AIAgentProviderConfigVariant } from './model/agent';
 import { load_graph_from_json } from './functions/load_json';
 import { ID_EXIT_ERR, ID_EXIT_OK } from './functions/graph_to_cytoscape';
+import { AwpakMethod, WebClientBodyVariant, WebClientOutputVariant } from './model/web_client';
 
 let g = new Graph();
 
@@ -237,6 +238,23 @@ export function change_map_value( base_path : string, next : string )
     graph.set( new_graph );
 }
 
+export function change_request_method( base_path : string, next : string | undefined )
+{
+    if( ! next?.trim() || ! is_type_in_enum( AwpakMethod, next ) ) { next = undefined; };
+
+    let new_method = ! next ? undefined : next as AwpakMethod;
+
+    let new_graph = Object.assign( {}, graph.get() );
+
+    const result = JSONPath( { path : base_path, json : new_graph, resultType : "all" } );
+
+    if( ! result?.length || ! result[ 0 ].parent ) { return; }
+
+    result[ 0 ].parent[ result[ 0 ].parentProperty ] = new_method;
+
+    graph.set( new_graph );
+}
+
 export function change_data_merge( base_path : string, next : string | undefined )
 {
     if( ! next?.trim() || ! is_type_in_enum( DataMerge, next ) ) { next = undefined; };
@@ -349,6 +367,11 @@ export function change_node_executor_variant( base_path : string, next_variant :
     change_variant( base_path, next_variant, new_node_executor_variant );
 }
 
+export function change_web_client_node_output( base_path : string, next_variant : WebClientOutputVariant )
+{
+    change_variant( base_path, next_variant, new_web_client_output_variant );
+}
+
 export function change_command_node_output( base_path : string, next_variant : CommandOutputVariant )
 {
     change_variant( base_path, next_variant, new_command_node_output_variant );
@@ -367,6 +390,26 @@ export function change_data_operation( base_path : string, next_variant : DataOp
 export function chage_data_comparator( base_path : string, next_variant : DataComparatorVariant )
 {
     change_variant( base_path, next_variant, new_data_comparator_variant );
+}
+
+export function chage_data_body_variant( base_path : string, next_variant : WebClientBodyVariant | string )
+{
+    if( ! next_variant?.trim() ) 
+    {
+        let new_graph = Object.assign( {}, graph.get() );
+
+        const result = JSONPath( { path : base_path, json : new_graph, resultType : "all" } );
+
+        if( ! result?.length || ! result[ 0 ].parent ) { return; }
+
+        result[ 0 ].parent[ result[ 0 ].parentProperty ] = undefined;
+
+        graph.set( new_graph );
+
+        return; 
+    }
+
+    change_variant( base_path, next_variant, new_body_variant );
 }
 
 export function chage_data_from_variant( base_path : string, next_variant : DataFromVariant )

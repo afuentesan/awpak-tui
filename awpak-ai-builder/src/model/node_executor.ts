@@ -1,14 +1,16 @@
 import { AIAgent } from "./agent";
 import { Command } from "./command";
 import { DataToContext, type DataFrom } from "./data";
+import { WebClient } from "./web_client";
 
-export type NodeExecutor = NodeExecutorCommand | NodeExecutorContextMut | NodeExecutorAgent;
+export type NodeExecutor = NodeExecutorCommand | NodeExecutorContextMut | NodeExecutorAgent | NodeExecutorWebClient;
 
 export enum NodeExecutorVariant
 {
     Command = "Command",
     ContextMut = "ContextMut",
-    Agent = "Agent"
+    Agent = "Agent",
+    WebClient = "WebClient"
 }
 
 export class NodeExecutorAgent
@@ -43,4 +45,16 @@ export class NodeExecutorContextMut
         from : DataFrom | undefined;
         to : DataToContext | undefined
     }> = []
+}
+
+export class NodeExecutorWebClient
+{
+    readonly _variant = NodeExecutorVariant.WebClient;
+
+    value : WebClient;
+
+    constructor()
+    {
+        this.value = new WebClient();
+    }
 }

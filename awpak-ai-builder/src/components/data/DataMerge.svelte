@@ -7,11 +7,6 @@
 
     let { label, value, base_path } = $props();
 
-    let data_merge_options = select_options_from_enum(
-        DataMerge,
-        value,
-        true
-    );
 </script>
 
 <Select 

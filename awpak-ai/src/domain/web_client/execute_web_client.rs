@@ -1,10 +1,10 @@
 use std::collections::HashMap;
 
-use awpak_web_client::{request::{AwpakBody, AwpakFormField, AwpakHeader, AwpakMethod, AwpakQueryParam, AwpakRequest}, response::AwpakResponse, send_request};
+use awpak_web_client::{request::{AwpakBody, AwpakFormField, AwpakHeader, AwpakQueryParam, AwpakRequest}, response::AwpakResponse, send_request};
 use serde_json::Value;
 use tracing::info;
 
-use crate::domain::{data::{data_selection::data_selection, data_utils::value_to_string}, error::Error, tracing::filter_layer::{WEB_CLIENT_REQUEST, WEB_CLIENT_REQUEST_BODY, WEB_CLIENT_REQUEST_HEADERS, WEB_CLIENT_REQUEST_QUERY_PARAMS}, utils::string_utils::{option_string_to_str, prefix_str_suffix}, web_client::web_client::{WebClient, WebClientBody, WebClientNameValue, WebClientOutput}};
+use crate::domain::{data::{data_selection::data_selection, data_utils::value_to_string}, error::Error, tracing::filter_layer::{WEB_CLIENT_REQUEST, WEB_CLIENT_REQUEST_BODY, WEB_CLIENT_REQUEST_HEADERS, WEB_CLIENT_REQUEST_QUERY_PARAMS, WEB_CLIENT_RESPONSE, WEB_CLIENT_RESPONSE_BODY, WEB_CLIENT_RESPONSE_HEADERS}, utils::string_utils::{option_string_to_str, prefix_str_suffix}, web_client::web_client::{WebClient, WebClientBody, WebClientNameValue, WebClientOutput}};
 
 
 pub async fn execute_web_client(
@@ -39,7 +39,37 @@ fn output(
         ret.push_str( item_output( out, &response )?.as_str() );
     }
 
+    trace_web_client_response( id, response );
+    
     Ok( ret )
+}
+
+fn trace_web_client_response(
+    graph_id : Option<&String>,
+    response : AwpakResponse
+)
+{
+    info!(
+        target:WEB_CLIENT_RESPONSE, 
+        id=option_string_to_str( graph_id ), 
+        text=format!(
+            "Version: {}\nStatus: {:?}",
+            response.version,
+            response.status
+        )
+    );
+
+    info!(
+        target:WEB_CLIENT_RESPONSE_HEADERS, 
+        id=option_string_to_str( graph_id ), 
+        text=format!( "{:?}", response.headers )
+    );
+
+    info!(
+        target:WEB_CLIENT_RESPONSE_BODY, 
+        id=option_string_to_str( graph_id ), 
+        text=response.text
+    );
 }
 
 fn item_output(

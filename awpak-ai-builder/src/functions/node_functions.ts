@@ -2,7 +2,8 @@ import { AIAgentProviderAnthropic, AIAgentProviderConfigVariant, AIAgentProvider
 import { CommandOutputCode, CommandOutputErr, CommandOutputObject, CommandOutputOut, CommandOutputSuccess, CommandOutputVariant, type CommandOutput } from "../model/command";
 import type { Graph } from "../model/graph";
 import { GraphNode, GraphNodeOutputErr, GraphNodeOutputOut, GraphNodeOutputVariant, Node, NodeDestination, NodeNextExitErr, NodeNextExitOk, NodeNextNode, NodeNextVariant, NodeTypeVariant, type GraphNodeOutput, type NodeNext, type NodeType } from "../model/node";
-import { NodeExecutorAgent, NodeExecutorCommand, NodeExecutorContextMut, NodeExecutorVariant, type NodeExecutor } from "../model/node_executor";
+import { NodeExecutorAgent, NodeExecutorCommand, NodeExecutorContextMut, NodeExecutorVariant, NodeExecutorWebClient, type NodeExecutor } from "../model/node_executor";
+import { WebClientOutputBody, WebClientOutputHeader, WebClientOutputObject, WebClientOutputStatus, WebClientOutputVariant, WebClientOutputVersion, type WebClientOutput } from "../model/web_client";
 import { is_type_in_enum } from "./form_utils";
 
 export function clean_graph_destinations_id( graph : Graph, id : string )
@@ -216,6 +217,10 @@ export function new_node_executor_variant( old : NodeExecutor, new_variant : str
     {
         return new NodeExecutorAgent();
     }
+    else if( new_variant == NodeExecutorVariant.WebClient )
+    {
+        return new NodeExecutorWebClient();
+    }
 }
 
 export function new_graph_node_output_variant( old : GraphNodeOutput, new_variant : string ) : GraphNodeOutput | undefined
@@ -239,6 +244,45 @@ export function new_graph_node_output_variant( old : GraphNodeOutput, new_varian
         :
         undefined
     );
+
+    if( ! new_output ) { return undefined; }
+
+    new_output.prefix = old.prefix;
+    new_output.suffix = old.suffix;
+    
+    return new_output;
+}
+
+export function new_web_client_output_variant( old : WebClientOutput, new_variant : string ) : WebClientOutput | undefined
+{
+    if( ! is_type_in_enum( WebClientOutputVariant, new_variant ) ) { return undefined; }
+    
+    new_variant = new_variant as WebClientOutputVariant;
+
+    if( old._variant == new_variant ) { return old; }
+
+    let new_output;
+
+    if( new_variant == WebClientOutputVariant.Version )
+    {
+        new_output = new WebClientOutputVersion();
+    }
+    else if( new_variant == WebClientOutputVariant.Status )
+    {
+        new_output = new WebClientOutputStatus();
+    }
+    else if( new_variant == WebClientOutputVariant.Header )
+    {
+        new_output = new WebClientOutputHeader();
+    }
+    else if( new_variant == WebClientOutputVariant.Body )
+    {
+        new_output = new WebClientOutputBody();
+    }
+    else if( new_variant == WebClientOutputVariant.Object )
+    {
+        new_output = new WebClientOutputObject();
+    }
 
     if( ! new_output ) { return undefined; }
 

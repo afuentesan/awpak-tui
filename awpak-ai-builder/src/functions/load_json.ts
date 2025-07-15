@@ -4,7 +4,8 @@ import { DataMerge, DataOperationAdd, DataOperationLen, DataOperationSubstract, 
 import { DataComparatorAnd, DataComparatorEq, DataComparatorFalse, DataComparatorGt, DataComparatorLt, DataComparatorNot, DataComparatorNotEq, DataComparatorOr, DataComparatorRegex, DataComparatorTrue, type DataComparator } from "../model/data_comparator";
 import { Graph } from "../model/graph";
 import { GraphNode, GraphNodeOutputErr, GraphNodeOutputOut, Node, NodeDestination, NodeNextExitErr, NodeNextExitOk, NodeNextNode, type GraphNodeOutput, type NodeNext, type NodeType } from "../model/node";
-import { NodeExecutorAgent, NodeExecutorCommand, NodeExecutorContextMut, type NodeExecutor } from "../model/node_executor";
+import { NodeExecutorAgent, NodeExecutorCommand, NodeExecutorContextMut, NodeExecutorWebClient, type NodeExecutor } from "../model/node_executor";
+import { AwpakMethod, WebClient, WebClientBodyForm, WebClientBodyJson, WebClientNameValue, WebClientOutputBody, WebClientOutputHeader, WebClientOutputObject, WebClientOutputStatus, WebClientOutputVersion, type WebClientBody, type WebClientOutput } from "../model/web_client";
 import { is_empty } from "./data_functions";
 import { is_type_in_enum } from "./form_utils";
 
@@ -113,6 +114,10 @@ function load_node_executor( executor : any ) : NodeExecutor
     {
         return load_node_executor_agent( executor[ "Agent" ] );
     }
+    else if( executor?.[ "WebClient" ] )
+    {
+        return load_node_executor_web_client( executor[ "WebClient" ] );
+    }
 
     throw new Error( "NodeExecutor not found. " + JSON.stringify( executor ) );
 }
@@ -142,37 +147,139 @@ function load_command_output( output : any ) : CommandOutput
 {
     if( output?.[ "Out" ] )
     {
-        return load_command_output_prefix_suffix( output[ "Out" ], new CommandOutputOut() );
+        return load_output_prefix_suffix( output[ "Out" ], new CommandOutputOut() ) as CommandOutput;
     }
     else if( output?.[ "Err" ] )
     {
-        return load_command_output_prefix_suffix( output[ "Err" ], new CommandOutputErr() );
+        return load_output_prefix_suffix( output[ "Err" ], new CommandOutputErr() ) as CommandOutput;
     }
     else if( output?.[ "Success" ] )
     {
-        return load_command_output_prefix_suffix( output[ "Success" ], new CommandOutputSuccess() );
+        return load_output_prefix_suffix( output[ "Success" ], new CommandOutputSuccess() ) as CommandOutput;
     }
     else if( output?.[ "Code" ] )
     {
-        return load_command_output_prefix_suffix( output[ "Code" ], new CommandOutputCode() );
+        return load_output_prefix_suffix( output[ "Code" ], new CommandOutputCode() ) as CommandOutput;
     }
     else if( output?.[ "Object" ] )
     {
-        return load_command_output_prefix_suffix( output[ "Object" ], new CommandOutputObject() );
+        return load_output_prefix_suffix( output[ "Object" ], new CommandOutputObject() ) as CommandOutput;
     }
 
     throw new Error( "CommandOutput not found. " + JSON.stringify( output ) );
 }
 
-function load_command_output_prefix_suffix( 
+type PrefixSuffix = CommandOutputOut | CommandOutputErr | CommandOutputSuccess | CommandOutputCode | CommandOutputObject |
+                    WebClientOutputVersion |
+                    WebClientOutputStatus |
+                    WebClientOutputHeader |
+                    WebClientOutputBody |
+                    WebClientOutputObject;
+
+function load_output_prefix_suffix( 
     output : any, 
-    src : CommandOutputOut | CommandOutputErr | CommandOutputSuccess | CommandOutputCode | CommandOutputObject
-) : CommandOutputOut | CommandOutputErr | CommandOutputSuccess | CommandOutputCode | CommandOutputObject
+    src : PrefixSuffix
+) : PrefixSuffix
 {
     src.prefix = output.prefix;
     src.suffix = output.suffix;
 
     return src;
+}
+
+function load_node_executor_web_client( web_client : any ) : NodeExecutorWebClient
+{
+    let ret = new NodeExecutorWebClient();
+
+    let value = new WebClient();
+
+    value.url = load_data_from( web_client.url );
+    value.method = load_method( web_client.method ) || AwpakMethod.Get;
+    value.headers = load_vec_name_value( web_client.headers );
+    value.query_params = load_vec_name_value( web_client.query_params );
+    value.body = load_body( web_client.body );
+    value.output = load_vec_web_client_output( web_client.output );
+
+    ret.value = value;
+
+    return ret;
+}
+
+function load_vec_web_client_output( output : Array<any> ) : Array<WebClientOutput>
+{
+    return ( output || [] ).map( ( o ) => load_web_client_output( o ) );
+}
+
+function load_web_client_output( output : any ) : WebClientOutput
+{
+    if( output?.[ "Version" ] )
+    {
+        return load_output_prefix_suffix( output[ "Version" ], new WebClientOutputVersion() ) as WebClientOutput;
+    }
+    else if( output?.[ "Status" ] )
+    {
+        return load_output_prefix_suffix( output[ "Status" ], new WebClientOutputStatus() ) as WebClientOutput;
+    }
+    else if( output?.[ "Header" ] )
+    {
+        let w = new WebClientOutputHeader();
+
+        w.name = output[ "Header" ].name || "";
+
+        return load_output_prefix_suffix( output[ "Header" ], w ) as WebClientOutput;
+    }
+    else if( output?.[ "Body" ] )
+    {
+        return load_output_prefix_suffix( output[ "Body" ], new WebClientOutputBody() ) as WebClientOutput;
+    }
+    else if( output?.[ "Object" ] )
+    {
+        return load_output_prefix_suffix( output[ "Object" ], new WebClientOutputObject() ) as WebClientOutput;
+    }
+
+    throw new Error( "WebClientOutput not found. " + JSON.stringify( output ) );
+}
+
+function load_body( body : any ) : WebClientBody | undefined
+{
+    if( ! body ) return undefined;
+
+    if( ! is_empty( body?.[ "Json" ] ) )
+    {
+        let ret = new WebClientBodyJson();
+
+        ret.value = load_data_from( body[ "Json" ] );
+
+        return ret;
+    }
+    else if( ! is_empty( body?.[ "Form" ] ) )
+    {
+        let ret = new WebClientBodyForm();
+
+        ret.value = load_vec_name_value( body[ "Form" ] );
+
+        return ret;
+    }
+}
+
+function load_method( method : any ) : AwpakMethod | undefined
+{
+    if( ! method?.trim() || ! is_type_in_enum( AwpakMethod, method ) ) return undefined;
+
+    return method as AwpakMethod
+}
+
+function load_vec_name_value( data : Array<any> ) : Array<WebClientNameValue>
+{
+    return ( data || [] ).map( ( d ) => load_name_value( d ) );
+}
+
+function load_name_value( data : any ) : WebClientNameValue
+{
+    return {
+        name : load_data_from( data.name ),
+        value : load_data_from( data.value )
+    }
 }
 
 function load_node_executor_agent( agent : any ) : NodeExecutorAgent

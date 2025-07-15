@@ -1,5 +1,6 @@
 import { DataFromVariant, DataOperationAdd, DataOperationLen, DataOperationSubstract, DataOperationVariant, FromConcat, FromContext, FromInput, FromNull, FromOperation, FromParsedInput, FromStatic, type DataFrom, type DataOperation } from "../model/data";
 import { DataComparatorAnd, DataComparatorEq, DataComparatorFalse, DataComparatorGt, DataComparatorLt, DataComparatorNot, DataComparatorNotEq, DataComparatorOr, DataComparatorRegex, DataComparatorTrue, DataComparatorVariant, type DataComparator } from "../model/data_comparator";
+import { WebClientBodyForm, WebClientBodyJson, WebClientBodyVariant, type WebClientBody } from "../model/web_client";
 import { is_type_in_enum } from "./form_utils";
 
 export function is_empty( data : any ) : boolean
@@ -81,6 +82,24 @@ export function new_data_comparator_variant( old : DataComparator, new_variant :
     }
 
     return undefined;
+}
+
+export function new_body_variant( old : WebClientBody, new_variant : string ) : WebClientBody | undefined
+{
+    if( ! is_type_in_enum( WebClientBodyVariant, new_variant ) ) { return undefined; }
+
+    new_variant = new_variant as WebClientBodyVariant;
+
+    if( old._variant == new_variant ) { return old; }
+
+    if( new_variant == WebClientBodyVariant.Json )
+    {
+        return new WebClientBodyJson();
+    }
+    else if( new_variant == WebClientBodyVariant.Form )
+    {
+        return new WebClientBodyForm();
+    }
 }
 
 export function new_data_from_variant( old : DataFrom, new_variant : string ) : DataFrom | undefined

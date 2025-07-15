@@ -4,7 +4,8 @@ import { DataFromVariant, DataOperationVariant, type DataFrom, type DataOperatio
 import { DataComparatorVariant, type DataComparator } from "../model/data_comparator";
 import type { Graph } from "../model/graph";
 import { GraphNode, GraphNodeOutputVariant, NodeDestination, NodeNextVariant, NodeTypeVariant, type GraphNodeOutput, type Node, type NodeNext, type NodeType } from "../model/node";
-import { NodeExecutorAgent, NodeExecutorCommand, NodeExecutorContextMut, NodeExecutorVariant, type NodeExecutor } from "../model/node_executor";
+import { NodeExecutorAgent, NodeExecutorCommand, NodeExecutorContextMut, NodeExecutorVariant, NodeExecutorWebClient, type NodeExecutor } from "../model/node_executor";
+import { WebClientBodyVariant, WebClientOutputVariant, type WebClientBody, type WebClientNameValue, type WebClientOutput } from "../model/web_client";
 import { is_empty } from "./data_functions";
 
 export function generate_json( graph : Graph ) : string
@@ -98,6 +99,10 @@ function json_executor_from_node_executor( executor : NodeExecutor | undefined )
     else if( executor._variant == NodeExecutorVariant.Agent )
     {
         return json_agent( executor );
+    }
+    else if( executor._variant == NodeExecutorVariant.WebClient )
+    {
+        return json_executor_web_client( executor );
     }
 }
 
@@ -200,6 +205,84 @@ function json_command_output( output : CommandOutput ) : any
         return {
             [output._variant] : pre_suf
         }
+    }
+}
+
+function json_executor_web_client( executor : NodeExecutorWebClient ) : any
+{
+    return {
+        "WebClient" : {
+            url : json_data_from( executor.value.url ),
+            method : executor.value.method,
+            headers : json_vec_name_value( executor.value.headers ),
+            query_params : json_vec_name_value( executor.value.query_params ),
+            body : json_request_body( executor.value.body ),
+            output : json_vec_web_client_output( executor.value.output )
+        }
+    }
+}
+
+function json_vec_web_client_output( output : Array<WebClientOutput> ) : any
+{
+    return ( output || [] ).map( ( o : WebClientOutput ) => json_web_client_output( o ) )
+}
+
+function json_web_client_output( output : WebClientOutput ) : any
+{
+    let pre_suf : any = {
+        prefix : output.prefix,
+        suffix : output.suffix
+    };
+
+    if( 
+        output._variant == WebClientOutputVariant.Version ||
+        output._variant == WebClientOutputVariant.Status ||
+        output._variant == WebClientOutputVariant.Body ||
+        output._variant == WebClientOutputVariant.Object
+    )
+    {
+        return {
+            [output._variant] : pre_suf
+        }
+    }
+    else if( output._variant == WebClientOutputVariant.Header )
+    {
+        pre_suf.name = output.name;
+
+        return {
+            [output._variant] : pre_suf
+        }
+    }
+}
+
+function json_request_body( body : WebClientBody | undefined ) : any
+{
+    if( ! body ) return undefined;
+
+    if( body._variant == WebClientBodyVariant.Json )
+    {
+        return {
+            "Json" : json_data_from( body.value )
+        }
+    }
+    else if( body._variant == WebClientBodyVariant.Form )
+    {
+        return {
+            "Form" : json_vec_name_value( body.value )
+        }
+    }
+}
+
+function json_vec_name_value( vec : Array<WebClientNameValue> ) : any
+{
+    return ( vec || [] ).map( ( o ) => json_name_value( o ) );
+}
+
+function json_name_value( obj : WebClientNameValue ) : any
+{
+    return {
+        name : json_data_from( obj.name ),
+        value : json_data_from( obj.value )
     }
 }
 
