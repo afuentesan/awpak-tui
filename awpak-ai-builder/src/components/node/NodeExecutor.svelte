@@ -24,6 +24,8 @@
     import NameValue from "../data/NameValue.svelte";
     import WebClientBody from "./WebClientBody.svelte";
     import WebClientOutput from "./WebClientOutput.svelte";
+    import DataComparator from "../data/DataComparator.svelte";
+    import { DataComparatorTrue } from "../../model/data_comparator";
 
 
     interface InputProps
@@ -231,10 +233,10 @@
         </Box>
 
         <Box title="Query params" base_path={base_path+".value.query_params"}>
-            {#each node_executor.value.headers as _, i}
+            {#each node_executor.value.query_params as _, i}
                 <NameValue
                     label={"Param "+i}
-                    name_value={node_executor.value.headers[i]}
+                    name_value={node_executor.value.query_params[i]}
                     base_path={base_path+".value.query_params["+i+"]"}
                     remove_from_loop={
                         () => remove_from_array( base_path+".value.query_params", i )
@@ -303,6 +305,10 @@
                     node_output={node_executor.value[i].to}
                     label={"To "+i}
                 />
+                <DataComparator
+                    base_path={base_path+".value["+i+"].condition"}
+                    comparator={node_executor.value[i].condition}
+                />
                 <div class="text-center">
                     <Button
                         text="Remove ContextMut"
@@ -336,7 +342,8 @@
                         base_path+".value", 
                         {
                             from : new FromContext(),
-                            to : new ContextMutDataToContext()
+                            to : new ContextMutDataToContext(),
+                            condition : new DataComparatorTrue()
                         }
                     )
                 }

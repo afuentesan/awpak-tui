@@ -1,5 +1,6 @@
 import { AIAgent } from "./agent";
 import { Command } from "./command";
+import type { ContextMut } from "./context_mut";
 import { DataToContext, type DataFrom } from "./data";
 import { WebClient } from "./web_client";
 
@@ -41,10 +42,7 @@ export class NodeExecutorContextMut
 {
     readonly _variant = NodeExecutorVariant.ContextMut;
 
-    value : Array<{
-        from : DataFrom | undefined;
-        to : DataToContext | undefined
-    }> = []
+    value : Array<ContextMut> = []
 }
 
 export class NodeExecutorWebClient

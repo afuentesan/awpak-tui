@@ -1,5 +1,6 @@
 import { AIAgentProviderConfigVariant, type AIAgentProvider, type NodeMCPServer } from "../model/agent";
 import { CommandOutputVariant, type CommandOutput } from "../model/command";
+import type { ContextMut } from "../model/context_mut";
 import { DataFromVariant, DataOperationVariant, type DataFrom, type DataOperation, type DataToContext, type DataToString } from "../model/data";
 import { DataComparatorVariant, type DataComparator } from "../model/data_comparator";
 import type { Graph } from "../model/graph";
@@ -294,28 +295,20 @@ function json_executor_context_mut( executor : NodeExecutorContextMut ) : any
 }
 
 function json_vec_context_mut( 
-    context_muts : Array<{
-        from : DataFrom | undefined;
-        to : DataToContext | undefined
-    }>
+    context_muts : Array<ContextMut>
 )
 {
-    return context_muts.map( ( c : {
-        from : DataFrom | undefined;
-        to : DataToContext | undefined
-    } ) => json_context_mut( c ) )
+    return context_muts.map( ( c : ContextMut ) => json_context_mut( c ) )
 }
 
 function json_context_mut(
-    context_mut : {
-        from : DataFrom | undefined;
-        to : DataToContext | undefined
-    }
+    context_mut : ContextMut
 )
 {
     return {
         from : context_mut.from ? json_data_from( context_mut.from ) : undefined,
-        to : json_data_to_context( context_mut.to )
+        to : json_data_to_context( context_mut.to ),
+        condition : json_data_comparator( context_mut.condition )
     }
 }
 

@@ -1,7 +1,7 @@
 
 use awpak_utils::result::result::AwpakResult;
 
-use crate::domain::{context_mut::context_mut::ContextMut, data::{data_insert::value_to_context, data_selection::data_selection}, error::Error, graph::graph::Graph};
+use crate::domain::{context_mut::context_mut::ContextMut, data::{data_compare::compare_data, data_insert::value_to_context, data_selection::data_selection}, error::Error, graph::graph::Graph};
 
 
 pub async fn change_context( 
@@ -11,11 +11,24 @@ pub async fn change_context(
 {
     for c in context_mut
     {
-        graph = match change_item_context( c, graph ).await.collect()
+        match compare_data( 
+            graph.input.as_ref(), 
+            &graph.parsed_input,
+            &graph.context,
+            &c.condition 
+        )
         {
-            ( g, None ) => g,
-            ( g, Some( e ) ) => return AwpakResult::new_err( g, e )    
-        };
+            Ok( r ) if r =>
+            {
+                graph = match change_item_context( c, graph ).await.collect()
+                {
+                    ( g, None ) => g,
+                    ( g, Some( e ) ) => return AwpakResult::new_err( g, e )    
+                };
+            }
+            Ok( _ ) => continue,
+            Err( e ) => return AwpakResult::new_err( graph, e )
+        }
     }
 
     AwpakResult::new( graph )

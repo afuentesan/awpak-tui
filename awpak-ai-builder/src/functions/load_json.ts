@@ -1,5 +1,6 @@
 import { AIAgent, AIAgentProviderAnthropic, AIAgentProviderDeepSeek, AIAgentProviderGemini, AIAgentProviderOllama, AIAgentProviderOpenAI, NodeMCPServer, type AIAgentProvider } from "../model/agent";
 import { Command, CommandOutputCode, CommandOutputErr, CommandOutputObject, CommandOutputOut, CommandOutputSuccess, type CommandOutput } from "../model/command";
+import type { ContextMut } from "../model/context_mut";
 import { DataMerge, DataOperationAdd, DataOperationLen, DataOperationSubstract, DataToContext, DataToString, DataType, FromConcat, FromContext, FromInput, FromNull, FromOperation, FromParsedInput, FromStatic, type DataFrom } from "../model/data";
 import { DataComparatorAnd, DataComparatorEq, DataComparatorFalse, DataComparatorGt, DataComparatorLt, DataComparatorNot, DataComparatorNotEq, DataComparatorOr, DataComparatorRegex, DataComparatorTrue, type DataComparator } from "../model/data_comparator";
 import { Graph } from "../model/graph";
@@ -383,14 +384,12 @@ function load_node_executor_context_mut( context_mut : Array<any> ) : NodeExecut
     return ret;
 }
 
-function load_item_node_executor_context_mut( item : any ) : {
-    from : DataFrom | undefined;
-    to : DataToContext | undefined
-}
+function load_item_node_executor_context_mut( item : any ) : ContextMut
 {
     return {
-        from : item.from ? load_data_from( item.from ) : undefined,
-        to : item.to ? load_data_to_context( item.to ) : undefined
+        from : load_data_from( item.from ),
+        to : item.to ? load_data_to_context( item.to ) : undefined,
+        condition : load_data_comparator( item.condition )
     }
 }
 
@@ -630,6 +629,11 @@ function load_from_parsed_input( data : any ) : FromParsedInput
 function load_from_static( data : any ) : FromStatic
 {
     let ret = new FromStatic;
+
+    if( typeof( data ) == "object" )
+    {
+        data = JSON.stringify( data );
+    }
 
     ret.value = data;
 

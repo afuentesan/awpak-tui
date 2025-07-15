@@ -189,6 +189,12 @@
                         }
                     },
                     {
+                        selector: `node[ty = "${NodeExecutorVariant.WebClient}"]`,
+                        style: {
+                        'background-color': '#374151'
+                        }
+                    },
+                    {
                         selector: `node[ty = "${NodeExecutorVariant.Agent}"]`,
                         style: {
                         'background-color': '#8E4B10'

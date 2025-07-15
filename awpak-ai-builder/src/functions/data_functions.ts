@@ -88,6 +88,8 @@ export function new_body_variant( old : WebClientBody, new_variant : string ) : 
 {
     if( ! is_type_in_enum( WebClientBodyVariant, new_variant ) ) { return undefined; }
 
+    if( ! old ) old = new WebClientBodyJson();
+
     new_variant = new_variant as WebClientBodyVariant;
 
     if( old._variant == new_variant ) { return old; }
