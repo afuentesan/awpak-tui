@@ -1,6 +1,6 @@
 use std::{sync::mpsc::{self, Sender}, time::Duration};
 
-use awpak_ai::{domain::{graph::graph::Graph, signals::cancel_graph::{cancel_graph, init_cancel_state}, tracing::filter_layer::{AwpakAIFilterLayer, AwpakAITarget, AwpakTracingMessage, AGENT_STREAM, AGENT_SYNC, AGENT_TOOL_CALL, AGENT_TOOL_RESULT, COMMAND_AND_ARGS, COMMAND_RESULT, NODE_DESTINATION, NODE_EXECUTION}}, infrastructure::graph::run_graph::run_graph};
+use awpak_ai::{domain::{graph::graph::Graph, signals::cancel_graph::{cancel_graph, init_cancel_state}, tracing::filter_layer::{AwpakAIFilterLayer, AwpakAITarget, AwpakTracingMessage, AGENT_STREAM, AGENT_SYNC, AGENT_TOOL_CALL, AGENT_TOOL_RESULT, COMMAND_AND_ARGS, COMMAND_RESULT, GRAPH_INPUT, GRAPH_OUTPUT_ERR, GRAPH_OUTPUT_OK, NODE_DESTINATION, NODE_EXECUTION}}, infrastructure::graph::run_graph::run_graph};
 use tracing_subscriber::{layer::SubscriberExt, util::SubscriberInitExt};
 
 use crate::{domain::{graph::graph::AwpakTUIGraph, util::file_utils::append_text_to_file}, infrastructure::{action::app::action::Action, channel::channel::{clean_recv_abort_chat, try_recv_abort_chat}, config::{functions::graph_config::{current_graph, graph_output_config, save_graph_in_current}, model::graph_config::{AwpakTUIGraphOutputConfig, AwpakTUIGraphOutputDestinationConfig}}}};
@@ -15,17 +15,17 @@ pub async fn send_prompt_to_graph(
 
     let response_id = if graph.id.trim() != "" { Some( graph.id.clone() ) } else { None };
 
-    let _ = channel.send(
-        match &response_id
-        {
-            Some( i ) => Action::AppendTextToContentId 
-            { 
-                text : format!( "\nInit graph {}\n", i ),
-                id : i.clone()
-            },
-            _ => Action::AppendTextToContent( format!( "\nInit graph\n" ) )
-        }
-    );
+    // let _ = channel.send(
+    //     match &response_id
+    //     {
+    //         Some( i ) => Action::AppendTextToContentId 
+    //         { 
+    //             text : format!( "\nInit graph {}\n", i ),
+    //             id : i.clone()
+    //         },
+    //         _ => Action::AppendTextToContent( format!( "\nInit graph\n" ) )
+    //     }
+    // );
 
     let end = control_graph_execution( graph.id.clone() );
 
@@ -165,7 +165,10 @@ pub fn capture_graph_output( channel : Sender<Action> )
             ( AwpakAITarget::CommandAndArgs, tx.clone() ),
             ( AwpakAITarget::CommandResult, tx.clone() ),
             ( AwpakAITarget::NodeDestination, tx.clone() ),
-            ( AwpakAITarget::NodeExecution, tx.clone() )
+            ( AwpakAITarget::NodeExecution, tx.clone() ),
+            ( AwpakAITarget::GraphInput, tx.clone() ),
+            ( AwpakAITarget::GraphOutputOk, tx.clone() ),
+            ( AwpakAITarget::GraphOutputErr, tx.clone() )
         ],
     };
 
@@ -256,6 +259,24 @@ fn proccess_message_from_config(
             config.node_execution, 
             format!( "\nExec node {}\n\n", text ), 
             channel 
+        ),
+        GRAPH_INPUT => proccess_message_from_destinations(
+            id.clone(),
+            config.graph_input,
+            format!( "\nInit graph {}. Graph input:\n{}", id, text ),
+            channel
+        ),
+        GRAPH_OUTPUT_OK => proccess_message_from_destinations(
+            id.clone(),
+            config.graph_output_ok,
+            format!( "\nEnd graph {}. ExitOk:\n{}", id, text ),
+            channel
+        ),
+        GRAPH_OUTPUT_ERR => proccess_message_from_destinations(
+            id.clone(),
+            config.graph_output_err,
+            format!( "\nEnd graph {}. ExitErr:\n{}", id, text ),
+            channel
         ),
         _ => {}
     }

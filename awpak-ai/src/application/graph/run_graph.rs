@@ -4,7 +4,7 @@ use serde_json::Value;
 use async_recursion::async_recursion;
 use tracing::info;
 
-use crate::{application::graph::execute_graph::execute_graph, domain::{agent::execute_agent::execute_agent, command::execute_command::execute_command, context_mut::change_context::change_context, data::{data::{DataComparator, DataType}, data_compare::compare_data, data_insert::str_to_context, data_selection::data_to_string, data_utils::str_to_value}, error::Error, graph::{graph::Graph, node::{NodeDestination, NodeExecutor, NodeNext}}, tracing::filter_layer::{GRAPH_INPUT, GRAPH_OUTPUT, NODE_DESTINATION, NODE_EXECUTION, NODE_OUTPUT}, utils::string_utils::option_string_to_str, web_client::execute_web_client::execute_web_client}};
+use crate::{application::graph::execute_graph::execute_graph, domain::{agent::execute_agent::execute_agent, command::execute_command::execute_command, context_mut::change_context::change_context, data::{data::{DataComparator, DataType}, data_compare::compare_data, data_insert::str_to_context, data_selection::data_to_string, data_utils::str_to_value}, error::Error, graph::{graph::Graph, node::{NodeDestination, NodeExecutor, NodeNext}}, tracing::filter_layer::{GRAPH_INPUT, GRAPH_OUTPUT_ERR, GRAPH_OUTPUT_OK, NODE_DESTINATION, NODE_EXECUTION, NODE_OUTPUT}, utils::string_utils::option_string_to_str, web_client::execute_web_client::execute_web_client}};
 
 
 struct GraphRunner
@@ -58,21 +58,32 @@ fn trace_graph_input( graph_id : Option<&String>, input : &str )
 
 fn trace_graph_output( graph_id : Option<&String>, final_output : Option<&Result<String, String>> )
 {
-    let text = match final_output
+    let ( ok, text ) = match final_output
     {
         Some( r ) => match r
         {
-            Ok( s ) => format!( "ExitOk:\n{}", s ),
-            Err( s ) => format!( "ExitErr:\n{}", s )
+            Ok( s ) => ( true, s ),
+            Err( s ) => ( false, s )
         },
         None => return
     };
 
-    info!(
-        target:GRAPH_OUTPUT, 
-        id=option_string_to_str( graph_id ), 
-        text=text
-    );
+    if ok
+    {
+        info!(
+            target:GRAPH_OUTPUT_OK, 
+            id=option_string_to_str( graph_id ), 
+            text=text
+        );
+    }
+    else
+    {
+        info!(
+            target:GRAPH_OUTPUT_ERR, 
+            id=option_string_to_str( graph_id ), 
+            text=text
+        );
+    }
 }
 
 fn init_graph(

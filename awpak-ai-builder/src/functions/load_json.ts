@@ -510,8 +510,12 @@ function load_data_comparator( data : any ) : DataComparator
     {
         return new DataComparatorFalse();
     }
+    else
+    {
+        return new DataComparatorTrue();
+    }
 
-    throw new Error( "DataComparator not found. " + JSON.stringify( data ) );
+    // throw new Error( "DataComparator not found. " + JSON.stringify( data ) );
 }
 
 function load_data_comparator_value( data : any, src : DataComparatorNot ) : DataComparatorNot

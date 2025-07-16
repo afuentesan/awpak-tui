@@ -17,6 +17,13 @@ pub struct AwpakTUIGraphConfig
 pub struct AwpakTUIGraphOutputConfig
 {
     #[serde(default)]
+    pub graph_input : Vec<AwpakTUIGraphOutputDestinationConfig>,
+    #[serde(default)]
+    pub graph_output_ok : Vec<AwpakTUIGraphOutputDestinationConfig>,
+    #[serde(default)]
+    pub graph_output_err : Vec<AwpakTUIGraphOutputDestinationConfig>,
+
+    #[serde(default)]
     pub agent_stream : Vec<AwpakTUIGraphOutputDestinationConfig>,
     #[serde(default)]
     pub agent_sync : Vec<AwpakTUIGraphOutputDestinationConfig>,
@@ -43,14 +50,17 @@ impl Default for AwpakTUIGraphOutputConfig
     {
         Self 
         { 
-            agent_stream : vec![ AwpakTUIGraphOutputDestinationConfig::Console ], 
-            agent_sync : vec![ AwpakTUIGraphOutputDestinationConfig::Console ], 
-            agent_tool_call : Default::default(), 
-            agent_tool_result : Default::default(), 
-            command_and_args : vec![ AwpakTUIGraphOutputDestinationConfig::Console ],
-            command_result : vec![ AwpakTUIGraphOutputDestinationConfig::Console ], 
-            node_destination : Default::default(),
-            node_execution : vec![ AwpakTUIGraphOutputDestinationConfig::Console ]
+            graph_input : vec![ AwpakTUIGraphOutputDestinationConfig::Console ],
+            graph_output_ok : vec![ AwpakTUIGraphOutputDestinationConfig::Console ],
+            graph_output_err : vec![ AwpakTUIGraphOutputDestinationConfig::Console ],
+            agent_stream : vec![], 
+            agent_sync : vec![], 
+            agent_tool_call : vec![], 
+            agent_tool_result : vec![], 
+            command_and_args : vec![],
+            command_result : vec![], 
+            node_destination : vec![],
+            node_execution : vec![]
         }
     }
 }

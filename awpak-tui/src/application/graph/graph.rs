@@ -6,7 +6,7 @@ pub fn send_graph_request( app : App ) -> AwpakResult<App>
 {
     AwpakResult::new( app )
     .validate()
-    .map_result( | a | bool_err( a.content_search().text.trim() == "", Error::Ignore ) )
+    // .map_result( | a | bool_err( a.content_search().text.trim() == "", Error::Ignore ) )
     .map_result( | a | bool_err( ! is_graph_content( a.content() ), Error::Ignore ) )
     .map_result( | a | bool_err( ! is_graph_request_empty( &a.graph_content().unwrap().request ), Error::Ignore ) )
     .write()
@@ -218,7 +218,7 @@ pub fn graph_to_waiting( app : App ) -> AwpakResult<App>
         {
             let ( app, graph ) = app.own_graph_content();
 
-            match append_request_to_response( graph.unwrap() ).collect()
+            match check_graph_request_is_pending( graph.unwrap() ).collect()
             {
                 ( g, None ) => AwpakResult::new( 
                     app.change_content( 
@@ -311,7 +311,7 @@ pub fn finalize_graph_response_without_id( app : App ) -> AwpakResult<App>
     }
 }
 
-fn append_request_to_response( graph : AwpakTUIGraph ) -> AwpakResult<AwpakTUIGraph>
+fn check_graph_request_is_pending( graph : AwpakTUIGraph ) -> AwpakResult<AwpakTUIGraph>
 {
     AwpakResult::new( graph )
     .validate()
@@ -320,16 +320,9 @@ fn append_request_to_response( graph : AwpakTUIGraph ) -> AwpakResult<AwpakTUIGr
     .map( 
         | c |
         {
-            let ( graph, text ) = c.own_prompt();
+            let ( graph, _ ) = c.own_prompt();
 
-            match text
-            {
-                Some( t ) => append_string_to_graph_response( 
-                    format!( "\nPrompt:\n{}\n", t ), 
-                    graph 
-                ),
-                _ => graph
-            }
+            graph
         }
     )
     .read()

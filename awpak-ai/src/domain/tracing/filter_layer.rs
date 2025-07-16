@@ -10,7 +10,8 @@ pub struct AwpakAIFilterLayer
 }
 
 pub const GRAPH_INPUT : &'static str = "graph_input";
-pub const GRAPH_OUTPUT : &'static str = "graph_output";
+pub const GRAPH_OUTPUT_OK : &'static str = "graph_output_ok";
+pub const GRAPH_OUTPUT_ERR : &'static str = "graph_output_err";
 
 pub const AGENT_PROMPT : &'static str = "agent_prompt";
 pub const AGENT_STREAM : &'static str = "agent_stream";
@@ -36,7 +37,8 @@ pub const NODE_OUTPUT : &'static str = "node_output";
 pub enum AwpakAITarget
 {
     GraphInput,
-    GraphOutput,
+    GraphOutputOk,
+    GraphOutputErr,
     AgentPrompt,
     AgentStream,
     AgentSync,
@@ -63,7 +65,8 @@ impl AwpakAITarget
         match self
         {
             AwpakAITarget::GraphInput => GRAPH_INPUT,
-            AwpakAITarget::GraphOutput => GRAPH_OUTPUT,
+            AwpakAITarget::GraphOutputOk => GRAPH_OUTPUT_OK,
+            AwpakAITarget::GraphOutputErr => GRAPH_OUTPUT_ERR,
             AwpakAITarget::AgentPrompt => AGENT_PROMPT,
             AwpakAITarget::AgentStream => AGENT_STREAM,
             AwpakAITarget::AgentSync => AGENT_SYNC,
