@@ -1,7 +1,7 @@
 import { AIAgentProviderAnthropic, AIAgentProviderConfigVariant, AIAgentProviderDeepSeek, AIAgentProviderGemini, AIAgentProviderOllama, AIAgentProviderOpenAI, type AIAgentProvider } from "../model/agent";
 import { CommandOutputCode, CommandOutputErr, CommandOutputObject, CommandOutputOut, CommandOutputSuccess, CommandOutputVariant, type CommandOutput } from "../model/command";
 import type { Graph } from "../model/graph";
-import { GraphNode, GraphNodeOutputErr, GraphNodeOutputOut, GraphNodeOutputVariant, Node, NodeDestination, NodeNextExitErr, NodeNextExitOk, NodeNextNode, NodeNextVariant, NodeTypeVariant, type GraphNodeOutput, type NodeNext, type NodeType } from "../model/node";
+import { GraphNode, GraphNodeOutputErr, GraphNodeOutputObject, GraphNodeOutputOut, GraphNodeOutputSuccess, GraphNodeOutputVariant, Node, NodeDestination, NodeNextExitErr, NodeNextExitOk, NodeNextNode, NodeNextVariant, NodeTypeVariant, type GraphNodeOutput, type NodeNext, type NodeType } from "../model/node";
 import { NodeExecutorAgent, NodeExecutorCommand, NodeExecutorContextMut, NodeExecutorVariant, NodeExecutorWebClient, type NodeExecutor } from "../model/node_executor";
 import { WebClientOutputBody, WebClientOutputHeader, WebClientOutputObject, WebClientOutputStatus, WebClientOutputVariant, WebClientOutputVersion, type WebClientOutput } from "../model/web_client";
 import { is_type_in_enum } from "./form_utils";
@@ -231,19 +231,24 @@ export function new_graph_node_output_variant( old : GraphNodeOutput, new_varian
 
     if( old._variant == new_variant ) { return old; }
 
-    let new_output = ( 
-        new_variant == GraphNodeOutputVariant.Err 
-    ) 
-    ? 
-    new GraphNodeOutputErr() 
-    :
-    (
-        ( new_variant == GraphNodeOutputVariant.Out )
-        ?
-        new GraphNodeOutputOut()
-        :
-        undefined
-    );
+    let new_output;
+
+    if( new_variant == GraphNodeOutputVariant.Err  )
+    {
+        new_output = new GraphNodeOutputErr();
+    }
+    else if( new_variant == GraphNodeOutputVariant.Out  )
+    {
+        new_output = new GraphNodeOutputOut();
+    }
+    else if( new_variant == GraphNodeOutputVariant.Success  )
+    {
+        new_output = new GraphNodeOutputSuccess();
+    }
+    else if( new_variant == GraphNodeOutputVariant.Object  )
+    {
+        new_output = new GraphNodeOutputObject();
+    }
 
     if( ! new_output ) { return undefined; }
 

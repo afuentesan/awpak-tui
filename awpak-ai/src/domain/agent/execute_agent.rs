@@ -1,21 +1,22 @@
-use std::collections::HashMap;
 
 use rig::message::Message;
-use serde_json::Value;
 use tracing::info;
 
-use crate::domain::{agent::{agent::AIAgent, agent_provider::AIAgentProvider, create_agent_provider::create_agent_provider, run_agent::run_agent}, data::{data::DataToString, data_selection::data_to_string}, error::Error, tracing::filter_layer::AGENT_PROMPT, utils::string_utils::option_string_to_str};
+use crate::domain::{agent::{agent::AIAgent, agent_provider::AIAgentProvider, create_agent_provider::create_agent_provider, run_agent::run_agent}, data::{data::DataToString, data_selection::data_to_string}, error::Error, graph::graph::Graph, tracing::filter_layer::AGENT_PROMPT, utils::string_utils::option_string_to_str};
 
 
 pub async fn execute_agent(
-    id : Option<&String>,
-    input : Option<&String>, 
-    parsed_input : &Value, 
-    context : &HashMap<String, Value>,
+    // id : Option<&String>,
+    // input : Option<&String>, 
+    // parsed_input : &Value, 
+    // context : &HashMap<String, Value>,
+    graph : &Graph,
     agent : &AIAgent
 ) -> Result<( String, Vec<Message> ), Error>
 {
-    let prompt = agent_prompt( input, parsed_input, context, &agent.prompt ).await;
+    let id = graph.id.as_ref();
+
+    let prompt = agent_prompt( graph, &agent.prompt ).await;
 
     info!(
         target:AGENT_PROMPT, 
@@ -24,9 +25,7 @@ pub async fn execute_agent(
     );
 
     let provider = create_agent_provider( 
-        input,
-        parsed_input,
-        context,
+        graph,
         agent 
     ).await?;
 
@@ -41,16 +40,12 @@ pub async fn execute_agent(
 }
 
 async fn agent_prompt(
-    input : Option<&String>, 
-    parsed_input : &Value, 
-    context : &HashMap<String, Value>,
+    graph : &Graph,
     from : &Vec<DataToString>
 ) -> String
 {
     data_to_string(
-        input, 
-        parsed_input, 
-        context, 
+        graph, 
         from.clone()
     )
 }

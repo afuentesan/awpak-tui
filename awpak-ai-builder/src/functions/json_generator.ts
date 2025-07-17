@@ -544,7 +544,12 @@ function json_graph_node_output( output : GraphNodeOutput ) : any
         suffix : output.suffix
     };
 
-    if( output._variant == GraphNodeOutputVariant.Out || output._variant == GraphNodeOutputVariant.Err )
+    if( 
+        output._variant == GraphNodeOutputVariant.Out || 
+        output._variant == GraphNodeOutputVariant.Err ||
+        output._variant == GraphNodeOutputVariant.Success ||
+        output._variant == GraphNodeOutputVariant.Object
+    )
     {
         return {
             [output._variant] : pre_suf

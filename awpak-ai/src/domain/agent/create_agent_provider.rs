@@ -1,33 +1,27 @@
-use std::collections::HashMap;
 
 use rig::{agent::Agent, client::CompletionClient};
-use serde_json::Value;
 
-use crate::domain::{agent::{agent::{AIAgent, AIAgentProviderConfig, AnthropicConfig, DeepSeekConfig, GeminiConfig, OllamaConfig, OpenAIConfig}, agent_provider::AIAgentProvider}, error::Error, mcp::mcp_functions::add_mcp_clients_to_agent};
+use crate::domain::{agent::{agent::{AIAgent, AIAgentProviderConfig, AnthropicConfig, DeepSeekConfig, GeminiConfig, OllamaConfig, OpenAIConfig}, agent_provider::AIAgentProvider}, error::Error, graph::graph::Graph, mcp::mcp_functions::add_mcp_clients_to_agent};
 
 // CREATE AGENT PROVIDER
 
 pub async fn create_agent_provider( 
-    input : Option<&String>, 
-    parsed_input : &Value, 
-    context : &HashMap<String, Value>,
+    graph : &Graph,
     agent : &AIAgent
 ) -> Result<AIAgentProvider, Error>
 {
     match &agent.provider
     {
-        AIAgentProviderConfig::Ollama( c ) => ollama_agent_provider( input, parsed_input, context, agent, c ).await,
-        AIAgentProviderConfig::OpenAI( c ) => openai_agent_provider( input, parsed_input, context, agent,c ).await,
-        AIAgentProviderConfig::Anthropic( c ) => anthropic_agent_provider( input, parsed_input, context, agent, c ).await,
-        AIAgentProviderConfig::DeepSeek( c ) => deepseek_agent_provider( input, parsed_input, context, agent, c ).await,
-        AIAgentProviderConfig::Gemini( c ) => gemini_agent_provider( input, parsed_input, context, agent,c ).await
+        AIAgentProviderConfig::Ollama( c ) => ollama_agent_provider( graph, agent, c ).await,
+        AIAgentProviderConfig::OpenAI( c ) => openai_agent_provider( graph, agent,c ).await,
+        AIAgentProviderConfig::Anthropic( c ) => anthropic_agent_provider( graph, agent, c ).await,
+        AIAgentProviderConfig::DeepSeek( c ) => deepseek_agent_provider( graph, agent, c ).await,
+        AIAgentProviderConfig::Gemini( c ) => gemini_agent_provider( graph, agent,c ).await
     }
 }
 
 async fn gemini_agent_provider( 
-    input : Option<&String>, 
-    parsed_input : &Value, 
-    context : &HashMap<String, Value>,
+    graph : &Graph,
     ai_agent : &AIAgent,
     config : &GeminiConfig
 ) -> Result<AIAgentProvider, Error>
@@ -38,7 +32,7 @@ async fn gemini_agent_provider(
 
     let agent = client.agent( &config.model );
 
-    let mut agent = add_mcp_clients_to_agent( input, parsed_input, context, agent, &ai_agent.servers ).await?;
+    let mut agent = add_mcp_clients_to_agent( graph, agent, &ai_agent.servers ).await?;
 
     if let Some( p ) = ai_agent.system_prompt.as_ref()
     {
@@ -51,9 +45,7 @@ async fn gemini_agent_provider(
 }
 
 async fn deepseek_agent_provider( 
-    input : Option<&String>, 
-    parsed_input : &Value, 
-    context : &HashMap<String, Value>,
+    graph : &Graph,
     ai_agent : &AIAgent,
     config : &DeepSeekConfig
 ) -> Result<AIAgentProvider, Error>
@@ -69,7 +61,7 @@ async fn deepseek_agent_provider(
         agent = agent.max_tokens( m );
     }
 
-    let mut agent = add_mcp_clients_to_agent( input, parsed_input, context, agent, &ai_agent.servers ).await?;
+    let mut agent = add_mcp_clients_to_agent( graph, agent, &ai_agent.servers ).await?;
 
     if let Some( p ) = ai_agent.system_prompt.as_ref()
     {
@@ -82,9 +74,7 @@ async fn deepseek_agent_provider(
 }
 
 async fn ollama_agent_provider( 
-    input : Option<&String>, 
-    parsed_input : &Value, 
-    context : &HashMap<String, Value>,
+    graph : &Graph,
     ai_agent : &AIAgent,
     config : &OllamaConfig
 ) -> Result<AIAgentProvider, Error>
@@ -93,7 +83,7 @@ async fn ollama_agent_provider(
 
     let agent = client.agent( &config.model );
 
-    let mut agent = add_mcp_clients_to_agent( input, parsed_input, context, agent, &ai_agent.servers ).await?;
+    let mut agent = add_mcp_clients_to_agent( graph, agent, &ai_agent.servers ).await?;
 
     if let Some( p ) = ai_agent.system_prompt.as_ref()
     {
@@ -104,9 +94,7 @@ async fn ollama_agent_provider(
 }
 
 async fn openai_agent_provider( 
-    input : Option<&String>, 
-    parsed_input : &Value, 
-    context : &HashMap<String, Value>,
+    graph : &Graph,
     ai_agent : &AIAgent,
     config : &OpenAIConfig
 ) -> Result<AIAgentProvider, Error>
@@ -117,7 +105,7 @@ async fn openai_agent_provider(
 
     let agent = client.agent( &config.model );
 
-    let mut agent = add_mcp_clients_to_agent( input, parsed_input, context, agent, &ai_agent.servers ).await?;
+    let mut agent = add_mcp_clients_to_agent( graph, agent, &ai_agent.servers ).await?;
 
     if let Some( p ) = ai_agent.system_prompt.as_ref()
     {
@@ -144,9 +132,7 @@ async fn openai_agent_provider(
 }
 
 async fn anthropic_agent_provider( 
-    input : Option<&String>, 
-    parsed_input : &Value, 
-    context : &HashMap<String, Value>,
+    graph : &Graph,
     ai_agent : &AIAgent,
     config : &AnthropicConfig
 ) -> Result<AIAgentProvider, Error>
@@ -159,7 +145,7 @@ async fn anthropic_agent_provider(
 
     let agent = client.agent( &config.model ).max_tokens( config.max_tokens );
 
-    let mut agent = add_mcp_clients_to_agent( input, parsed_input, context, agent, &ai_agent.servers ).await?;
+    let mut agent = add_mcp_clients_to_agent( graph, agent, &ai_agent.servers ).await?;
 
     if let Some( p ) = ai_agent.system_prompt.as_ref()
     {

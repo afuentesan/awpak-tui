@@ -1,21 +1,17 @@
-use std::collections::HashMap;
-
 use awpak_web_client::{request::{AwpakBody, AwpakFormField, AwpakHeader, AwpakQueryParam, AwpakRequest}, response::AwpakResponse, send_request};
-use serde_json::Value;
 use tracing::info;
 
-use crate::domain::{data::{data_selection::data_selection, data_utils::value_to_string}, error::Error, tracing::filter_layer::{WEB_CLIENT_REQUEST, WEB_CLIENT_REQUEST_BODY, WEB_CLIENT_REQUEST_HEADERS, WEB_CLIENT_REQUEST_QUERY_PARAMS, WEB_CLIENT_RESPONSE, WEB_CLIENT_RESPONSE_BODY, WEB_CLIENT_RESPONSE_HEADERS}, utils::string_utils::{option_string_to_str, prefix_str_suffix}, web_client::web_client::{WebClient, WebClientBody, WebClientNameValue, WebClientOutput}};
+use crate::domain::{data::{data_selection::data_selection, data_utils::value_to_string}, error::Error, graph::graph::Graph, tracing::filter_layer::{WEB_CLIENT_REQUEST, WEB_CLIENT_REQUEST_BODY, WEB_CLIENT_REQUEST_HEADERS, WEB_CLIENT_REQUEST_QUERY_PARAMS, WEB_CLIENT_RESPONSE, WEB_CLIENT_RESPONSE_BODY, WEB_CLIENT_RESPONSE_HEADERS}, utils::string_utils::{option_string_to_str, prefix_str_suffix}, web_client::web_client::{WebClient, WebClientBody, WebClientNameValue, WebClientOutput}};
 
 
 pub async fn execute_web_client(
-    id : Option<&String>,
-    input : Option<&String>, 
-    parsed_input : &Value, 
-    context : &HashMap<String, Value>,
+    graph : &Graph,
     client : &WebClient
 ) -> Result<String, Error>
 {
-    let request = request( id, input, parsed_input, context, client )?;
+    let id = graph.id.as_ref();
+
+    let request = request( graph, client )?;
 
     let response = send_request( request ).await.map_err( | e | Error::WebClient( e.to_string() ) )?;
 
@@ -115,18 +111,17 @@ fn item_output(
 }
 
 fn request( 
-    id : Option<&String>,
-    input : Option<&String>, 
-    parsed_input : &Value, 
-    context : &HashMap<String, Value>,
+    graph : &Graph,
     client : &WebClient
 ) -> Result<AwpakRequest, Error>
 {
-    let url = value_to_string( &data_selection( input, parsed_input, context, &client.url )? );
+    let id = graph.id.as_ref();
+
+    let url = value_to_string( &data_selection( graph, &client.url )? );
     let method = client.method.clone();
-    let headers = request_headers( input, parsed_input, context, &client.headers )?;
-    let query_params = request_query_params( input, parsed_input, context, &client.query_params )?;
-    let body = body( input, parsed_input, context, client.body.as_ref() )?;
+    let headers = request_headers( graph, &client.headers )?;
+    let query_params = request_query_params( graph, &client.query_params )?;
+    let body = body( graph, client.body.as_ref() )?;
 
     let request = AwpakRequest 
     { 
@@ -177,9 +172,7 @@ fn trace_request(
 }
 
 fn body(
-    input : Option<&String>, 
-    parsed_input : &Value, 
-    context : &HashMap<String, Value>,
+    graph : &Graph,
     body : Option<&WebClientBody>
 ) -> Result<Option<AwpakBody>, Error>
 {
@@ -194,7 +187,7 @@ fn body(
                     Ok(
                         Some(
                             AwpakBody::Json(
-                                data_selection( input, parsed_input, context, j )?
+                                data_selection( graph, j )?
                             )
                         )
                     )
@@ -208,8 +201,8 @@ fn body(
                         fields.push(
                             AwpakFormField
                             {
-                                name : value_to_string( &data_selection( input, parsed_input, context, &field.name )? ),
-                                value : value_to_string( &data_selection( input, parsed_input, context, &field.value )? )
+                                name : value_to_string( &data_selection( graph, &field.name )? ),
+                                value : value_to_string( &data_selection( graph, &field.value )? )
                             }
                         );
                     }
@@ -227,9 +220,7 @@ fn body(
 }
 
 fn request_headers(
-    input : Option<&String>, 
-    parsed_input : &Value, 
-    context : &HashMap<String, Value>,
+    graph : &Graph,
     headers : &Vec<WebClientNameValue>
 ) -> Result<Vec<AwpakHeader>, Error>
 {
@@ -240,8 +231,8 @@ fn request_headers(
         ret.push(
             AwpakHeader 
             { 
-                name : value_to_string( &data_selection( input, parsed_input, context, &h.name )? ), 
-                value : value_to_string( &data_selection( input, parsed_input, context, &h.value )? )
+                name : value_to_string( &data_selection( graph, &h.name )? ), 
+                value : value_to_string( &data_selection( graph, &h.value )? )
             }
         );
     }
@@ -250,9 +241,7 @@ fn request_headers(
 }
 
 fn request_query_params(
-    input : Option<&String>, 
-    parsed_input : &Value, 
-    context : &HashMap<String, Value>,
+    graph : &Graph,
     query_params : &Vec<WebClientNameValue>
 ) -> Result<Vec<AwpakQueryParam>, Error>
 {
@@ -263,8 +252,8 @@ fn request_query_params(
         ret.push(
             AwpakQueryParam 
             { 
-                name : value_to_string( &data_selection( input, parsed_input, context, &q.name )? ), 
-                value : value_to_string( &data_selection( input, parsed_input, context, &q.value )? )
+                name : value_to_string( &data_selection( graph, &q.name )? ), 
+                value : value_to_string( &data_selection( graph, &q.value )? )
             }
         );
     }

@@ -17,6 +17,8 @@ pub struct GraphNode
 #[derive(Serialize, Deserialize, Clone)]
 pub enum GraphNodeOutput
 {
+    Success { #[serde(default)] prefix : Option<String>, #[serde(default)] suffix : Option<String> },
     Out { #[serde(default)] prefix : Option<String>, #[serde(default)] suffix : Option<String> },
-    Err { #[serde(default)] prefix : Option<String>, #[serde(default)] suffix : Option<String> }
+    Err { #[serde(default)] prefix : Option<String>, #[serde(default)] suffix : Option<String> },
+    Object { #[serde(default)] prefix : Option<String>, #[serde(default)] suffix : Option<String> },
 }

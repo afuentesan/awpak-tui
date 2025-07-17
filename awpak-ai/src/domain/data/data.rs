@@ -22,6 +22,7 @@ pub enum DataFrom
     Static( Value ),
     Concat( Vec<DataFrom> ),
     Operation( Box<DataOperation> ),
+    AgentHistory( FromAgentHistory ),
     Null
 }
 
@@ -48,6 +49,32 @@ pub struct FromParsedInput
     pub path : Option<String>,
     #[serde(default)]
     pub required : bool
+}
+
+#[derive(Serialize, Deserialize, Clone)]
+pub struct FromAgentHistory
+{
+    pub id : String,
+    pub content : FromAgentHistoryContent
+}
+
+#[derive(Serialize, Deserialize, Clone)]
+pub enum FromAgentHistoryContent
+{
+    Full,
+    FullMessages,
+
+    First,
+    FirstMessage,
+
+    Last,
+    LastMessage,
+
+    Range { from : usize, to : usize },
+    RangeMessages { from : usize, to : usize },
+
+    Item( usize ),
+    ItemMessage( usize )
 }
 
 #[derive(Serialize, Deserialize, Clone)]

@@ -1,23 +1,20 @@
-use std::{collections::HashMap, process::Output, time::Duration};
+use std::{process::Output, time::Duration};
 
-use serde_json::Value;
 use tokio::time::sleep;
 use tracing::info;
 
-use crate::domain::{command::{command::{Command, CommandResult}, command_input::command_args, command_output::command_output}, error::Error, signals::cancel_graph::is_graph_cancelled, tracing::filter_layer::{COMMAND_AND_ARGS, COMMAND_RESULT}, utils::string_utils::{bytes_to_str, option_string_to_str}};
-
+use crate::domain::{command::{command::{Command, CommandResult}, command_input::command_args, command_output::command_output}, error::Error, graph::graph::Graph, signals::cancel_graph::is_graph_cancelled, tracing::filter_layer::{COMMAND_AND_ARGS, COMMAND_RESULT}, utils::string_utils::{bytes_to_str, option_string_to_str}};
 
 pub async fn execute_command(
-    id : Option<&String>,
-    input : Option<&String>, 
-    parsed_input : &Value, 
-    context : &HashMap<String, Value>,
+    graph : &Graph,
     command : &Command
 ) -> Result<String, Error>
 {
+    let id = graph.id.as_ref();
+
     if command.command.trim() == "" { return Err( Error::Command( "Empty command".to_string() ) ) }
 
-    let args = command_args( input, parsed_input, context, &command.args )?;
+    let args = command_args( graph, &command.args )?;
 
     trace_command_and_args( id, &command.command, &args );
 
@@ -46,6 +43,46 @@ pub async fn execute_command(
 
     command_output( &result, &command.output )
 }
+
+// pub async fn execute_command(
+//     id : Option<&String>,
+//     input : Option<&String>, 
+//     parsed_input : &Value, 
+//     context : &HashMap<String, Value>,
+//     command : &Command
+// ) -> Result<String, Error>
+// {
+//     if command.command.trim() == "" { return Err( Error::Command( "Empty command".to_string() ) ) }
+
+//     let args = command_args( input, parsed_input, context, &command.args )?;
+
+//     trace_command_and_args( id, &command.command, &args );
+
+//     let result = match command_result( id, command.command.trim(), args ).await
+//     {
+//         Ok( o ) =>
+//         {
+//             let result = CommandResult
+//             {
+//                 success : o.status.success(),
+//                 code : o.status.code(),
+                
+//                 out : bytes_to_str( &o.stdout ).ok(),
+//                 err : bytes_to_str( &o.stderr ).ok()
+//             };
+
+//             info!( target:COMMAND_RESULT, id=option_string_to_str( id ), text=result.to_string() );
+
+//             Ok( result )
+//         },
+//         Err( e ) =>
+//         {
+//             Err( Error::Command( e.to_string() ) )
+//         }
+//     }?;
+
+//     command_output( &result, &command.output )
+// }
 
 fn trace_command_and_args( graph_id : Option<&String>, command : &str, args : &Vec<String> )
 {

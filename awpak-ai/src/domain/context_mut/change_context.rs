@@ -12,9 +12,7 @@ pub async fn change_context(
     for c in context_mut
     {
         match compare_data( 
-            graph.input.as_ref(), 
-            &graph.parsed_input,
-            &graph.context,
+            &graph,
             &c.condition 
         )
         {
@@ -36,7 +34,7 @@ pub async fn change_context(
 
 pub async fn change_item_context( context_mut : &ContextMut, mut graph : Graph ) -> AwpakResult<Graph, Error>
 {
-    let data = match data_selection( graph.input.as_ref(), &graph.parsed_input, &graph.context, &context_mut.from )
+    let data = match data_selection( &graph, &context_mut.from )
     {
         Ok( d ) => d,
         Err( e ) => return AwpakResult::new_err( graph, e )

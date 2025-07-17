@@ -1,15 +1,11 @@
-use std::collections::HashMap;
-
 use regex::Regex;
 use serde_json::{Number, Value};
 
-use crate::domain::{data::{data::DataComparator, data_selection::data_selection, data_utils::{value_to_string, values_are_equals}}, error::Error};
+use crate::domain::{data::{data::DataComparator, data_selection::data_selection, data_utils::{value_to_string, values_are_equals}}, error::Error, graph::graph::Graph};
 
 
 pub fn compare_data(
-    input : Option<&String>, 
-    parsed_input : &Value,
-    context : &HashMap<String, Value>,
+    graph : &Graph,
     comparator : &DataComparator
 ) -> Result<bool, Error>
 {
@@ -17,22 +13,22 @@ pub fn compare_data(
     {
         DataComparator::Eq { from_1, from_2 } =>
         {
-            let a = data_selection( input, parsed_input, context, from_1 )?;
-            let b = data_selection( input, parsed_input, context, from_2 )?;
+            let a = data_selection( graph, from_1 )?;
+            let b = data_selection( graph, from_2 )?;
 
             Ok( values_are_equals( &a, &b ) )
         },
         DataComparator::NotEq { from_1, from_2 } =>
         {
-            let a = data_selection( input, parsed_input, context, from_1 )?;
-            let b = data_selection( input, parsed_input, context, from_2 )?;
+            let a = data_selection( graph, from_1 )?;
+            let b = data_selection( graph, from_2 )?;
 
             Ok( ! values_are_equals( &a, &b ) )
         },
         DataComparator::Gt { from_1, from_2 } =>
         {
-            let a = number_from_value( data_selection( input, parsed_input, context, from_1 )? )?;
-            let b = number_from_value( data_selection( input, parsed_input, context, from_2 )? )?;
+            let a = number_from_value( data_selection( graph, from_1 )? )?;
+            let b = number_from_value( data_selection( graph, from_2 )? )?;
 
             Ok( 
                 a.as_f64().ok_or( Error::ParseData( format!( "{} could not be converted to f64", a ) ) )? 
@@ -42,8 +38,8 @@ pub fn compare_data(
         },
         DataComparator::Lt { from_1, from_2 } =>
         {
-            let a = number_from_value( data_selection( input, parsed_input, context, from_1 )? )?;
-            let b = number_from_value( data_selection( input, parsed_input, context, from_2 )? )?;
+            let a = number_from_value( data_selection( graph, from_1 )? )?;
+            let b = number_from_value( data_selection( graph, from_2 )? )?;
 
             Ok( 
                 a.as_f64().ok_or( Error::ParseData( format!( "{} could not be converted to f64", a ) ) )? 
@@ -53,7 +49,7 @@ pub fn compare_data(
         },
         DataComparator::Regex { regex, from} =>
         {
-            let str = value_to_string( &data_selection( input, parsed_input, context, from )? );
+            let str = value_to_string( &data_selection( graph, from )? );
 
             match Regex::new( regex )
             {
@@ -67,23 +63,23 @@ pub fn compare_data(
         DataComparator::And { comp_1, comp_2 } =>
         {
             Ok(
-                compare_data( input, parsed_input, context, comp_1 )?
+                compare_data( graph, comp_1 )?
                 &&
-                compare_data( input, parsed_input, context, comp_2 )?
+                compare_data( graph, comp_2 )?
             )
         },
         DataComparator::Or { comp_1, comp_2 } =>
         {
             Ok(
-                compare_data( input, parsed_input, context, comp_1 )?
+                compare_data( graph, comp_1 )?
                 ||
-                compare_data( input, parsed_input, context, comp_2 )?
+                compare_data( graph, comp_2 )?
             )
         },
         DataComparator::Not( c ) =>
         {
             Ok(
-                ! compare_data( input, parsed_input, context, c )?
+                ! compare_data( graph, c )?
             )
         },
         DataComparator::True => Ok( true ),

@@ -1,21 +1,17 @@
-use std::collections::HashMap;
-
 use awpak_utils::result::result::AwpakResult;
-use serde_json::Value;
+use serde_json::json;
 
 use crate::{application::graph::run_graph::run_graph, domain::{data::data_selection::data_to_string, error::Error, graph::{graph::Graph, graph_node::{GraphNode, GraphNodeOutput}}, utils::string_utils::{prefix_str_suffix, str_from_option}}};
 
 
 pub async fn execute_graph(
-    input : Option<&String>, 
-    parsed_input : &Value, 
-    context : &HashMap<String, Value>,
+    parent_graph : &Graph,
     mut graph_node : GraphNode
 ) -> AwpakResult<( GraphNode, String ), Error>
 {
     let graph = graph_node.graph;
 
-    let input = data_to_string( input, parsed_input, context, graph_node.input.clone() );
+    let input = data_to_string( parent_graph, graph_node.input.clone() );
 
     match run_graph( input, graph ).await.collect()
     {
@@ -55,6 +51,14 @@ fn graph_output(
             a.push_str( 
                 match o
                 {
+                    GraphNodeOutput::Success { prefix, suffix } =>
+                    {
+                        prefix_str_suffix( 
+                            prefix.as_ref(), 
+                            suffix.as_ref(), 
+                            if final_output.is_ok() { "true" } else { "false" } 
+                        )
+                    },
                     GraphNodeOutput::Out { prefix, suffix } =>
                     {
                         prefix_str_suffix( prefix.as_ref(), suffix.as_ref(), str_from_option( final_output.as_ref().ok() ).as_str() )
@@ -62,6 +66,18 @@ fn graph_output(
                     GraphNodeOutput::Err { prefix, suffix } =>
                     {
                         prefix_str_suffix( prefix.as_ref(), suffix.as_ref(), str_from_option( final_output.as_ref().err() ).as_str() )
+                    },
+                    GraphNodeOutput::Object { prefix, suffix } =>
+                    {
+                        let json = json!(
+                            {
+                                "success" : if final_output.is_ok() { true } else { false },
+                                "out" : str_from_option( final_output.as_ref().ok() ).as_str(),
+                                "err" : str_from_option( final_output.as_ref().err() ).as_str()
+                            }
+                        ).to_string();
+
+                        prefix_str_suffix( prefix.as_ref(), suffix.as_ref(), &json ) 
                     }
                 }.as_str()
             );

@@ -4,7 +4,7 @@ import type { ContextMut } from "../model/context_mut";
 import { DataMerge, DataOperationAdd, DataOperationLen, DataOperationSubstract, DataToContext, DataToString, DataType, FromConcat, FromContext, FromInput, FromNull, FromOperation, FromParsedInput, FromStatic, type DataFrom } from "../model/data";
 import { DataComparatorAnd, DataComparatorEq, DataComparatorFalse, DataComparatorGt, DataComparatorLt, DataComparatorNot, DataComparatorNotEq, DataComparatorOr, DataComparatorRegex, DataComparatorTrue, type DataComparator } from "../model/data_comparator";
 import { Graph } from "../model/graph";
-import { GraphNode, GraphNodeOutputErr, GraphNodeOutputOut, Node, NodeDestination, NodeNextExitErr, NodeNextExitOk, NodeNextNode, type GraphNodeOutput, type NodeNext, type NodeType } from "../model/node";
+import { GraphNode, GraphNodeOutputErr, GraphNodeOutputObject, GraphNodeOutputOut, GraphNodeOutputSuccess, Node, NodeDestination, NodeNextExitErr, NodeNextExitOk, NodeNextNode, type GraphNodeOutput, type NodeNext, type NodeType } from "../model/node";
 import { NodeExecutorAgent, NodeExecutorCommand, NodeExecutorContextMut, NodeExecutorWebClient, type NodeExecutor } from "../model/node_executor";
 import { AwpakMethod, WebClient, WebClientBodyForm, WebClientBodyJson, WebClientNameValue, WebClientOutputBody, WebClientOutputHeader, WebClientOutputObject, WebClientOutputStatus, WebClientOutputVersion, type WebClientBody, type WebClientOutput } from "../model/web_client";
 import { is_empty } from "./data_functions";
@@ -78,13 +78,21 @@ function load_graph_node_outputs( outputs : Array<any> ) : Array<GraphNodeOutput
 
 function load_graph_node_output( output : any ) : GraphNodeOutput
 {
-    if( output?.[ "Out" ] )
+    if( ! is_empty( output?.[ "Out" ] ) )
     {
         return load_graph_node_output_prefix_suffix( output[ "Out" ], new GraphNodeOutputOut() );
     }
-    else if( output?.[ "Err" ] )
+    else if( ! is_empty( output?.[ "Err" ] ) )
     {
         return load_graph_node_output_prefix_suffix( output[ "Err" ], new GraphNodeOutputErr() );
+    }
+    else if( ! is_empty( output?.[ "Success" ] ) )
+    {
+        return load_graph_node_output_prefix_suffix( output[ "Success" ], new GraphNodeOutputSuccess() );
+    }
+    else if( ! is_empty( output?.[ "Object" ] ) )
+    {
+        return load_graph_node_output_prefix_suffix( output[ "Object" ], new GraphNodeOutputObject() );
     }
 
     throw new Error( "GraphNodeOutput not found. " + JSON.stringify( output ) );
@@ -92,8 +100,8 @@ function load_graph_node_output( output : any ) : GraphNodeOutput
 
 function load_graph_node_output_prefix_suffix( 
     output : any, 
-    src : GraphNodeOutputOut | GraphNodeOutputErr
-) : GraphNodeOutputOut | GraphNodeOutputErr
+    src : GraphNodeOutputOut | GraphNodeOutputErr | GraphNodeOutputSuccess | GraphNodeOutputObject
+) : GraphNodeOutputOut | GraphNodeOutputErr | GraphNodeOutputSuccess | GraphNodeOutputObject
 {
     src.prefix = output.prefix;
     src.suffix = output.suffix;

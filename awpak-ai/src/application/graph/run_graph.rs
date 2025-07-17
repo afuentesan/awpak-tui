@@ -129,10 +129,7 @@ async fn execute_node( mut runner : GraphRunner ) -> ( AwpakResult<GraphRunner, 
         NodeExecutor::WebClient( c ) =>
         {
             let result = execute_web_client( 
-                runner.graph.id.as_ref(), 
-                runner.graph.input.as_ref(), 
-                &runner.graph.parsed_input, 
-                &runner.graph.context, 
+                &runner.graph, 
                 c 
             ).await;
 
@@ -144,10 +141,7 @@ async fn execute_node( mut runner : GraphRunner ) -> ( AwpakResult<GraphRunner, 
         NodeExecutor::Command( c ) =>
         {
             let result = execute_command( 
-                runner.graph.id.as_ref(), 
-                runner.graph.input.as_ref(), 
-                &runner.graph.parsed_input, 
-                &runner.graph.context, 
+                &runner.graph,
                 c 
             ).await;
 
@@ -159,10 +153,7 @@ async fn execute_node( mut runner : GraphRunner ) -> ( AwpakResult<GraphRunner, 
         NodeExecutor::Agent( a ) =>
         {
             let result = execute_agent( 
-                runner.graph.id.as_ref(),
-                runner.graph.input.as_ref(), 
-                &runner.graph.parsed_input, 
-                &runner.graph.context, 
+                &runner.graph, 
                 a 
             ).await;
 
@@ -196,7 +187,7 @@ async fn execute_node( mut runner : GraphRunner ) -> ( AwpakResult<GraphRunner, 
 
             let g = g.unwrap();
 
-            match execute_graph( runner.graph.input.as_ref(), &runner.graph.parsed_input, &runner.graph.context, g ).await.collect()
+            match execute_graph( &runner.graph, g ).await.collect()
             {
                 ( ( g, o ), None ) =>
                 {
@@ -305,9 +296,7 @@ fn trace_node_destination( from : String, to : &str, graph_id : Option<&String> 
 fn check_node_destination_condition( graph : &Graph, comparator : &DataComparator ) -> Result<bool, Error>
 {
     compare_data(
-        graph.input.as_ref(), 
-        &graph.parsed_input, 
-        &graph.context, 
+        &graph, 
         comparator
     )
 }
@@ -321,9 +310,7 @@ async fn update_next( from : String, mut runner : GraphRunner, destination : Nod
             trace_node_destination( from, "ExitOK", runner.graph.id.as_ref() );
 
             let o = data_to_string( 
-                runner.graph.input.as_ref(), 
-                &runner.graph.parsed_input, 
-                &runner.graph.context, 
+                &runner.graph,  
                 o
             );
 
@@ -336,9 +323,7 @@ async fn update_next( from : String, mut runner : GraphRunner, destination : Nod
             trace_node_destination( from, "ExitErr", runner.graph.id.as_ref() );
 
             let o = data_to_string( 
-                runner.graph.input.as_ref(), 
-                &runner.graph.parsed_input, 
-                &runner.graph.context, 
+                &runner.graph, 
                 o
             );
 

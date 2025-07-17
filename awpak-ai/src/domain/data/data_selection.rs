@@ -3,12 +3,10 @@ use std::collections::HashMap;
 use awpak_utils::string_utils::str_len;
 use serde_json::Value;
 
-use crate::domain::{data::{data::{DataFrom, DataOperation, DataToString, FromContext, FromParsedInput}, data_insert::merge_values, data_operations::{add_values, substract_values}, data_utils::{value_from_map, value_is_null, value_to_string}}, error::Error, path::expand_path::expand_path};
+use crate::domain::{data::{data::{DataFrom, DataOperation, DataToString, FromContext, FromParsedInput}, data_history::data_from_agent_history, data_insert::merge_values, data_operations::{add_values, substract_values}, data_utils::{value_from_map, value_is_null, value_to_string}}, error::Error, graph::graph::Graph, path::expand_path::expand_path};
 
 pub fn data_to_string(
-    input : Option<&String>, 
-    parsed_input : &Value, 
-    context : &HashMap<String, Value>,
+    graph : &Graph,
     data : Vec<DataToString>
 ) -> String
 {
@@ -17,7 +15,7 @@ pub fn data_to_string(
         "".to_string(), 
         | mut a, d |
         {
-            a.push_str( &item_data_to_string( input, parsed_input, context, d ) );
+            a.push_str( &item_data_to_string( graph, d ) );
 
             a
         }
@@ -25,16 +23,14 @@ pub fn data_to_string(
 }
 
 fn item_data_to_string(
-    input : Option<&String>, 
-    parsed_input : &Value, 
-    context : &HashMap<String, Value>,
+    graph : &Graph,
     data : DataToString
 ) -> String
 {
     format!(
         "{}{}{}",
         data.prefix.unwrap_or( "".into() ),
-        match data_selection( input, parsed_input, context, &data.from )
+        match data_selection( graph, &data.from )
         {
             Ok( v ) => value_to_string( &v ),
             Err( e ) => e.to_string()
@@ -44,28 +40,29 @@ fn item_data_to_string(
 }
 
 pub fn data_selection( 
-    input : Option<&String>, 
-    parsed_input : &Value, 
-    context : &HashMap<String, Value>,
+    graph : &Graph,
     from : &DataFrom
 ) -> Result<Value, Error>
 {
+    let input = graph.input.as_ref();
+    let context = &graph.context;
+    let parsed_input = &graph.parsed_input;
+    
     match from
     {
         DataFrom::Context( f ) => data_from_context( context, f ),
         DataFrom::ParsedInput( f ) => data_from_parsed_input( context, parsed_input, f ),
         DataFrom::Input { required } => data_from_input( input, *required ),
         DataFrom::Static( v ) => Ok( v.clone() ),
-        DataFrom::Concat( f ) => concat_data_from( input, parsed_input, context, f ),
-        DataFrom::Operation( o ) => operation_data_from( input, parsed_input, context, o ),
+        DataFrom::Concat( f ) => concat_data_from( graph, f ),
+        DataFrom::Operation( o ) => operation_data_from( graph, o ),
+        DataFrom::AgentHistory( h ) => data_from_agent_history( graph, h ),
         DataFrom::Null => Ok( Value::Null )
     }
 }
 
 fn operation_data_from(
-    input : Option<&String>, 
-    parsed_input : &Value, 
-    context : &HashMap<String, Value>,
+    graph : &Graph,
     operation : &DataOperation
 ) -> Result<Value, Error>
 {
@@ -73,7 +70,7 @@ fn operation_data_from(
     {
         DataOperation::Len( f ) =>
         {
-            let value = data_selection( input, parsed_input, context, f )?;
+            let value = data_selection( graph, f )?;
 
             match value
             {
@@ -87,15 +84,15 @@ fn operation_data_from(
         },
         DataOperation::Substract { num_1, num_2 } =>
         {
-            let v1 = data_selection( input, parsed_input, context, num_1 )?;
-            let v2 = data_selection( input, parsed_input, context, num_2 )?;
+            let v1 = data_selection( graph, num_1 )?;
+            let v2 = data_selection( graph, num_2 )?;
 
             substract_values( v1, v2 )
         },
         DataOperation::Add { num_1, num_2 } =>
         {
-            let v1 = data_selection( input, parsed_input, context, num_1 )?;
-            let v2 = data_selection( input, parsed_input, context, num_2 )?;
+            let v1 = data_selection( graph, num_1 )?;
+            let v2 = data_selection( graph, num_2 )?;
 
             add_values( v1, v2 )
         }
@@ -103,9 +100,7 @@ fn operation_data_from(
 }
 
 fn concat_data_from(
-    input : Option<&String>, 
-    parsed_input : &Value, 
-    context : &HashMap<String, Value>,
+    graph : &Graph,
     from : &Vec<DataFrom>
 ) -> Result<Value, Error>
 {
@@ -113,7 +108,7 @@ fn concat_data_from(
         Value::Null, 
         | acc, from |
         {
-            let value = data_selection( input, parsed_input, context, from )?;
+            let value = data_selection( graph, from )?;
             
             Ok( merge_values( acc, value ) )
         }

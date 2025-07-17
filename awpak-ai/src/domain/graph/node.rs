@@ -94,6 +94,15 @@ impl NodeExecutor
         }
     }
 
+    pub fn agent( &self ) -> Option<&AIAgent>
+    {
+        match self
+        {
+            NodeExecutor::Agent( a ) => Some( a ),
+            _ => None    
+        }
+    }
+
     pub fn own_agent( self ) -> ( Self, Option<AIAgent> )
     {
         match self

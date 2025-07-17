@@ -4,3 +4,4 @@ pub mod data_utils;
 pub mod data_insert;
 pub mod data_compare;
 pub mod data_operations;
+pub mod data_history;
