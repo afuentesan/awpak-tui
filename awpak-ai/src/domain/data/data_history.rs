@@ -78,7 +78,7 @@ fn data_from_history(
     }
 }
 
-fn flat_history( history : &Vec<Message> ) -> Vec<Message>
+pub fn flat_history( history : &Vec<Message> ) -> Vec<Message>
 {
     history.iter()
     .flat_map(
