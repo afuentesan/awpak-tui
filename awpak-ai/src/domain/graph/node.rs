@@ -1,6 +1,6 @@
 use serde::{Deserialize, Serialize};
 
-use crate::domain::{agent::agent::AIAgent, command::command::Command, context_mut::context_mut::ContextMut, data::data::{DataComparator, DataToContext, DataToString}, graph::graph_node::{GraphNode, GraphNodeOutput}, web_client::web_client::WebClient};
+use crate::domain::{agent::agent::AIAgent, agent_history_mut::agent_history_mut::AgentHistoryMut, command::command::Command, context_mut::context_mut::ContextMut, data::data::{DataComparator, DataToContext, DataToString}, graph::graph_node::{GraphNode, GraphNodeOutput}, web_client::web_client::WebClient};
 
 
 #[derive(Serialize, Deserialize, Clone)]
@@ -61,7 +61,8 @@ pub enum NodeExecutor
     Command( Command ),
     Graph( GraphNode ),
     ContextMut( Vec<ContextMut> ),
-    WebClient( WebClient )
+    WebClient( WebClient ),
+    AgentHistoryMut( Vec<AgentHistoryMut> )
 }
 
 impl NodeExecutor

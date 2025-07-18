@@ -4,7 +4,7 @@ use serde_json::Value;
 use async_recursion::async_recursion;
 use tracing::info;
 
-use crate::{application::graph::execute_graph::execute_graph, domain::{agent::execute_agent::execute_agent, command::execute_command::execute_command, context_mut::change_context::change_context, data::{data::{DataComparator, DataType}, data_compare::compare_data, data_insert::str_to_context, data_selection::data_to_string, data_utils::str_to_value}, error::Error, graph::{graph::Graph, node::{NodeDestination, NodeExecutor, NodeNext}}, tracing::filter_layer::{GRAPH_INPUT, GRAPH_OUTPUT_ERR, GRAPH_OUTPUT_OK, NODE_DESTINATION, NODE_EXECUTION, NODE_OUTPUT}, utils::string_utils::option_string_to_str, web_client::execute_web_client::execute_web_client}};
+use crate::{application::graph::execute_graph::execute_graph, domain::{agent::execute_agent::execute_agent, agent_history_mut::change_agent_history::change_agent_history, command::execute_command::execute_command, context_mut::change_context::change_context, data::{data::{DataComparator, DataType}, data_compare::compare_data, data_insert::str_to_context, data_selection::data_to_string, data_utils::str_to_value}, error::Error, graph::{graph::Graph, node::{NodeDestination, NodeExecutor, NodeNext}}, tracing::filter_layer::{GRAPH_INPUT, GRAPH_OUTPUT_ERR, GRAPH_OUTPUT_OK, NODE_DESTINATION, NODE_EXECUTION, NODE_OUTPUT}, utils::string_utils::option_string_to_str, web_client::execute_web_client::execute_web_client}};
 
 
 struct GraphRunner
@@ -215,6 +215,37 @@ async fn execute_node( mut runner : GraphRunner ) -> ( AwpakResult<GraphRunner, 
 
             match change_context( 
                 cm, 
+                graph 
+            )
+            .await
+            .collect()
+            {
+                ( g, None ) =>
+                {
+                    runner.graph = g;
+
+                    (
+                        node,
+                        Ok( "".into() )
+                    )
+                },
+                ( g, Some( e ) ) =>
+                {
+                    runner.graph = g;
+
+                    (
+                        node,
+                        Err( e )
+                    )
+                }
+            }
+        },
+        NodeExecutor::AgentHistoryMut( ahm ) =>
+        {
+            let graph = runner.graph;
+
+            match change_agent_history( 
+                ahm, 
                 graph 
             )
             .await

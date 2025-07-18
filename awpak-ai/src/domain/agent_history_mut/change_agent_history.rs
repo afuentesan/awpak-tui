@@ -56,21 +56,6 @@ async fn change_item_history( history_mut : &AgentHistoryMut, mut graph : Graph 
         std::mem::swap( history, &mut history_flatten );
     }
 
-    // let mut history_flatten;
-
-    // history = if history_mut.to.is_single()
-    // {
-    //     history_flatten = flat_history( history );
-
-    //     std::mem::swap( history, &mut history_flatten );
-
-    //     &mut history_flatten
-    // }
-    // else
-    // {
-    //     history
-    // };
-
     match history_mut.to
     {
         DataToAgentHistory::Replace =>
