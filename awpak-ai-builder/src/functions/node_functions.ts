@@ -86,6 +86,30 @@ export function node_ids( graph : Graph ) : Array<string>
     return ids;
 }
 
+export function agent_ids( graph : Graph ) : Array<string>
+{
+    let ids : Array<string> = [];
+
+    if( node_is_agent( graph.first ) && graph.first?.id ) ids.push( graph.first.id );
+
+    graph.nodes.forEach(
+        ( n ) => {
+            if( node_is_agent( n ) && n.id ) ids.push( n.id );
+        }
+    );
+
+    return ids;
+}
+
+function node_is_agent( node : NodeType | undefined ) : boolean
+{
+    if( ! node || node._variant != NodeTypeVariant.Node ) return false;
+
+    if( node.executor?._variant == NodeExecutorVariant.Agent ) return true;
+
+    return false;
+}
+
 export function next_node_id( graph : Graph ) : string
 {
     let ids = node_ids( graph );

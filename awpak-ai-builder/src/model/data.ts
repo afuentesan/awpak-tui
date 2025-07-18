@@ -37,7 +37,14 @@ export class DataToString
     }
 }
 
-export type DataFrom = FromContext | FromParsedInput | FromInput | FromStatic | FromConcat | FromOperation | FromNull;
+export type DataFrom = FromContext | 
+                       FromParsedInput | 
+                       FromInput | 
+                       FromStatic | 
+                       FromConcat | 
+                       FromOperation | 
+                       FromNull | 
+                       FromAgentHistory;
 
 export enum DataFromVariant
 {
@@ -47,7 +54,8 @@ export enum DataFromVariant
     Input = "Input",
     Operation = "Operation",
     Concat = "Concat",
-    Null = "Null"
+    Null = "Null",
+    AgentHistory = "AgentHistory"
 }
 
 export class FromContext
@@ -102,6 +110,103 @@ export class FromConcat
 export class FromNull
 {
     readonly _variant = DataFromVariant.Null;
+}
+
+export class FromAgentHistory
+{
+    readonly _variant = DataFromVariant.AgentHistory;
+
+    id : string = "";
+    content : FromAgentHistoryContent = new FromAgentHistoryContentFull();
+}
+
+export type FromAgentHistoryContent = FromAgentHistoryContentFull |
+                                      FromAgentHistoryContentFullMessages |
+                                      FromAgentHistoryContentFirst |
+                                      FromAgentHistoryContentFirstMessage |
+                                      FromAgentHistoryContentLast |
+                                      FromAgentHistoryContentLastMessage |
+                                      FromAgentHistoryContentRange |
+                                      FromAgentHistoryContentRangeMessages |
+                                      FromAgentHistoryContentItem |
+                                      FromAgentHistoryContentItemMessage;
+
+export enum FromAgentHistoryContentVariant
+{
+    Full = "Full",
+    FullMessages = "FullMessages",
+
+    First = "First",
+    FirstMessage = "FirstMessage",
+
+    Last = "Last",
+    LastMessage = "LastMessage",
+
+    Range = "Range",
+    RangeMessages = "RangeMessages",
+
+    Item = "Item",
+    ItemMessage = "ItemMessage"
+}
+
+export class FromAgentHistoryContentFull
+{
+    readonly _variant = FromAgentHistoryContentVariant.Full;
+}
+
+export class FromAgentHistoryContentFullMessages
+{
+    readonly _variant = FromAgentHistoryContentVariant.FullMessages;
+}
+
+export class FromAgentHistoryContentFirst
+{
+    readonly _variant = FromAgentHistoryContentVariant.First;
+}
+
+export class FromAgentHistoryContentFirstMessage
+{
+    readonly _variant = FromAgentHistoryContentVariant.FirstMessage;
+}
+
+export class FromAgentHistoryContentLast
+{
+    readonly _variant = FromAgentHistoryContentVariant.Last;
+}
+
+export class FromAgentHistoryContentLastMessage
+{
+    readonly _variant = FromAgentHistoryContentVariant.LastMessage;
+}
+
+export class FromAgentHistoryContentRange
+{
+    readonly _variant = FromAgentHistoryContentVariant.Range;
+
+    from : number = 0;
+    to : number = 0;
+}
+
+export class FromAgentHistoryContentRangeMessages
+{
+    readonly _variant = FromAgentHistoryContentVariant.RangeMessages;
+
+    from : number = 0;
+    to : number = 0;
+}
+
+export class FromAgentHistoryContentItem
+{
+    readonly _variant = FromAgentHistoryContentVariant.Item;
+
+    value : number = 0;
+}
+
+export class FromAgentHistoryContentItemMessage
+{
+    readonly _variant = FromAgentHistoryContentVariant.ItemMessage;
+
+    value : number = 0;
 }
 
 export type DataOperation = DataOperationLen | DataOperationSubstract | DataOperationAdd;

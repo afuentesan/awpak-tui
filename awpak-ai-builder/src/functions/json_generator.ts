@@ -1,7 +1,7 @@
 import { AIAgentProviderConfigVariant, type AIAgentProvider, type NodeMCPServer } from "../model/agent";
 import { CommandOutputVariant, type CommandOutput } from "../model/command";
 import type { ContextMut } from "../model/context_mut";
-import { DataFromVariant, DataOperationVariant, type DataFrom, type DataOperation, type DataToContext, type DataToString } from "../model/data";
+import { DataFromVariant, DataOperationVariant, FromAgentHistoryContentVariant, type DataFrom, type DataOperation, type DataToContext, type DataToString, type FromAgentHistoryContent } from "../model/data";
 import { DataComparatorVariant, type DataComparator } from "../model/data_comparator";
 import type { Graph } from "../model/graph";
 import { GraphNode, GraphNodeOutputVariant, NodeDestination, NodeNextVariant, NodeTypeVariant, type GraphNodeOutput, type Node, type NodeNext, type NodeType } from "../model/node";
@@ -361,6 +361,51 @@ function json_data_from( data_from : DataFrom ) : any
     else if( data_from._variant == DataFromVariant.Null )
     {
         return "Null"
+    }
+    else if( data_from._variant == DataFromVariant.AgentHistory )
+    {
+        return {
+            [data_from._variant] : {
+                id : data_from.id,
+                content : json_from_agent_history_content( data_from.content )
+            }
+        }
+    }
+}
+
+function json_from_agent_history_content( content : FromAgentHistoryContent ) : any
+{
+    if( 
+        content._variant == FromAgentHistoryContentVariant.Full ||
+        content._variant == FromAgentHistoryContentVariant.FullMessages ||
+        content._variant == FromAgentHistoryContentVariant.First ||
+        content._variant == FromAgentHistoryContentVariant.FirstMessage ||
+        content._variant == FromAgentHistoryContentVariant.Last ||
+        content._variant == FromAgentHistoryContentVariant.LastMessage
+    )
+    {
+        return content._variant;
+    }
+    else if( 
+        content._variant == FromAgentHistoryContentVariant.Range ||
+        content._variant == FromAgentHistoryContentVariant.RangeMessages
+    )
+    {
+        return {
+            [content._variant] : {
+                from : content.from,
+                to : content.to
+            }
+        }
+    }
+    else if( 
+        content._variant == FromAgentHistoryContentVariant.Item ||
+        content._variant == FromAgentHistoryContentVariant.ItemMessage
+    )
+    {
+        return {
+            [content._variant] : content.value
+        }
     }
 }
 

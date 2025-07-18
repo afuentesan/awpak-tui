@@ -1,9 +1,9 @@
 
 <script lang="ts">
     import Self from './DataFrom.svelte'
-    import { select_options_from_enum } from "../../functions/form_utils";
-    import { DataFromVariant, FromContext, type DataFrom } from "../../model/data";
-    import { append_to_array, chage_data_from_variant, change_boolean, change_option_string, remove_from_array, graph, element_from_path, swap_array_items } from "../../store";
+    import { select_options_from_array, select_options_from_enum } from "../../functions/form_utils";
+    import { DataFromVariant, FromAgentHistoryContentVariant, FromContext, type DataFrom } from "../../model/data";
+    import { append_to_array, chage_data_from_variant, change_boolean, change_option_string, remove_from_array, graph, element_from_path, swap_array_items, chage_data_from_agent_history_content, change_option_number } from "../../store";
     import Box from "../form/Box.svelte";
     import Button from "../form/Button.svelte";
     import Checkbox from "../form/Checkbox.svelte";
@@ -11,6 +11,7 @@
     import Select from "../form/Select.svelte";
     import DataOperation from "./DataOperation.svelte";
     import TextArea from '../form/TextArea.svelte';
+    import { agent_ids } from '../../functions/node_functions';
 
     interface InputProps
     {
@@ -66,6 +67,43 @@
 
     {#if from._variant == DataFromVariant.Operation}
     <DataOperation operation={from.value} base_path={base_path+".value"} />
+    {/if}
+
+    {#if from._variant == DataFromVariant.AgentHistory}
+        <Box title="Agent history" base_path={base_path+".value"}>
+            <Select 
+                label="Agent id" 
+                value={from.id} 
+                options={select_options_from_array( agent_ids( $graph ), from.id, true )} 
+                change_value={change_option_string}
+                base_path={base_path+".id"} 
+            />
+
+            <Select
+                label="From" 
+                options={select_options_from_enum( FromAgentHistoryContentVariant, from.content._variant, false )} 
+                value={from.content._variant} 
+                change_value={chage_data_from_agent_history_content} 
+                base_path={base_path+".content"}
+            />
+
+            {#if 
+                from.content._variant == FromAgentHistoryContentVariant.Range ||
+                from.content._variant == FromAgentHistoryContentVariant.RangeMessages
+            }
+                <div class="flex flex-row">
+                    <Input label="Start" input_type="number" value={from.content.from} change_value={change_option_number} base_path={base_path+".content.from"} />
+                    <Input label="End" input_type="number" value={from.content.to} change_value={change_option_number} base_path={base_path+".content.to"} />
+                </div>
+            {/if}
+
+            {#if 
+                from.content._variant == FromAgentHistoryContentVariant.Item ||
+                from.content._variant == FromAgentHistoryContentVariant.ItemMessage
+            }
+                <Input label="Index" input_type="number" value={from.content.value} change_value={change_option_number} base_path={base_path+".content.value"} />
+            {/if}
+        </Box>
     {/if}
 
     {#if from._variant == DataFromVariant.Concat}

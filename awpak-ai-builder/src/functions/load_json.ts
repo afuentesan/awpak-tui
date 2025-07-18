@@ -1,13 +1,13 @@
 import { AIAgent, AIAgentProviderAnthropic, AIAgentProviderDeepSeek, AIAgentProviderGemini, AIAgentProviderOllama, AIAgentProviderOpenAI, NodeMCPServer, type AIAgentProvider } from "../model/agent";
 import { Command, CommandOutputCode, CommandOutputErr, CommandOutputObject, CommandOutputOut, CommandOutputSuccess, type CommandOutput } from "../model/command";
 import type { ContextMut } from "../model/context_mut";
-import { DataMerge, DataOperationAdd, DataOperationLen, DataOperationSubstract, DataToContext, DataToString, DataType, FromConcat, FromContext, FromInput, FromNull, FromOperation, FromParsedInput, FromStatic, type DataFrom } from "../model/data";
+import { DataMerge, DataOperationAdd, DataOperationLen, DataOperationSubstract, DataToContext, DataToString, DataType, FromAgentHistory, FromAgentHistoryContentFirst, FromAgentHistoryContentFirstMessage, FromAgentHistoryContentFull, FromAgentHistoryContentFullMessages, FromAgentHistoryContentItem, FromAgentHistoryContentItemMessage, FromAgentHistoryContentLast, FromAgentHistoryContentLastMessage, FromAgentHistoryContentRange, FromAgentHistoryContentRangeMessages, FromConcat, FromContext, FromInput, FromNull, FromOperation, FromParsedInput, FromStatic, type DataFrom, type FromAgentHistoryContent } from "../model/data";
 import { DataComparatorAnd, DataComparatorEq, DataComparatorFalse, DataComparatorGt, DataComparatorLt, DataComparatorNot, DataComparatorNotEq, DataComparatorOr, DataComparatorRegex, DataComparatorTrue, type DataComparator } from "../model/data_comparator";
 import { Graph } from "../model/graph";
 import { GraphNode, GraphNodeOutputErr, GraphNodeOutputObject, GraphNodeOutputOut, GraphNodeOutputSuccess, Node, NodeDestination, NodeNextExitErr, NodeNextExitOk, NodeNextNode, type GraphNodeOutput, type NodeNext, type NodeType } from "../model/node";
 import { NodeExecutorAgent, NodeExecutorCommand, NodeExecutorContextMut, NodeExecutorWebClient, type NodeExecutor } from "../model/node_executor";
 import { AwpakMethod, WebClient, WebClientBodyForm, WebClientBodyJson, WebClientNameValue, WebClientOutputBody, WebClientOutputHeader, WebClientOutputObject, WebClientOutputStatus, WebClientOutputVersion, type WebClientBody, type WebClientOutput } from "../model/web_client";
-import { is_empty } from "./data_functions";
+import { is_empty, not_empty_or_string_eq } from "./data_functions";
 import { is_type_in_enum } from "./form_utils";
 
 export function load_graph_from_json( json : any ) : Graph
@@ -610,12 +610,90 @@ function load_data_from( data : any ) : DataFrom
     {
         return load_from_concat( data[ "Concat" ] );
     }
+    else if( ! is_empty( data?.[ "AgentHistory" ] ) )
+    {
+        return load_from_agent_history( data[ "AgentHistory" ] );
+    }
     else if( typeof( data ) === "string" && data === "Null" )
     {
         return new FromNull();
     }
     
     throw new Error( "DataFrom not found. " + JSON.stringify( data ) );
+}
+
+function load_from_agent_history( data : any ) : FromAgentHistory
+{
+    let ret = new FromAgentHistory();
+
+    ret.id = data.id;
+    ret.content = load_from_agent_history_content( data.content );
+
+    return ret;
+}
+
+function load_from_agent_history_content( data : any ) : FromAgentHistoryContent
+{
+    if( not_empty_or_string_eq( data, "Full" ) )
+    {
+        return new FromAgentHistoryContentFull();
+    }
+    else if( not_empty_or_string_eq( data, "FullMessages" ) )
+    {
+        return new FromAgentHistoryContentFullMessages();
+    }
+    else if( not_empty_or_string_eq( data, "First" ) )
+    {
+        return new FromAgentHistoryContentFirst();
+    }
+    else if( not_empty_or_string_eq( data, "FirstMessage" ) )
+    {
+        return new FromAgentHistoryContentFirstMessage();
+    }
+    else if( not_empty_or_string_eq( data, "Last" ) )
+    {
+        return new FromAgentHistoryContentLast();
+    }
+    else if( not_empty_or_string_eq( data, "LastMessage" ) )
+    {
+        return new FromAgentHistoryContentLastMessage();
+    }
+    else if( ! is_empty( data?.[ "Range" ] ) )
+    {
+        let ret = new FromAgentHistoryContentRange();
+
+        ret.from = data?.[ "Range" ].from;
+        ret.to = data?.[ "Range" ].to;
+
+        return ret;
+    }
+    else if( ! is_empty( data?.[ "RangeMessages" ] ) )
+    {
+        let ret = new FromAgentHistoryContentRangeMessages();
+
+        ret.from = data?.[ "RangeMessages" ].from;
+        ret.to = data?.[ "RangeMessages" ].to;
+
+        return ret;
+    }
+    else if( ! is_empty( data?.[ "Item" ] ) )
+    {
+        let ret = new FromAgentHistoryContentItem();
+
+        ret.value = data[ "Item" ];
+
+        return ret;
+    }
+    else if( ! is_empty( data?.[ "ItemMessage" ] ) )
+    {
+        let ret = new FromAgentHistoryContentItemMessage();
+
+        ret.value = data[ "ItemMessage" ];
+
+        return ret;
+    }
+
+    return new FromAgentHistoryContentFull();
 }
 
 function load_from_context( data : any ) : FromContext

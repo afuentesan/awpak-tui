@@ -1,10 +1,10 @@
 import { atom } from 'nanostores';
 import { Graph } from './model/graph';
 import { GraphNodeOutputVariant, Node, NodeDestination, NodeNextExitErr, NodeNextExitOk, NodeNextNode, NodeNextVariant, NodeTypeVariant, type NodeType } from './model/node';
-import { DataFromVariant, DataMerge, DataToContext, DataToString, DataType, DataOperationVariant } from './model/data';
+import { DataFromVariant, DataMerge, DataToContext, DataToString, DataType, DataOperationVariant, FromAgentHistoryContentVariant } from './model/data';
 import { change_node_next_variant, change_node_variant, clean_graph_destinations_id, new_agent_provider_variant, new_command_node_output_variant, new_graph_node_output_variant, new_node_executor_variant, new_web_client_output_variant, next_node_id, node_by_id, update_graph_destinations_id } from './functions/node_functions';
 import { JSONPath } from 'jsonpath-plus';
-import { new_body_variant, new_data_comparator_variant, new_data_from_variant, new_data_operation_variant } from './functions/data_functions';
+import { new_body_variant, new_data_comparator_variant, new_data_from_agent_history_content, new_data_from_variant, new_data_operation_variant } from './functions/data_functions';
 import { is_type_in_enum } from './functions/form_utils';
 import type { DataComparatorVariant } from './model/data_comparator';
 import type { NodeExecutorVariant } from './model/node_executor';
@@ -308,6 +308,13 @@ export function change_option_number( base_path : string, next : number | undefi
 {
     if( typeof( next ) === "undefined" || next === null ) { next = undefined; }
 
+    if( next !== undefined )
+    {
+        next = Number( next );
+
+        if( typeof( next ) === "undefined" || next === null || isNaN( next ) ) return;
+    }
+
     let new_graph = Object.assign( {}, graph.get() );
 
     const result = JSONPath( { path : base_path, json : new_graph, resultType : "all" } );
@@ -410,6 +417,11 @@ export function chage_data_body_variant( base_path : string, next_variant : WebC
     }
 
     change_variant( base_path, next_variant, new_body_variant );
+}
+
+export function chage_data_from_agent_history_content( base_path : string, next_variant : FromAgentHistoryContentVariant )
+{
+    change_variant( base_path, next_variant, new_data_from_agent_history_content );
 }
 
 export function chage_data_from_variant( base_path : string, next_variant : DataFromVariant )

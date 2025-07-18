@@ -1,4 +1,4 @@
-use rig::{message::{AssistantContent, Message, ToolResultContent, UserContent}, OneOrMany};
+use rig::{message::{AssistantContent, Message, ToolResult, ToolResultContent, UserContent}, OneOrMany};
 use serde_json::Value;
 
 use crate::domain::{data::data::{FromAgentHistory, FromAgentHistoryContent}, error::Error, graph::graph::Graph};
@@ -23,6 +23,8 @@ fn data_from_history(
 {
     if history.len() == 0 { return Ok( Value::Null ) }
 
+    let history = flat_history( history );
+
     match from
     {
         FromAgentHistoryContent::Full => serde_json::to_value( history ).map_err( | e | Error::ParseData( e.to_string() ) ),
@@ -46,10 +48,14 @@ fn data_from_history(
 
         FromAgentHistoryContent::Item( i ) =>
         {
+            if *i >= history.len() { return Ok( Value::Null ) }
+
             serde_json::to_value( &history[ *i ] ).map_err( | e | Error::ParseData( e.to_string() ) )
         },
         FromAgentHistoryContent::ItemMessage( i ) =>
         {
+            if *i >= history.len() { return Ok( Value::Null ) }
+
             to_text_messages( vec![ &history[ *i ] ] )
         },
 
@@ -70,6 +76,74 @@ fn data_from_history(
             to_text_messages( history[ *from..to ].iter().collect() )
         }
     }
+}
+
+fn flat_history( history : &Vec<Message> ) -> Vec<Message>
+{
+    history.iter()
+    .flat_map(
+        | m | flat_message( m )
+    )
+    .collect()
+}
+
+fn flat_message( message : &Message ) -> Vec<Message>
+{
+    match message
+    {
+        Message::User { content } =>
+        {
+            flat_one_or_many_user_content( content )
+        },
+        Message::Assistant { id, content } =>
+        {
+            flat_one_or_many_assistant_content( id, content )
+        }
+    }
+}
+
+fn flat_one_or_many_user_content( content : &OneOrMany<UserContent> ) -> Vec<Message>
+{
+    content.iter().flat_map( 
+        | c | 
+        {
+            match c
+            {
+                UserContent::ToolResult( r ) => flat_tool_result( r ),
+                _ => vec![ Message::User { content : OneOrMany::one( c.clone() ) }  ]    
+            }
+            
+        }
+    ).collect()
+}
+
+fn flat_tool_result( result : &ToolResult ) -> Vec<Message>
+{
+    result.content.iter()
+    .map( 
+        | r |
+        {
+            Message::User 
+            { 
+                content : OneOrMany::one(
+                    UserContent::ToolResult(
+                        ToolResult 
+                        { 
+                            id : result.id.clone(), 
+                            call_id : result.call_id.clone(), 
+                            content : OneOrMany::one( r.clone() )
+                        }
+                    )
+                )
+            }
+        }
+    )
+    .collect()
+}
+
+fn flat_one_or_many_assistant_content( id : &Option<String>, content : &OneOrMany<AssistantContent> ) -> Vec<Message>
+{
+    content.iter().map( | c | Message::Assistant { id : id.clone(), content : OneOrMany::one( c.clone() ) } ).collect()
 }
 
 fn to_text_messages(

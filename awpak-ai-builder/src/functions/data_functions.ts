@@ -1,4 +1,4 @@
-import { DataFromVariant, DataOperationAdd, DataOperationLen, DataOperationSubstract, DataOperationVariant, FromConcat, FromContext, FromInput, FromNull, FromOperation, FromParsedInput, FromStatic, type DataFrom, type DataOperation } from "../model/data";
+import { DataFromVariant, DataOperationAdd, DataOperationLen, DataOperationSubstract, DataOperationVariant, FromAgentHistory, FromAgentHistoryContentFirst, FromAgentHistoryContentFirstMessage, FromAgentHistoryContentFull, FromAgentHistoryContentFullMessages, FromAgentHistoryContentItem, FromAgentHistoryContentItemMessage, FromAgentHistoryContentLast, FromAgentHistoryContentLastMessage, FromAgentHistoryContentRange, FromAgentHistoryContentRangeMessages, FromAgentHistoryContentVariant, FromConcat, FromContext, FromInput, FromNull, FromOperation, FromParsedInput, FromStatic, type DataFrom, type DataOperation, type FromAgentHistoryContent } from "../model/data";
 import { DataComparatorAnd, DataComparatorEq, DataComparatorFalse, DataComparatorGt, DataComparatorLt, DataComparatorNot, DataComparatorNotEq, DataComparatorOr, DataComparatorRegex, DataComparatorTrue, DataComparatorVariant, type DataComparator } from "../model/data_comparator";
 import { WebClientBodyForm, WebClientBodyJson, WebClientBodyVariant, type WebClientBody } from "../model/web_client";
 import { is_type_in_enum } from "./form_utils";
@@ -6,6 +6,17 @@ import { is_type_in_enum } from "./form_utils";
 export function is_empty( data : any ) : boolean
 {
     return typeof( data ) === "undefined" || data === null;
+}
+
+export function not_empty_or_string_eq( data : any, key : string ) : boolean
+{
+    if( typeof( data ) === "undefined" || data === null ) return false;
+
+    if( ! is_empty( data?.[ key ] ) ) return true;
+
+    if( typeof( data ) === "string" && data == key ) return true;
+
+    return false;
 }
 
 export function new_data_operation_variant( old : DataOperation, new_variant : string ) : DataOperation | undefined
@@ -104,6 +115,86 @@ export function new_body_variant( old : WebClientBody, new_variant : string ) : 
     }
 }
 
+export function new_data_from_agent_history_content( old : FromAgentHistoryContent, new_variant : string ) : FromAgentHistoryContent | undefined
+{
+    if( ! is_type_in_enum( FromAgentHistoryContentVariant, new_variant ) ) { return undefined; }
+
+    new_variant = new_variant as FromAgentHistoryContentVariant;
+
+    if( old._variant == new_variant ) { return old; }
+
+    if( new_variant == FromAgentHistoryContentVariant.Full )
+    {
+        return new FromAgentHistoryContentFull();
+    }
+    else if( new_variant == FromAgentHistoryContentVariant.FullMessages )
+    {
+        return new FromAgentHistoryContentFullMessages();
+    }
+    else if( new_variant == FromAgentHistoryContentVariant.First )
+    {
+        return new FromAgentHistoryContentFirst();
+    }
+    else if( new_variant == FromAgentHistoryContentVariant.FirstMessage )
+    {
+        return new FromAgentHistoryContentFirstMessage();
+    }
+    else if( new_variant == FromAgentHistoryContentVariant.Last )
+    {
+        return new FromAgentHistoryContentLast();
+    }
+    else if( new_variant == FromAgentHistoryContentVariant.LastMessage )
+    {
+        return new FromAgentHistoryContentLastMessage();
+    }
+    else if( new_variant == FromAgentHistoryContentVariant.Range )
+    {
+        let ret = new FromAgentHistoryContentRange();
+
+        if( old._variant == FromAgentHistoryContentVariant.RangeMessages )
+        {
+            ret.from = old.from;
+            ret.to = old.to;
+        }
+
+        return ret;
+    }
+    else if( new_variant == FromAgentHistoryContentVariant.RangeMessages )
+    {
+        let ret = new FromAgentHistoryContentRangeMessages();
+
+        if( old._variant == FromAgentHistoryContentVariant.Range )
+        {
+            ret.from = old.from;
+            ret.to = old.to;
+        }
+
+        return ret;
+    }
+    else if( new_variant == FromAgentHistoryContentVariant.Item )
+    {
+        let ret = new FromAgentHistoryContentItem();
+
+        if( old._variant == FromAgentHistoryContentVariant.ItemMessage )
+        {
+            ret.value = old.value;
+        }
+
+        return ret;
+    }
+    else if( new_variant == FromAgentHistoryContentVariant.ItemMessage )
+    {
+        let ret = new FromAgentHistoryContentItemMessage();
+
+        if( old._variant == FromAgentHistoryContentVariant.Item )
+        {
+            ret.value = old.value;
+        }
+
+        return ret;
+    }
+}
+
 export function new_data_from_variant( old : DataFrom, new_variant : string ) : DataFrom | undefined
 {
     if( ! is_type_in_enum( DataFromVariant, new_variant ) ) { return undefined; }
@@ -139,6 +230,10 @@ export function new_data_from_variant( old : DataFrom, new_variant : string ) : 
     else if( new_variant == DataFromVariant.Null )
     {
         return new FromNull();
+    }
+    else if( new_variant == DataFromVariant.AgentHistory )
+    {
+        return new FromAgentHistory();
     }
     else
     {
