@@ -3,7 +3,7 @@
     import Self from './DataFrom.svelte'
     import { select_options_from_array, select_options_from_enum } from "../../functions/form_utils";
     import { DataFromVariant, FromAgentHistoryContentVariant, FromContext, type DataFrom } from "../../model/data";
-    import { append_to_array, chage_data_from_variant, change_boolean, change_option_string, remove_from_array, graph, element_from_path, swap_array_items, chage_data_from_agent_history_content, change_option_number } from "../../store";
+    import { append_to_array, chage_data_from_variant, change_boolean, change_option_string, remove_from_array, graph, element_from_path, swap_array_items, change_data_from_agent_history_content, change_option_number } from "../../store";
     import Box from "../form/Box.svelte";
     import Button from "../form/Button.svelte";
     import Checkbox from "../form/Checkbox.svelte";
@@ -83,7 +83,7 @@
                 label="From" 
                 options={select_options_from_enum( FromAgentHistoryContentVariant, from.content._variant, false )} 
                 value={from.content._variant} 
-                change_value={chage_data_from_agent_history_content} 
+                change_value={change_data_from_agent_history_content} 
                 base_path={base_path+".content"}
             />
 

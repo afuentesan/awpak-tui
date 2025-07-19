@@ -2,7 +2,7 @@ import { AIAgentProviderAnthropic, AIAgentProviderConfigVariant, AIAgentProvider
 import { CommandOutputCode, CommandOutputErr, CommandOutputObject, CommandOutputOut, CommandOutputSuccess, CommandOutputVariant, type CommandOutput } from "../model/command";
 import type { Graph } from "../model/graph";
 import { GraphNode, GraphNodeOutputErr, GraphNodeOutputObject, GraphNodeOutputOut, GraphNodeOutputSuccess, GraphNodeOutputVariant, Node, NodeDestination, NodeNextExitErr, NodeNextExitOk, NodeNextNode, NodeNextVariant, NodeTypeVariant, type GraphNodeOutput, type NodeNext, type NodeType } from "../model/node";
-import { NodeExecutorAgent, NodeExecutorCommand, NodeExecutorContextMut, NodeExecutorVariant, NodeExecutorWebClient, type NodeExecutor } from "../model/node_executor";
+import { NodeExecutorAgent, NodeExecutorAgentHistoryMut, NodeExecutorCommand, NodeExecutorContextMut, NodeExecutorVariant, NodeExecutorWebClient, type NodeExecutor } from "../model/node_executor";
 import { WebClientOutputBody, WebClientOutputHeader, WebClientOutputObject, WebClientOutputStatus, WebClientOutputVariant, WebClientOutputVersion, type WebClientOutput } from "../model/web_client";
 import { is_type_in_enum } from "./form_utils";
 
@@ -240,6 +240,10 @@ export function new_node_executor_variant( old : NodeExecutor, new_variant : str
     else if( new_variant == NodeExecutorVariant.Agent )
     {
         return new NodeExecutorAgent();
+    }
+    else if( new_variant == NodeExecutorVariant.AgentHistoryMut )
+    {
+        return new NodeExecutorAgentHistoryMut();
     }
     else if( new_variant == NodeExecutorVariant.WebClient )
     {

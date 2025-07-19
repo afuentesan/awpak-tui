@@ -1,11 +1,12 @@
 import { AIAgent, AIAgentProviderAnthropic, AIAgentProviderDeepSeek, AIAgentProviderGemini, AIAgentProviderOllama, AIAgentProviderOpenAI, NodeMCPServer, type AIAgentProvider } from "../model/agent";
+import { DataToAgentHistoryReplace, DataToAgentHistoryReplaceFirst, DataToAgentHistoryReplaceItem, DataToAgentHistoryReplaceLast, DataToAgentHistoryStringToFirst, DataToAgentHistoryStringToItem, DataToAgentHistoryStringToLast, type AgentHistoryMut, type DataToAgentHistory } from "../model/agent_history_mut";
 import { Command, CommandOutputCode, CommandOutputErr, CommandOutputObject, CommandOutputOut, CommandOutputSuccess, type CommandOutput } from "../model/command";
 import type { ContextMut } from "../model/context_mut";
 import { DataMerge, DataOperationAdd, DataOperationLen, DataOperationSubstract, DataToContext, DataToString, DataType, FromAgentHistory, FromAgentHistoryContentFirst, FromAgentHistoryContentFirstMessage, FromAgentHistoryContentFull, FromAgentHistoryContentFullMessages, FromAgentHistoryContentItem, FromAgentHistoryContentItemMessage, FromAgentHistoryContentLast, FromAgentHistoryContentLastMessage, FromAgentHistoryContentRange, FromAgentHistoryContentRangeMessages, FromConcat, FromContext, FromInput, FromNull, FromOperation, FromParsedInput, FromStatic, type DataFrom, type FromAgentHistoryContent } from "../model/data";
 import { DataComparatorAnd, DataComparatorEq, DataComparatorFalse, DataComparatorGt, DataComparatorLt, DataComparatorNot, DataComparatorNotEq, DataComparatorOr, DataComparatorRegex, DataComparatorTrue, type DataComparator } from "../model/data_comparator";
 import { Graph } from "../model/graph";
 import { GraphNode, GraphNodeOutputErr, GraphNodeOutputObject, GraphNodeOutputOut, GraphNodeOutputSuccess, Node, NodeDestination, NodeNextExitErr, NodeNextExitOk, NodeNextNode, type GraphNodeOutput, type NodeNext, type NodeType } from "../model/node";
-import { NodeExecutorAgent, NodeExecutorCommand, NodeExecutorContextMut, NodeExecutorWebClient, type NodeExecutor } from "../model/node_executor";
+import { NodeExecutorAgent, NodeExecutorAgentHistoryMut, NodeExecutorCommand, NodeExecutorContextMut, NodeExecutorWebClient, type NodeExecutor } from "../model/node_executor";
 import { AwpakMethod, WebClient, WebClientBodyForm, WebClientBodyJson, WebClientNameValue, WebClientOutputBody, WebClientOutputHeader, WebClientOutputObject, WebClientOutputStatus, WebClientOutputVersion, type WebClientBody, type WebClientOutput } from "../model/web_client";
 import { is_empty, not_empty_or_string_eq } from "./data_functions";
 import { is_type_in_enum } from "./form_utils";
@@ -118,6 +119,10 @@ function load_node_executor( executor : any ) : NodeExecutor
     else if( executor?.[ "ContextMut" ] )
     {
         return load_node_executor_context_mut( executor[ "ContextMut" ] );
+    }
+    else if( executor?.[ "AgentHistoryMut" ] )
+    {
+        return load_node_executor_agent_history_mut( executor[ "AgentHistoryMut" ] );
     }
     else if( executor?.[ "Agent" ] )
     {
@@ -399,6 +404,67 @@ function load_item_node_executor_context_mut( item : any ) : ContextMut
         to : item.to ? load_data_to_context( item.to ) : undefined,
         condition : load_data_comparator( item.condition )
     }
+}
+
+function load_node_executor_agent_history_mut( context_mut : Array<any> ) : NodeExecutorAgentHistoryMut
+{
+    let ret = new NodeExecutorAgentHistoryMut();
+
+    ret.value = context_mut.map( ( c ) => load_item_node_executor_agent_history_mut( c ) );
+
+    return ret;
+}
+
+function load_item_node_executor_agent_history_mut( item : any ) : AgentHistoryMut
+{
+    return {
+        id : item.id,
+        from : load_data_from( item.from ),
+        to : item.to ? load_data_to_agent_history( item.to ) : new DataToAgentHistoryReplace(),
+        condition : load_data_comparator( item.condition )
+    }
+}
+
+function load_data_to_agent_history( data : any ) : DataToAgentHistory
+{
+    if( not_empty_or_string_eq( data, "Replace" ) )
+    {
+        return new DataToAgentHistoryReplace();
+    }
+    else if( not_empty_or_string_eq( data, "ReplaceFirst" ) )
+    {
+        return new DataToAgentHistoryReplaceFirst();
+    }
+    else if( not_empty_or_string_eq( data, "ReplaceLast" ) )
+    {
+        return new DataToAgentHistoryReplaceLast();
+    }
+    else if( ! is_empty( data?.[ "ReplaceItem" ] ) )
+    {
+        let ret = new DataToAgentHistoryReplaceItem();
+
+        ret.value = data[ "ReplaceItem" ];
+
+        return ret;
+    }
+    else if( not_empty_or_string_eq( data, "StringToLast" ) )
+    {
+        return new DataToAgentHistoryStringToLast();
+    }
+    else if( not_empty_or_string_eq( data, "StringToFirst" ) )
+    {
+        return new DataToAgentHistoryStringToFirst();
+    }
+    else if( ! is_empty( data?.[ "StringToItem" ] ) )
+    {
+        let ret = new DataToAgentHistoryStringToItem();
+
+        ret.value = data[ "StringToItem" ];
+
+        return ret;
+    }
+
+    return new DataToAgentHistoryReplace();
 }
 
 function load_data_to_context( data : any ) : DataToContext

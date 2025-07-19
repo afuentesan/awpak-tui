@@ -84,7 +84,7 @@ async fn change_item_history( history_mut : &AgentHistoryMut, mut graph : Graph 
                 Err( e ) => AwpakResult::new_err( graph, e )
             }
         },
-        DataToAgentHistory::RelaceLast =>
+        DataToAgentHistory::ReplaceLast =>
         {
             match value_to_message( data )
             {

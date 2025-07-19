@@ -1,17 +1,22 @@
 import { AIAgent } from "./agent";
+import type { AgentHistoryMut } from "./agent_history_mut";
 import { Command } from "./command";
 import type { ContextMut } from "./context_mut";
-import { DataToContext, type DataFrom } from "./data";
 import { WebClient } from "./web_client";
 
-export type NodeExecutor = NodeExecutorCommand | NodeExecutorContextMut | NodeExecutorAgent | NodeExecutorWebClient;
+export type NodeExecutor = NodeExecutorCommand | 
+                           NodeExecutorContextMut | 
+                           NodeExecutorAgent | 
+                           NodeExecutorWebClient |
+                           NodeExecutorAgentHistoryMut;
 
 export enum NodeExecutorVariant
 {
     Command = "Command",
     ContextMut = "ContextMut",
     Agent = "Agent",
-    WebClient = "WebClient"
+    WebClient = "WebClient",
+    AgentHistoryMut = "AgentHistoryMut"
 }
 
 export class NodeExecutorAgent
@@ -55,4 +60,11 @@ export class NodeExecutorWebClient
     {
         this.value = new WebClient();
     }
+}
+
+export class NodeExecutorAgentHistoryMut
+{
+    readonly _variant = NodeExecutorVariant.AgentHistoryMut;
+
+    value : Array<AgentHistoryMut> = []
 }

@@ -2,14 +2,14 @@
 <script lang="ts">
     import { FromContext, type DataFrom as ExecutorDataFrom } from "../../model/data";
     import { NodeExecutorVariant, type NodeExecutor } from "../../model/node_executor";
-    import { append_to_array, change_boolean, change_node_executor_variant, change_option_string, change_request_method, remove_from_array, swap_array_items } from "../../store";
+    import { append_to_array, change_boolean, change_node_executor_variant, change_option_string, change_request_method, graph, remove_from_array, swap_array_items } from "../../store";
     import DataFrom from "../data/DataFrom.svelte";
     import DataToContext from "../data/DataToContext.svelte";
     import { DataToContext as ContextMutDataToContext } from "../../model/data";
     import Box from "../form/Box.svelte";
     import Button from "../form/Button.svelte";
     import Input from "../form/Input.svelte";
-    import { select_options_from_enum } from "../../functions/form_utils";
+    import { select_options_from_array, select_options_from_enum } from "../../functions/form_utils";
     import Select from "../form/Select.svelte";
     import CommandOutput from "./CommandOutput.svelte";
     import { CommandOutputOut } from "../../model/command";
@@ -26,6 +26,9 @@
     import WebClientOutput from "./WebClientOutput.svelte";
     import DataComparator from "../data/DataComparator.svelte";
     import { DataComparatorTrue } from "../../model/data_comparator";
+    import { agent_ids } from "../../functions/node_functions";
+    import { DataToAgentHistoryReplace } from "../../model/agent_history_mut";
+    import DataToAgentHistory from "../data/DataToAgentHistory.svelte";
 
 
     interface InputProps
@@ -343,6 +346,71 @@
                         {
                             from : new FromContext(),
                             to : new ContextMutDataToContext(),
+                            condition : new DataComparatorTrue()
+                        }
+                    )
+                }
+            />
+        </div>
+    {:else if node_executor._variant == NodeExecutorVariant.AgentHistoryMut}
+        {#each node_executor.value as _, i}
+            <Box title={"AgentHistoryMut "+i} base_path={base_path+".value["+i+"]"}>
+                <Select 
+                    label="Agent id" 
+                    value={node_executor.value[i].id} 
+                    options={select_options_from_array( agent_ids( $graph ), node_executor.value[i].id, true )} 
+                    change_value={change_option_string}
+                    base_path={base_path+".value["+i+"].id"} 
+                />
+
+                <DataFrom 
+                    base_path={base_path+".value["+i+"].from"} 
+                    from={node_executor.value[i].from as ExecutorDataFrom } 
+                    label={"From "+i} 
+                />
+                <DataToAgentHistory
+                    base_path={base_path+".value["+i+"].to"}
+                    data_to_agent={node_executor.value[i].to}
+                />
+                <DataComparator
+                    base_path={base_path+".value["+i+"].condition"}
+                    comparator={node_executor.value[i].condition}
+                />
+                <div class="text-center">
+                    <Button
+                        text="Remove ContextMut"
+                        click={
+                            () => remove_from_array( base_path+".value", i )
+                        }
+                        color="red"
+                    />
+                    <Button 
+                        text="Up" 
+                        click={
+                            () => swap_array_items( base_path+".value", i, i - 1 )
+                        } 
+                        color="blue" 
+                    />
+                    <Button 
+                        text="Down" 
+                        click={
+                            () => swap_array_items( base_path+".value", i, i + 1 )
+                        } 
+                        color="blue" 
+                    />
+                </div>
+            </Box>
+        {/each}
+        <div class="text-center">
+            <Button
+                text="Add AgentHistoryMut"
+                click={
+                    () => append_to_array( 
+                        base_path+".value", 
+                        {
+                            id : "",
+                            from : new FromContext(),
+                            to : new DataToAgentHistoryReplace(),
                             condition : new DataComparatorTrue()
                         }
                     )

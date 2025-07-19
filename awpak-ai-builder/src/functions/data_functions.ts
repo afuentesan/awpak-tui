@@ -1,3 +1,4 @@
+import { DataToAgentHistoryReplace, DataToAgentHistoryReplaceFirst, DataToAgentHistoryReplaceItem, DataToAgentHistoryReplaceLast, DataToAgentHistoryStringToFirst, DataToAgentHistoryStringToItem, DataToAgentHistoryStringToLast, DataToAgentHistoryVariant, type DataToAgentHistory } from "../model/agent_history_mut";
 import { DataFromVariant, DataOperationAdd, DataOperationLen, DataOperationSubstract, DataOperationVariant, FromAgentHistory, FromAgentHistoryContentFirst, FromAgentHistoryContentFirstMessage, FromAgentHistoryContentFull, FromAgentHistoryContentFullMessages, FromAgentHistoryContentItem, FromAgentHistoryContentItemMessage, FromAgentHistoryContentLast, FromAgentHistoryContentLastMessage, FromAgentHistoryContentRange, FromAgentHistoryContentRangeMessages, FromAgentHistoryContentVariant, FromConcat, FromContext, FromInput, FromNull, FromOperation, FromParsedInput, FromStatic, type DataFrom, type DataOperation, type FromAgentHistoryContent } from "../model/data";
 import { DataComparatorAnd, DataComparatorEq, DataComparatorFalse, DataComparatorGt, DataComparatorLt, DataComparatorNot, DataComparatorNotEq, DataComparatorOr, DataComparatorRegex, DataComparatorTrue, DataComparatorVariant, type DataComparator } from "../model/data_comparator";
 import { WebClientBodyForm, WebClientBodyJson, WebClientBodyVariant, type WebClientBody } from "../model/web_client";
@@ -112,6 +113,58 @@ export function new_body_variant( old : WebClientBody, new_variant : string ) : 
     else if( new_variant == WebClientBodyVariant.Form )
     {
         return new WebClientBodyForm();
+    }
+}
+
+export function new_data_to_agent_history( old : DataToAgentHistory, new_variant : string ) : DataToAgentHistory | undefined
+{
+    if( ! is_type_in_enum( DataToAgentHistoryVariant, new_variant ) ) { return undefined; }
+
+    new_variant = new_variant as DataToAgentHistoryVariant;
+
+    if( old._variant == new_variant ) { return old; }
+
+    if( new_variant == DataToAgentHistoryVariant.Replace )
+    {
+        return new DataToAgentHistoryReplace();
+    }
+    else if( new_variant == DataToAgentHistoryVariant.ReplaceFirst )
+    {
+        return new DataToAgentHistoryReplaceFirst();
+    }
+    else if( new_variant == DataToAgentHistoryVariant.ReplaceLast )
+    {
+        return new DataToAgentHistoryReplaceLast();
+    }
+    else if( new_variant == DataToAgentHistoryVariant.ReplaceItem )
+    {
+        let ret = new DataToAgentHistoryReplaceItem();
+
+        if( old._variant == DataToAgentHistoryVariant.StringToItem )
+        {
+            ret.value = old.value;
+        }
+
+        return ret;
+    }
+    else if( new_variant == DataToAgentHistoryVariant.StringToLast )
+    {
+        return new DataToAgentHistoryStringToLast();
+    }
+    else if( new_variant == DataToAgentHistoryVariant.StringToFirst )
+    {
+        return new DataToAgentHistoryStringToFirst();
+    }
+    else if( new_variant == DataToAgentHistoryVariant.StringToItem )
+    {
+        let ret = new DataToAgentHistoryStringToItem();
+
+        if( old._variant == DataToAgentHistoryVariant.ReplaceItem )
+        {
+            ret.value = old.value;
+        }
+
+        return ret;
     }
 }
 

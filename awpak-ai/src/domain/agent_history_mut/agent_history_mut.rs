@@ -19,7 +19,7 @@ pub enum DataToAgentHistory
 {
     Replace,
     ReplaceFirst,
-    RelaceLast,
+    ReplaceLast,
     ReplaceItem( usize ),
     StringToLast,
     StringToFirst,

@@ -1,11 +1,12 @@
 import { AIAgentProviderConfigVariant, type AIAgentProvider, type NodeMCPServer } from "../model/agent";
+import { DataToAgentHistoryVariant, type AgentHistoryMut, type DataToAgentHistory } from "../model/agent_history_mut";
 import { CommandOutputVariant, type CommandOutput } from "../model/command";
 import type { ContextMut } from "../model/context_mut";
 import { DataFromVariant, DataOperationVariant, FromAgentHistoryContentVariant, type DataFrom, type DataOperation, type DataToContext, type DataToString, type FromAgentHistoryContent } from "../model/data";
 import { DataComparatorVariant, type DataComparator } from "../model/data_comparator";
 import type { Graph } from "../model/graph";
 import { GraphNode, GraphNodeOutputVariant, NodeDestination, NodeNextVariant, NodeTypeVariant, type GraphNodeOutput, type Node, type NodeNext, type NodeType } from "../model/node";
-import { NodeExecutorAgent, NodeExecutorCommand, NodeExecutorContextMut, NodeExecutorVariant, NodeExecutorWebClient, type NodeExecutor } from "../model/node_executor";
+import { NodeExecutorAgent, NodeExecutorAgentHistoryMut, NodeExecutorCommand, NodeExecutorContextMut, NodeExecutorVariant, NodeExecutorWebClient, type NodeExecutor } from "../model/node_executor";
 import { WebClientBodyVariant, WebClientOutputVariant, type WebClientBody, type WebClientNameValue, type WebClientOutput } from "../model/web_client";
 import { is_empty } from "./data_functions";
 
@@ -96,6 +97,10 @@ function json_executor_from_node_executor( executor : NodeExecutor | undefined )
     else if( executor._variant == NodeExecutorVariant.ContextMut )
     {
         return json_executor_context_mut( executor );
+    }
+    else if( executor._variant == NodeExecutorVariant.AgentHistoryMut )
+    {
+        return json_executor_agent_history_mut( executor );
     }
     else if( executor._variant == NodeExecutorVariant.Agent )
     {
@@ -312,6 +317,69 @@ function json_context_mut(
     }
 }
 
+function json_executor_agent_history_mut( executor : NodeExecutorAgentHistoryMut ) : any
+{
+    return {
+        "AgentHistoryMut" : json_vec_agent_history_mut( executor.value )
+    };
+}
+
+function json_vec_agent_history_mut( 
+    history_muts : Array<AgentHistoryMut>
+)
+{
+    return history_muts.map( ( c : AgentHistoryMut ) => json_agent_history_mut( c ) )
+}
+
+function json_agent_history_mut(
+    history_mut : AgentHistoryMut
+)
+{
+    return {
+        id : history_mut.id,
+        from : history_mut.from ? json_data_from( history_mut.from ) : undefined,
+        to : json_data_to_agent_history( history_mut.to ),
+        condition : json_data_comparator( history_mut.condition )
+    }
+}
+
+function json_data_to_agent_history(
+    data : DataToAgentHistory
+)
+{
+    if( data._variant == DataToAgentHistoryVariant.Replace )
+    {
+        return "Replace";
+    }
+    else if( data._variant == DataToAgentHistoryVariant.ReplaceFirst )
+    {
+        return "ReplaceFirst";
+    }
+    else if( data._variant == DataToAgentHistoryVariant.ReplaceLast )
+    {
+        return "ReplaceLast";
+    }
+    else if( data._variant == DataToAgentHistoryVariant.ReplaceItem )
+    {
+        return {
+            "ReplaceItem" : data.value
+        };
+    }
+    else if( data._variant == DataToAgentHistoryVariant.StringToLast )
+    {
+        return "StringToLast";
+    }
+    else if( data._variant == DataToAgentHistoryVariant.StringToFirst )
+    {
+        return "StringToFirst";
+    }
+    else if( data._variant == DataToAgentHistoryVariant.StringToItem )
+    {
+        return {
+            "StringToItem" : data.value
+        };
+    }
+}
 
 function json_vec_data_from( data_from : Array<DataFrom> ) : any
 {
