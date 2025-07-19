@@ -1,46 +1,126 @@
-import { AIAgentProviderAnthropic, AIAgentProviderConfigVariant, AIAgentProviderDeepSeek, AIAgentProviderGemini, AIAgentProviderOllama, AIAgentProviderOpenAI, type AIAgentProvider } from "../model/agent";
-import { CommandOutputCode, CommandOutputErr, CommandOutputObject, CommandOutputOut, CommandOutputSuccess, CommandOutputVariant, type CommandOutput } from "../model/command";
+import { AIAgent, AIAgentProviderAnthropic, AIAgentProviderConfigVariant, AIAgentProviderDeepSeek, AIAgentProviderGemini, AIAgentProviderOllama, AIAgentProviderOpenAI, type AIAgentProvider } from "../model/agent";
+import type { AgentHistoryMut } from "../model/agent_history_mut";
+import { Command, CommandOutputCode, CommandOutputErr, CommandOutputObject, CommandOutputOut, CommandOutputSuccess, CommandOutputVariant, type CommandOutput } from "../model/command";
+import type { ContextMut } from "../model/context_mut";
+import { DataFromVariant, DataOperationVariant, type DataFrom } from "../model/data";
+import { DataComparatorVariant, type DataComparator } from "../model/data_comparator";
 import type { Graph } from "../model/graph";
 import { GraphNode, GraphNodeOutputErr, GraphNodeOutputObject, GraphNodeOutputOut, GraphNodeOutputSuccess, GraphNodeOutputVariant, Node, NodeDestination, NodeNextExitErr, NodeNextExitOk, NodeNextNode, NodeNextVariant, NodeTypeVariant, type GraphNodeOutput, type NodeNext, type NodeType } from "../model/node";
 import { NodeExecutorAgent, NodeExecutorAgentHistoryMut, NodeExecutorCommand, NodeExecutorContextMut, NodeExecutorVariant, NodeExecutorWebClient, type NodeExecutor } from "../model/node_executor";
-import { WebClientOutputBody, WebClientOutputHeader, WebClientOutputObject, WebClientOutputStatus, WebClientOutputVariant, WebClientOutputVersion, type WebClientOutput } from "../model/web_client";
+import { WebClient, WebClientBodyVariant, WebClientOutputBody, WebClientOutputHeader, WebClientOutputObject, WebClientOutputStatus, WebClientOutputVariant, WebClientOutputVersion, type WebClientOutput } from "../model/web_client";
 import { is_type_in_enum } from "./form_utils";
 
-export function clean_graph_destinations_id( graph : Graph, id : string )
+export function clean_graph_node_ids( graph : Graph, id : string )
 {
-    clean_node_destinations_id( graph.first, id );
-
-    graph.nodes.forEach( ( n ) => clean_node_destinations_id( n, id ) );
+    update_graph_node_ids( graph, id, undefined );
 }
 
-function clean_node_destinations_id( node : NodeType | undefined, id : string )
+export function update_graph_node_ids( graph : Graph, id : string, new_id : string | undefined )
+{
+    update_ids_in_node( graph.first, id, new_id );
+
+    graph.nodes.forEach( ( n ) => update_ids_in_node( n, id, new_id ) );
+}
+
+function update_ids_in_node( node : NodeType | undefined, id : string, new_id : string | undefined )
 {
     if( ! node ) return;
 
-    let destinations = ( node._variant == NodeTypeVariant.Node ) ? node.destination : node.node_destination;
-
-    destinations.forEach( 
-        ( d : NodeDestination ) => 
+    if( node._variant == NodeTypeVariant.Node )
+    {
+        if( node.executor?._variant == NodeExecutorVariant.AgentHistoryMut )
         {
-            if( d.next?._variant == NodeNextVariant.Node )
-            {
-                if( d.next.value == id )
-                {
-                    d.next.value = undefined;
-                }
-            }
-        } 
-    );
+            update_agent_history_ids_in_agent_historys_mut( node.executor.value, id, new_id );
+        }
+        else if( node.executor?._variant == NodeExecutorVariant.ContextMut )
+        {
+            update_ids_in_contexts_mut( node.executor.value, id, new_id );
+        }
+        else if( node.executor?._variant == NodeExecutorVariant.Command )
+        {
+            update_ids_in_command( node.executor.value, id, new_id );
+        }
+        else if( node.executor?._variant == NodeExecutorVariant.Agent )
+        {
+            update_ids_in_ai_agent( node.executor.value, id, new_id );
+        }
+        else if( node.executor?._variant == NodeExecutorVariant.WebClient )
+        {
+            update_ids_in_web_client( node.executor.value, id, new_id );
+        }
+    }
+
+    update_node_destinations_id( node, id, new_id );
 }
 
-export function update_graph_destinations_id( graph : Graph, id : string, new_id : string )
+function update_ids_in_web_client( client : WebClient, id : string, new_id : string | undefined )
 {
-    update_node_destinations_id( graph.first, id, new_id );
+    update_ids_in_data_from( client.url, id, new_id );
 
-    graph.nodes.forEach( ( n ) => update_node_destinations_id( n, id, new_id ) );
+    client.headers.forEach( ( h ) => {
+        update_ids_in_data_from( h.name, id, new_id );
+        update_ids_in_data_from( h.value, id, new_id );
+    } );
+
+    client.query_params.forEach( ( q ) => {
+        update_ids_in_data_from( q.name, id, new_id );
+        update_ids_in_data_from( q.value, id, new_id );
+    } );
+
+    if( client.body?._variant == WebClientBodyVariant.Json )
+    {
+        update_ids_in_data_from( client.body.value, id, new_id );
+    }
+    else if( client.body?._variant == WebClientBodyVariant.Form )
+    {
+        client.body.value.forEach( ( d ) => {
+            update_ids_in_data_from( d.name, id, new_id );
+            update_ids_in_data_from( d.value, id, new_id );
+        } );
+    }
 }
 
-function update_node_destinations_id( node : NodeType | undefined, id : string, new_id : string )
+function update_ids_in_ai_agent( agent : AIAgent, id : string, new_id : string | undefined )
+{
+    agent.prompt.forEach( ( p ) => update_ids_in_data_from( p.from, id, new_id ) );
+
+    agent.servers.forEach( ( s ) => s.args.forEach( ( a ) => update_ids_in_data_from( a, id, new_id ) ) );
+}
+
+function update_ids_in_command( command : Command, id : string, new_id : string | undefined )
+{
+    command.args.forEach( ( a ) => update_ids_in_data_from( a, id, new_id ) );
+}
+
+function update_ids_in_contexts_mut( contexts : Array<ContextMut>, id : string, new_id : string | undefined )
+{
+    contexts.forEach( ( c ) => update_ids_in_context_mut( c, id, new_id ) );
+}
+
+function update_ids_in_context_mut( context : ContextMut, id : string, new_id : string | undefined )
+{
+    update_ids_in_data_from( context.from, id, new_id );
+    update_ids_in_data_comparator( context.condition, id, new_id );
+}
+
+function update_agent_history_ids_in_agent_historys_mut( agent_historys : Array<AgentHistoryMut>, id : string, new_id : string | undefined )
+{
+    agent_historys.forEach( ( h ) => update_agent_history_ids_in_agent_history_mut( h, id, new_id ) );
+}
+
+function update_agent_history_ids_in_agent_history_mut( agent_history : AgentHistoryMut, id : string, new_id : string | undefined )
+{
+    update_ids_in_data_from( agent_history.from, id, new_id );
+
+    update_ids_in_data_comparator( agent_history.condition, id, new_id );
+
+    if( agent_history.id == id )
+    {
+        agent_history.id = new_id ? new_id : "";
+    }
+}
+
+function update_node_destinations_id( node : NodeType | undefined, id : string, new_id : string | undefined )
 {
     if( ! node ) return;
 
@@ -56,8 +136,84 @@ function update_node_destinations_id( node : NodeType | undefined, id : string, 
                     d.next.value = new_id;
                 }
             }
+            else
+            {
+                d.next?.value.forEach(
+                    ( d ) => update_ids_in_data_from( d.from, id, new_id )
+                )
+            }
+
+            update_ids_in_data_comparator( d.condition, id, new_id );
         } 
     );
+}
+
+function update_ids_in_data_comparator( data_comparator : DataComparator | undefined, id : string, new_id : string | undefined )
+{
+    if( ! data_comparator ) return;
+
+    if( 
+        data_comparator._variant == DataComparatorVariant.Eq ||
+        data_comparator._variant == DataComparatorVariant.NotEq ||
+        data_comparator._variant == DataComparatorVariant.Gt ||
+        data_comparator._variant == DataComparatorVariant.Lt
+    )
+    {
+        update_ids_in_data_from( data_comparator.from_1, id, new_id );
+        update_ids_in_data_from( data_comparator.from_2, id, new_id );
+    }
+    else if(
+        data_comparator._variant == DataComparatorVariant.Regex
+    )
+    {
+        update_ids_in_data_from( data_comparator.from, id, new_id );
+    }
+    else if(
+        data_comparator._variant == DataComparatorVariant.Not
+    )
+    {
+        update_ids_in_data_comparator( data_comparator.value, id, new_id );
+    }
+    else if(
+        data_comparator._variant == DataComparatorVariant.And ||
+        data_comparator._variant == DataComparatorVariant.Or
+    )
+    {
+        update_ids_in_data_comparator( data_comparator.comp_1, id, new_id );
+        update_ids_in_data_comparator( data_comparator.comp_2, id, new_id );
+    }
+}
+
+function update_ids_in_data_from( data_from : DataFrom | undefined, id : string, new_id : string | undefined )
+{
+    if( ! data_from ) return;
+
+    if( data_from._variant == DataFromVariant.AgentHistory )
+    {
+        if( data_from.id == id )
+        {
+            data_from.id = new_id ? new_id : "";
+        }
+    }
+    else if( data_from._variant == DataFromVariant.Concat )
+    {
+        data_from.value.forEach( ( d ) => update_ids_in_data_from( d, id, new_id ) ); 
+    }
+    else if( data_from._variant == DataFromVariant.Operation )
+    {
+        if( data_from.value?._variant == DataOperationVariant.Len )
+        {
+            update_ids_in_data_from( data_from.value.value, id, new_id );
+        }
+        else if(
+            data_from.value?._variant == DataOperationVariant.Add ||
+            data_from.value?._variant == DataOperationVariant.Substract
+        )
+        {
+            update_ids_in_data_from( data_from.value.num_1, id, new_id );
+            update_ids_in_data_from( data_from.value.num_2, id, new_id );
+        }
+    }
 }
 
 export function node_variants() : Array<string>

@@ -168,7 +168,11 @@
 
     {#if 
         node._variant != NodeTypeVariant.Node ||
-        ( node._variant == NodeTypeVariant.Node && node.executor?._variant != NodeExecutorVariant.ContextMut)
+        ( 
+            node._variant == NodeTypeVariant.Node && 
+            node.executor?._variant != NodeExecutorVariant.ContextMut && 
+            node.executor?._variant != NodeExecutorVariant.AgentHistoryMut
+        )
     }
     <DataToContext 
         label="Output to context" 

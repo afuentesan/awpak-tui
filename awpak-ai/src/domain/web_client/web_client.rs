@@ -27,6 +27,9 @@ pub enum WebClientOutput
     Header { name : String, #[serde(default)] prefix : Option<String>, #[serde(default)] suffix : Option<String> },
     Body { #[serde(default)] prefix : Option<String>, #[serde(default)] suffix : Option<String> },
 
+    TimeMillis { #[serde(default)] prefix : Option<String>, #[serde(default)] suffix : Option<String> },
+    TimeStr { #[serde(default)] prefix : Option<String>, #[serde(default)] suffix : Option<String> },
+
     Object { #[serde(default)] prefix : Option<String>, #[serde(default)] suffix : Option<String> },
 }
 

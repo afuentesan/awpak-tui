@@ -106,6 +106,14 @@ fn item_output(
                     &serde_json::to_string( response ).map_err( | e | Error::ParseData( e.to_string() ) )?
                 ) 
             )
+        },
+        WebClientOutput::TimeMillis { prefix, suffix } =>
+        {
+            Ok( prefix_str_suffix( prefix.as_ref(), suffix.as_ref(), response.time_millis.to_string().as_str() ) )
+        },
+        WebClientOutput::TimeStr { prefix, suffix } =>
+        {
+            Ok( prefix_str_suffix( prefix.as_ref(), suffix.as_ref(), response.time_str.as_str() ) )
         }
     }
 }

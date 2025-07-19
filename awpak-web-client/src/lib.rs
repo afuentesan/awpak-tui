@@ -1,7 +1,7 @@
 
 pub mod request;
 pub mod response;
-use std::collections::HashMap;
+use std::{collections::HashMap, time::Instant};
 
 use reqwest::RequestBuilder;
 
@@ -26,7 +26,11 @@ pub async fn send_request( request : AwpakRequest ) -> Result<AwpakResponse, req
 
 async fn send( builder : RequestBuilder ) -> Result<AwpakResponse, reqwest::Error>
 {
+    let start = Instant::now();
+    
     let response = builder.send().await?;
+
+    let duration = start.elapsed();
 
     let version =  format!( "{:?}", response.version() );
 
@@ -51,7 +55,9 @@ async fn send( builder : RequestBuilder ) -> Result<AwpakResponse, reqwest::Erro
             version,
             status,
             headers,
-            text
+            text,
+            time_millis : duration.as_millis(),
+            time_str : format!( "{:?}", duration )
         }
     )
 }

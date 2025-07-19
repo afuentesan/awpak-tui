@@ -207,6 +207,12 @@
                         }
                     },
                     {
+                        selector: `node[ty = "${NodeExecutorVariant.AgentHistoryMut}"]`,
+                        style: {
+                        'background-color': '#6C2BD9'
+                        }
+                    },
+                    {
                         selector: `node[ty = "${ID_EXIT_OK}"]`,
                         style: {
                         'background-color': '#047857'

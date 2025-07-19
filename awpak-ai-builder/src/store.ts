@@ -2,7 +2,7 @@ import { atom } from 'nanostores';
 import { Graph } from './model/graph';
 import { GraphNodeOutputVariant, Node, NodeDestination, NodeNextExitErr, NodeNextExitOk, NodeNextNode, NodeNextVariant, NodeTypeVariant, type NodeType } from './model/node';
 import { DataFromVariant, DataMerge, DataToContext, DataToString, DataType, DataOperationVariant, FromAgentHistoryContentVariant } from './model/data';
-import { change_node_next_variant, change_node_variant, clean_graph_destinations_id, new_agent_provider_variant, new_command_node_output_variant, new_graph_node_output_variant, new_node_executor_variant, new_web_client_output_variant, next_node_id, node_by_id, update_graph_destinations_id } from './functions/node_functions';
+import { change_node_next_variant, change_node_variant, clean_graph_node_ids, new_agent_provider_variant, new_command_node_output_variant, new_graph_node_output_variant, new_node_executor_variant, new_web_client_output_variant, next_node_id, node_by_id, update_graph_node_ids } from './functions/node_functions';
 import { JSONPath } from 'jsonpath-plus';
 import { new_body_variant, new_data_comparator_variant, new_data_from_agent_history_content, new_data_from_variant, new_data_operation_variant, new_data_to_agent_history } from './functions/data_functions';
 import { is_type_in_enum } from './functions/form_utils';
@@ -80,7 +80,7 @@ export function change_node_id( id : string, new_id : string )
 
         new_graph.first = Object.assign( {}, new_graph.first );
 
-        update_graph_destinations_id( new_graph, id, new_id );
+        update_graph_node_ids( new_graph, id, new_id );
 
         graph.set( new_graph );
 
@@ -100,7 +100,7 @@ export function change_node_id( id : string, new_id : string )
         }
     );
 
-    update_graph_destinations_id( new_graph, id, new_id );
+    update_graph_node_ids( new_graph, id, new_id );
 
     graph.set( new_graph );
 }
@@ -124,7 +124,7 @@ export function remove_node( idx : number )
 
     new_graph.nodes = [...new_graph.nodes ];
 
-    clean_graph_destinations_id( new_graph, id as string );
+    clean_graph_node_ids( new_graph, id as string );
 
     graph.set( new_graph );
 }
