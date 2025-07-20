@@ -13,8 +13,8 @@
     import GraphNodeOutput from "../node/GraphNodeOutput.svelte";
     import NodeDestination from "../node/NodeDestination.svelte";
     import NodeExecutor from "../node/NodeExecutor.svelte";
-    import { graph } from "../../store";
     import { NodeExecutorVariant } from "../../model/node_executor";
+    import { DataType } from "../../model/data";
 
     interface InputProps
     {
@@ -178,6 +178,13 @@
         label="Output to context" 
         node_output={node._variant == NodeTypeVariant.Node ? node.output : node.node_output} 
         base_path={base_path+"."+(node._variant == NodeTypeVariant.Node ? "output" : "node_output")}
+        allowed_types={
+            node._variant == NodeTypeVariant.Node && node.executor?._variant == NodeExecutorVariant.Parallel
+            ?
+            [ DataType.String, DataType.Array ]
+            :
+            undefined
+        }
     />
     {/if}
     
