@@ -203,7 +203,8 @@ function json_executor_parallel( executor : ParallelExecutor ) : any
         return {
             "Command" : {
                 ty : executor.ty || undefined,
-                executor : json_command( executor.executor )
+                executor : json_command( executor.executor ),
+                condition : json_data_comparator( executor.condition )
             }
         };
     }
@@ -212,7 +213,8 @@ function json_executor_parallel( executor : ParallelExecutor ) : any
         return {
             "WebClient" : {
                 ty : executor.ty || undefined,
-                executor : json_web_client( executor.executor )
+                executor : json_web_client( executor.executor ),
+                condition : json_data_comparator( executor.condition )
             }
         };
     }

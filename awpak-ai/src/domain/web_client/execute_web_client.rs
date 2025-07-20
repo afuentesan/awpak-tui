@@ -1,7 +1,10 @@
+use std::time::Duration;
+
 use awpak_web_client::{request::{AwpakBody, AwpakFormField, AwpakHeader, AwpakQueryParam, AwpakRequest}, response::AwpakResponse, send_request};
+use tokio::time::sleep;
 use tracing::info;
 
-use crate::domain::{data::{data_selection::data_selection, data_utils::value_to_string}, error::Error, graph::graph::Graph, tracing::filter_layer::{WEB_CLIENT_REQUEST, WEB_CLIENT_REQUEST_BODY, WEB_CLIENT_REQUEST_HEADERS, WEB_CLIENT_REQUEST_QUERY_PARAMS, WEB_CLIENT_RESPONSE, WEB_CLIENT_RESPONSE_BODY, WEB_CLIENT_RESPONSE_HEADERS}, utils::string_utils::{option_string_to_str, prefix_str_suffix}, web_client::web_client::{WebClient, WebClientBody, WebClientNameValue, WebClientOutput}};
+use crate::domain::{data::{data_selection::data_selection, data_utils::value_to_string}, error::Error, graph::graph::Graph, signals::cancel_graph::is_graph_cancelled, tracing::filter_layer::{WEB_CLIENT_REQUEST, WEB_CLIENT_REQUEST_BODY, WEB_CLIENT_REQUEST_HEADERS, WEB_CLIENT_REQUEST_QUERY_PARAMS, WEB_CLIENT_RESPONSE, WEB_CLIENT_RESPONSE_BODY, WEB_CLIENT_RESPONSE_HEADERS}, utils::string_utils::{option_string_to_str, prefix_str_suffix}, web_client::web_client::{WebClient, WebClientBody, WebClientNameValue, WebClientOutput}};
 
 
 pub async fn execute_web_client(
@@ -13,13 +16,42 @@ pub async fn execute_web_client(
 
     let request = request( graph, client )?;
 
-    let response = send_request( request ).await.map_err( | e | Error::WebClient( e.to_string() ) )?;
+    let response = execute_send_request( id, request ).await?;
 
     output(
         id, 
         &client.output, 
         response
     )
+}
+
+async fn execute_send_request(
+    id : Option<&String>,
+    request : AwpakRequest
+) -> Result<AwpakResponse, Error>
+{
+    match id
+    {
+        Some( id ) =>
+        {
+            tokio::select!
+            {
+                v = send_request( request ) =>
+                {
+                    v.map_err( | e | Error::WebClient( e.to_string() ) )
+                },
+                _ = async {
+                    loop
+                    {
+                        if is_graph_cancelled( id ) { break; }
+
+                        sleep( Duration::from_millis( 1000 ) ).await
+                    }
+                } => Err( Error::WebClient( "Request cancelled".into() ) )
+            }
+        },
+        _ => send_request( request ).await.map_err( | e | Error::WebClient( e.to_string() ) )
+    }
 }
 
 fn output(

@@ -169,6 +169,7 @@ function load_parallel_executor( executor : any ) : ParallelExecutor
 
         ret.executor = load_command( executor[ "Command" ].executor );
         ret.ty = executor[ "Command" ].ty || undefined;
+        ret.condition = load_data_comparator( executor[ "Command" ].condition );
 
         return ret;
     }
@@ -178,6 +179,7 @@ function load_parallel_executor( executor : any ) : ParallelExecutor
 
         ret.executor = load_web_client( executor[ "WebClient" ].executor );
         ret.ty = executor[ "WebClient" ].ty || undefined;
+        ret.condition = load_data_comparator( executor[ "WebClient" ].condition );
 
         return ret;
     }

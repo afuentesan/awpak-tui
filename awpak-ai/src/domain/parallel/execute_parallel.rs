@@ -1,7 +1,7 @@
 use serde_json::Value;
 use tokio::task::JoinSet;
 
-use crate::domain::{command::execute_command::execute_command, data::{data::DataType, data_utils::str_to_value}, error::Error, graph::graph::Graph, parallel::parallel::{Parallel, ParallelExecutor}, web_client::execute_web_client::execute_web_client};
+use crate::domain::{command::execute_command::execute_command, data::{data::DataType, data_compare::compare_data, data_utils::str_to_value}, error::Error, graph::graph::Graph, parallel::parallel::{Parallel, ParallelExecutor}, web_client::execute_web_client::execute_web_client};
 
 pub async fn execute_parallel(
     graph : &Graph,
@@ -38,16 +38,26 @@ async fn execute_item(
     idx : usize
 ) -> ( Result<Value, Error>, usize )
 {
+    match compare_data( 
+            &graph,
+            item.condition() 
+    )
+    {
+        Ok( r ) if r => {},
+        Ok( _ ) => return ( Ok( Value::Null ), idx ),
+        Err( e ) => return ( Err( e ), idx )
+    };
+
     let result = match item
     {
-        ParallelExecutor::Command { ty, executor } =>
+        ParallelExecutor::Command { ty, executor, condition : _ } =>
         {
             result_str_to_value(
                 execute_command( &graph, &executor ).await,
                 ty
             )
         },
-        ParallelExecutor::WebClient { ty, executor } =>
+        ParallelExecutor::WebClient { ty, executor, condition : _ } =>
         {
             result_str_to_value(
                 execute_web_client( &graph, &executor ).await,

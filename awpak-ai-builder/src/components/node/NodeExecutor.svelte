@@ -297,6 +297,11 @@
                     change_value={change_data_type} 
                     base_path={base_path+".value.executors["+i+"].ty"} 
                 />
+                
+                <DataComparator
+                    base_path={base_path+".value.executors["+i+"].condition"}
+                    comparator={node_executor.value.executors[ i ].condition}
+                />
 
                 <div class="text-center">
                     <Button

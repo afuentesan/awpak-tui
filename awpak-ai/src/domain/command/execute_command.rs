@@ -126,7 +126,7 @@ async fn command_result(
 
                         sleep( Duration::from_millis( 1000 ) ).await
                     }
-                } => return Err( Error::Command( "Command cancelled".into() ) )
+                } => Err( Error::Command( "Command cancelled".into() ) )
             }
         },
         _ => tokio::process::Command::new( command )
