@@ -6,10 +6,6 @@ use crate::domain::{agent::{agent::AIAgent, agent_provider::AIAgentProvider, cre
 
 
 pub async fn execute_agent(
-    // id : Option<&String>,
-    // input : Option<&String>, 
-    // parsed_input : &Value, 
-    // context : &HashMap<String, Value>,
     graph : &Graph,
     agent : &AIAgent
 ) -> Result<( String, Vec<Message> ), Error>

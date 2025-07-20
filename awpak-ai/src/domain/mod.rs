@@ -11,3 +11,4 @@ pub mod tracing;
 pub mod signals;
 pub mod web_client;
 pub mod agent_history_mut;
+pub mod parallel;

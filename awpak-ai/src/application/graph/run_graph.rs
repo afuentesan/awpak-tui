@@ -4,7 +4,7 @@ use serde_json::Value;
 use async_recursion::async_recursion;
 use tracing::info;
 
-use crate::{application::graph::execute_graph::execute_graph, domain::{agent::execute_agent::execute_agent, agent_history_mut::change_agent_history::change_agent_history, command::execute_command::execute_command, context_mut::change_context::change_context, data::{data::{DataComparator, DataType}, data_compare::compare_data, data_insert::str_to_context, data_selection::data_to_string, data_utils::str_to_value}, error::Error, graph::{graph::Graph, node::{NodeDestination, NodeExecutor, NodeNext}}, tracing::filter_layer::{GRAPH_INPUT, GRAPH_OUTPUT_ERR, GRAPH_OUTPUT_OK, NODE_DESTINATION, NODE_EXECUTION, NODE_OUTPUT}, utils::string_utils::option_string_to_str, web_client::execute_web_client::execute_web_client}};
+use crate::{application::graph::execute_graph::execute_graph, domain::{agent::execute_agent::execute_agent, agent_history_mut::change_agent_history::change_agent_history, command::execute_command::execute_command, context_mut::change_context::change_context, data::{data::{DataComparator, DataType}, data_compare::compare_data, data_insert::{str_to_context, value_to_context}, data_selection::data_to_string, data_utils::str_to_value}, error::Error, graph::{graph::Graph, node::{NodeDestination, NodeExecutor, NodeNext}}, parallel::execute_parallel::execute_parallel, tracing::filter_layer::{GRAPH_INPUT, GRAPH_OUTPUT_ERR, GRAPH_OUTPUT_OK, NODE_DESTINATION, NODE_EXECUTION, NODE_OUTPUT}, utils::string_utils::option_string_to_str, web_client::execute_web_client::execute_web_client}};
 
 
 struct GraphRunner
@@ -124,8 +124,26 @@ async fn execute_node( mut runner : GraphRunner ) -> ( AwpakResult<GraphRunner, 
 
     info!( target:NODE_EXECUTION, id=option_string_to_str( runner.graph.id.as_ref() ), text=format!( "{}", node.id ) );
 
-    let ( node, result ) = match &node.executor
+    let ( 
+        node, 
+        result
+    ) = match &node.executor
     {
+        NodeExecutor::Parallel( p ) =>
+        {
+            let result = execute_parallel(
+                &runner.graph, 
+                p
+            ).await;
+
+            runner.graph.nodes.insert( runner.next.clone(), node );
+
+            return match result
+            {
+                Ok( r ) => proccess_parallel_result( r, runner ).await,
+                Err( e ) => ( AwpakResult::new_err( runner, e ), false )
+            }
+        },
         NodeExecutor::WebClient( c ) =>
         {
             let result = execute_web_client( 
@@ -282,6 +300,42 @@ async fn execute_node( mut runner : GraphRunner ) -> ( AwpakResult<GraphRunner, 
     }
 }
 
+async fn proccess_parallel_result( result : Vec<Value>, mut runner : GraphRunner ) -> ( AwpakResult<GraphRunner, Error>, bool )
+{
+    info!(
+        target:NODE_OUTPUT, 
+        id=option_string_to_str( runner.graph.id.as_ref() ), 
+        text=serde_json::to_string( &result ).unwrap_or( "".into() )
+    );
+
+    let node = runner.graph.nodes.get( runner.next.as_str() ).unwrap();
+
+    match &node.output
+    {
+        Some( o ) =>
+        {
+            let context = runner.graph.context;
+
+            match value_to_context( context, Value::Array( result ), o ).collect()
+            {
+                ( ( c, _ ), None ) =>
+                {
+                    runner.graph.context = c;
+
+                    redirect_or_exit( runner ).await
+                },
+                ( ( c, _ ), Some( e ) ) =>
+                {
+                    runner.graph.context = c;
+
+                    ( AwpakResult::new_err( runner, e ), false )
+                }
+            }
+        },
+        None => redirect_or_exit( runner ).await
+    }
+}
+
 async fn proccess_result( str_result : String, runner : GraphRunner ) -> ( AwpakResult<GraphRunner, Error>, bool )
 {
     info!(
@@ -384,7 +438,7 @@ async fn output_to_context( output : String, mut runner : GraphRunner ) -> Awpak
 {
     let node = runner.graph.nodes.get( runner.next.as_str() ).unwrap();
 
-    if let NodeExecutor::ContextMut( _ ) = &node.executor
+    if let NodeExecutor::ContextMut( _ ) | NodeExecutor::AgentHistoryMut( _ ) = &node.executor
     {
         return AwpakResult::new( runner );
     }
