@@ -6,7 +6,8 @@ import { DataMerge, DataOperationAdd, DataOperationLen, DataOperationSubstract, 
 import { DataComparatorAnd, DataComparatorEq, DataComparatorFalse, DataComparatorGt, DataComparatorLt, DataComparatorNot, DataComparatorNotEq, DataComparatorOr, DataComparatorRegex, DataComparatorTrue, type DataComparator } from "../model/data_comparator";
 import { Graph } from "../model/graph";
 import { GraphNode, GraphNodeOutputErr, GraphNodeOutputObject, GraphNodeOutputOut, GraphNodeOutputSuccess, Node, NodeDestination, NodeNextExitErr, NodeNextExitOk, NodeNextNode, type GraphNodeOutput, type NodeNext, type NodeType } from "../model/node";
-import { NodeExecutorAgent, NodeExecutorAgentHistoryMut, NodeExecutorCommand, NodeExecutorContextMut, NodeExecutorWebClient, type NodeExecutor } from "../model/node_executor";
+import { NodeExecutorAgent, NodeExecutorAgentHistoryMut, NodeExecutorCommand, NodeExecutorContextMut, NodeExecutorParallel, NodeExecutorWebClient, type NodeExecutor } from "../model/node_executor";
+import { Parallel, ParallelExecutorCommand, ParallelExecutorWebClient, type ParallelExecutor } from "../model/parallel";
 import { AwpakMethod, WebClient, WebClientBodyForm, WebClientBodyJson, WebClientNameValue, WebClientOutputBody, WebClientOutputHeader, WebClientOutputObject, WebClientOutputStatus, WebClientOutputVersion, type WebClientBody, type WebClientOutput } from "../model/web_client";
 import { is_empty, not_empty_or_string_eq } from "./data_functions";
 import { is_type_in_enum } from "./form_utils";
@@ -132,14 +133,69 @@ function load_node_executor( executor : any ) : NodeExecutor
     {
         return load_node_executor_web_client( executor[ "WebClient" ] );
     }
+    else if( executor?.[ "Parallel" ] )
+    {
+        return load_node_executor_parallel( executor[ "Parallel" ] );
+    }
 
     throw new Error( "NodeExecutor not found. " + JSON.stringify( executor ) );
+}
+
+function load_node_executor_parallel( parallel : any ) : NodeExecutorParallel
+{
+    let ret = new NodeExecutorParallel();
+
+    let value = new Parallel();
+
+    value.executors = load_parallel_executors( parallel.executors );
+
+    ret.value = value;
+
+    return ret;
+}
+
+function load_parallel_executors( executors : Array<any> ) : Array<ParallelExecutor>
+{
+    if( ! executors?.length ) return [];
+
+    return executors.map( ( e ) => load_parallel_executor( e ) );
+}
+
+function load_parallel_executor( executor : any ) : ParallelExecutor
+{
+    if( executor?.[ "Command" ]?.executor )
+    {
+        let ret = new ParallelExecutorCommand();
+
+        ret.executor = load_command( executor[ "Command" ].executor );
+        ret.ty = executor[ "Command" ].ty || undefined;
+
+        return ret;
+    }
+    else if( executor?.[ "WebClient" ]?.executor )
+    {
+        let ret = new ParallelExecutorWebClient();
+
+        ret.executor = load_web_client( executor[ "WebClient" ].executor );
+        ret.ty = executor[ "WebClient" ].ty || undefined;
+
+        return ret;
+    }
+
+    throw new Error( "ParallelExecutor not found. " + JSON.stringify( executor ) );
 }
 
 function load_node_executor_command( command : any ) : NodeExecutorCommand
 {
     let ret = new NodeExecutorCommand();
 
+    ret.value = load_command( command );
+
+    return ret;
+}
+
+function load_command( command : any ) : Command
+{
     let value = new Command();
 
     value.args = load_vec_data_from( command.args );
@@ -147,9 +203,7 @@ function load_node_executor_command( command : any ) : NodeExecutorCommand
 
     value.output = load_vec_command_output( command.output );
 
-    ret.value = value;
-
-    return ret;
+    return value;
 }
 
 function load_vec_command_output( output : Array<any> ) : Array<CommandOutput>
@@ -205,6 +259,13 @@ function load_node_executor_web_client( web_client : any ) : NodeExecutorWebClie
 {
     let ret = new NodeExecutorWebClient();
 
+    ret.value = load_web_client( web_client );
+
+    return ret;
+}
+
+function load_web_client( web_client : any ) : WebClient
+{
     let value = new WebClient();
 
     value.url = load_data_from( web_client.url );
@@ -214,9 +275,7 @@ function load_node_executor_web_client( web_client : any ) : NodeExecutorWebClie
     value.body = load_body( web_client.body );
     value.output = load_vec_web_client_output( web_client.output );
 
-    ret.value = value;
-
-    return ret;
+    return value;
 }
 
 function load_vec_web_client_output( output : Array<any> ) : Array<WebClientOutput>

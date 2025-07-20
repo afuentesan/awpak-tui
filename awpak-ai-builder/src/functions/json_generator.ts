@@ -1,13 +1,14 @@
 import { AIAgentProviderConfigVariant, type AIAgentProvider, type NodeMCPServer } from "../model/agent";
 import { DataToAgentHistoryVariant, type AgentHistoryMut, type DataToAgentHistory } from "../model/agent_history_mut";
-import { CommandOutputVariant, type CommandOutput } from "../model/command";
+import { Command, CommandOutputVariant, type CommandOutput } from "../model/command";
 import type { ContextMut } from "../model/context_mut";
 import { DataFromVariant, DataOperationVariant, FromAgentHistoryContentVariant, type DataFrom, type DataOperation, type DataToContext, type DataToString, type FromAgentHistoryContent } from "../model/data";
 import { DataComparatorVariant, type DataComparator } from "../model/data_comparator";
 import type { Graph } from "../model/graph";
 import { GraphNode, GraphNodeOutputVariant, NodeDestination, NodeNextVariant, NodeTypeVariant, type GraphNodeOutput, type Node, type NodeNext, type NodeType } from "../model/node";
-import { NodeExecutorAgent, NodeExecutorAgentHistoryMut, NodeExecutorCommand, NodeExecutorContextMut, NodeExecutorVariant, NodeExecutorWebClient, type NodeExecutor } from "../model/node_executor";
-import { WebClientBodyVariant, WebClientOutputVariant, type WebClientBody, type WebClientNameValue, type WebClientOutput } from "../model/web_client";
+import { NodeExecutorAgent, NodeExecutorAgentHistoryMut, NodeExecutorCommand, NodeExecutorContextMut, NodeExecutorParallel, NodeExecutorVariant, NodeExecutorWebClient, type NodeExecutor } from "../model/node_executor";
+import { ParallelExecutorVariant, type ParallelExecutor } from "../model/parallel";
+import { WebClient, WebClientBodyVariant, WebClientOutputVariant, type WebClientBody, type WebClientNameValue, type WebClientOutput } from "../model/web_client";
 import { is_empty } from "./data_functions";
 
 export function generate_json( graph : Graph ) : string
@@ -92,7 +93,7 @@ function json_executor_from_node_executor( executor : NodeExecutor | undefined )
 
     if( executor._variant == NodeExecutorVariant.Command )
     {
-        return json_command( executor );
+        return json_executor_command( executor );
     }
     else if( executor._variant == NodeExecutorVariant.ContextMut )
     {
@@ -109,6 +110,10 @@ function json_executor_from_node_executor( executor : NodeExecutor | undefined )
     else if( executor._variant == NodeExecutorVariant.WebClient )
     {
         return json_executor_web_client( executor );
+    }
+    else if( executor._variant == NodeExecutorVariant.Parallel )
+    {
+        return json_parallel( executor );
     }
 }
 
@@ -177,15 +182,56 @@ function json_agent_provider( provider : AIAgentProvider ) : any
     }
 }
 
-function json_command( executor : NodeExecutorCommand ) : any
+function json_parallel( executor : NodeExecutorParallel ) : any
 {
     return {
-        "Command" : {
-            command : executor.value.command,
-            args : json_vec_data_from( executor.value.args ),
-            output : json_vec_command_output( executor.value.output )
+        "Parallel" : {
+            executors : json_vec_executors_parallel( executor.value.executors )
         }
+    }
+}
+
+function json_vec_executors_parallel( executors : Array<ParallelExecutor> ) : Array<any>
+{
+    return executors.map( ( e ) => json_executor_parallel( e ) );
+}
+
+function json_executor_parallel( executor : ParallelExecutor ) : any
+{
+    if( executor._variant == ParallelExecutorVariant.Command )
+    {
+        return {
+            "Command" : {
+                ty : executor.ty || undefined,
+                executor : json_command( executor.executor )
+            }
+        };
+    }
+    else if( executor._variant == ParallelExecutorVariant.WebClient )
+    {
+        return {
+            "WebClient" : {
+                ty : executor.ty || undefined,
+                executor : json_web_client( executor.executor )
+            }
+        };
+    }
+}
+
+function json_executor_command( executor : NodeExecutorCommand ) : any
+{
+    return {
+        "Command" : json_command( executor.value )
     };
+}
+
+function json_command( command : Command ) : any
+{
+    return {
+            command : command.command,
+            args : json_vec_data_from( command.args ),
+            output : json_vec_command_output( command.output )
+    }
 }
 
 function json_vec_command_output( output : Array<CommandOutput> ) : any
@@ -217,15 +263,20 @@ function json_command_output( output : CommandOutput ) : any
 function json_executor_web_client( executor : NodeExecutorWebClient ) : any
 {
     return {
-        "WebClient" : {
-            url : json_data_from( executor.value.url ),
-            method : executor.value.method,
-            headers : json_vec_name_value( executor.value.headers ),
-            query_params : json_vec_name_value( executor.value.query_params ),
-            body : json_request_body( executor.value.body ),
-            output : json_vec_web_client_output( executor.value.output )
-        }
+        "WebClient" : json_web_client( executor.value )
     }
+}
+
+function json_web_client( web_client : WebClient ) : any
+{
+    return {
+        url : json_data_from( web_client.url ),
+        method : web_client.method,
+        headers : json_vec_name_value( web_client.headers ),
+        query_params : json_vec_name_value( web_client.query_params ),
+        body : json_request_body( web_client.body ),
+        output : json_vec_web_client_output( web_client.output )
+    };
 }
 
 function json_vec_web_client_output( output : Array<WebClientOutput> ) : any

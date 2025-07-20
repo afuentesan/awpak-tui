@@ -2,17 +2,14 @@
 <script lang="ts">
     import { FromContext, type DataFrom as ExecutorDataFrom } from "../../model/data";
     import { NodeExecutorVariant, type NodeExecutor } from "../../model/node_executor";
-    import { append_to_array, change_boolean, change_node_executor_variant, change_option_string, change_request_method, graph, remove_from_array, swap_array_items } from "../../store";
+    import { append_to_array, change_boolean, change_data_type, change_node_executor_variant, change_option_string, change_request_method, graph, remove_from_array, swap_array_items } from "../../store";
     import DataFrom from "../data/DataFrom.svelte";
     import DataToContext from "../data/DataToContext.svelte";
     import { DataToContext as ContextMutDataToContext } from "../../model/data";
     import Box from "../form/Box.svelte";
     import Button from "../form/Button.svelte";
-    import Input from "../form/Input.svelte";
     import { select_options_from_array, select_options_from_enum } from "../../functions/form_utils";
     import Select from "../form/Select.svelte";
-    import CommandOutput from "./CommandOutput.svelte";
-    import { CommandOutputOut } from "../../model/command";
     import TextArea from "../form/TextArea.svelte";
     import Checkbox from "../form/Checkbox.svelte";
     import DataToString from "../data/DataToString.svelte";
@@ -20,16 +17,15 @@
     import AIAgentProvider from "./AIAgentProvider.svelte";
     import NodeMcpServer from "./NodeMCPServer.svelte";
     import { NodeMCPServer } from "../../model/agent";
-    import { AwpakMethod, WebClientNameValue, WebClientOutputStatus } from "../../model/web_client";
-    import NameValue from "../data/NameValue.svelte";
-    import WebClientBody from "./WebClientBody.svelte";
-    import WebClientOutput from "./WebClientOutput.svelte";
     import DataComparator from "../data/DataComparator.svelte";
     import { DataComparatorTrue } from "../../model/data_comparator";
     import { agent_ids } from "../../functions/node_functions";
     import { DataToAgentHistoryReplace } from "../../model/agent_history_mut";
     import DataToAgentHistory from "../data/DataToAgentHistory.svelte";
-
+    import { ParallelExecutorCommand, ParallelExecutorVariant } from "../../model/parallel";
+    import DataType from "../data/DataType.svelte";
+    import NodeExecutorWebClient from "./NodeExecutorWebClient.svelte";
+    import NodeExecutorCommand from "./NodeExecutorCommand.svelte";
 
     interface InputProps
     {
@@ -130,170 +126,18 @@
             value="true"
         />
     {:else if node_executor._variant == NodeExecutorVariant.Command}
-        <Input
-            label="Command"
-            value={node_executor.value.command}
-            change_value={change_option_string}
-            base_path={base_path+".value.command"}
+
+        <NodeExecutorCommand
+            command={node_executor.value}
+            base_path={base_path+".value"}
         />
-        <Box title="Arguments" base_path={base_path+".value.args"}>
-            {#each node_executor.value.args as _, i}
-                <DataFrom
-                    label={"Arg "+i}
-                    from={node_executor.value.args[i]}
-                    base_path={base_path+".value.args["+i+"]"}
-                    remove_from_loop={
-                        () => remove_from_array( base_path+".value.args", i )
-                    }
-                    swap_items_in_array={
-                        ( up : boolean ) =>
-                        {
-                            swap_array_items( base_path+".value.args", i, ( up ? i - 1 : i + 1 ) );
-                        }
-                    }
-                />
-            {/each}
-            <div class="text-center">
-                <Button
-                    text="Add argument"
-                    click={
-                        () => append_to_array( base_path+".value.args", new FromContext() )
-                    }
-                />
-            </div>
-        </Box>
-        <Box title="Command output" base_path={base_path+".value.output"}>
-            {#each node_executor.value.output as _, i}
-                <CommandOutput
-                    label={"CommandOutput "+i}
-                    output={node_executor.value.output[i]}
-                    base_path={base_path+".value.output["+i+"]"}
-                    remove_from_loop={
-                        () => remove_from_array( base_path+".value.output", i )
-                    }
-                    swap_items_in_array={
-                        ( up : boolean ) =>
-                        {
-                            swap_array_items( base_path+".value.output", i, ( up ? i - 1 : i + 1 ) );
-                        }
-                    }
-                />
-            {/each}
-            <div class="text-center">
-                <Button
-                    text="Add output"
-                    click={
-                        () => append_to_array( base_path+".value.output", new CommandOutputOut() )
-                    }
-                />
-            </div>
-        </Box>
+        
     {:else if node_executor._variant == NodeExecutorVariant.WebClient}
-        <DataFrom
-            from={node_executor.value.url}
-            label="URL"
-            base_path={base_path+".value.url"}
+
+        <NodeExecutorWebClient
+            base_path={base_path+".value"}
+            web_client={node_executor.value}
         />
-        <Select
-            label="Method"
-            base_path={base_path+".value.method"}
-            change_value={change_request_method}
-            options={
-                select_options_from_enum(
-                    AwpakMethod,
-                    node_executor.value.method,
-                    false
-                )
-            }
-            value={node_executor.value.method}
-        />
-
-        <Box title="Headers" base_path={base_path+".value.headers"}>
-            {#each node_executor.value.headers as _, i}
-                <NameValue
-                    label={"Header "+i}
-                    name_value={node_executor.value.headers[i]}
-                    base_path={base_path+".value.headers["+i+"]"}
-                    remove_from_loop={
-                        () => remove_from_array( base_path+".value.headers", i )
-                    }
-                    swap_items_in_array={
-                        ( up : boolean ) =>
-                        {
-                            swap_array_items( base_path+".value.headers", i, ( up ? i - 1 : i + 1 ) );
-                        }
-                    }
-                />
-            {/each}
-            <div class="text-center">
-                <Button
-                    text="Add header"
-                    click={
-                        () => append_to_array( base_path+".value.headers", new WebClientNameValue() )
-                    }
-                />
-            </div>
-        </Box>
-
-        <Box title="Query params" base_path={base_path+".value.query_params"}>
-            {#each node_executor.value.query_params as _, i}
-                <NameValue
-                    label={"Param "+i}
-                    name_value={node_executor.value.query_params[i]}
-                    base_path={base_path+".value.query_params["+i+"]"}
-                    remove_from_loop={
-                        () => remove_from_array( base_path+".value.query_params", i )
-                    }
-                    swap_items_in_array={
-                        ( up : boolean ) =>
-                        {
-                            swap_array_items( base_path+".value.query_params", i, ( up ? i - 1 : i + 1 ) );
-                        }
-                    }
-                />
-            {/each}
-            <div class="text-center">
-                <Button
-                    text="Add query param"
-                    click={
-                        () => append_to_array( base_path+".value.query_params", new WebClientNameValue() )
-                    }
-                />
-            </div>
-        </Box>
-
-        <WebClientBody
-            label="Body"
-            base_path={base_path+".value.body"}
-            body={node_executor.value.body}
-        />
-
-        <Box title="WebClient output" base_path={base_path+".value.output"}>
-            {#each node_executor.value.output as _, i}
-                <WebClientOutput
-                    label={"WebClientOutput "+i}
-                    output={node_executor.value.output[i]}
-                    base_path={base_path+".value.output["+i+"]"}
-                    remove_from_loop={
-                        () => remove_from_array( base_path+".value.output", i )
-                    }
-                    swap_items_in_array={
-                        ( up : boolean ) =>
-                        {
-                            swap_array_items( base_path+".value.output", i, ( up ? i - 1 : i + 1 ) );
-                        }
-                    }
-                />
-            {/each}
-            <div class="text-center">
-                <Button
-                    text="Add output"
-                    click={
-                        () => append_to_array( base_path+".value.output", new WebClientOutputStatus() )
-                    }
-                />
-            </div>
-        </Box>
 
     {:else if node_executor._variant == NodeExecutorVariant.ContextMut}
         {#each node_executor.value as _, i}
@@ -413,6 +257,40 @@
                             to : new DataToAgentHistoryReplace(),
                             condition : new DataComparatorTrue()
                         }
+                    )
+                }
+            />
+        </div>
+    {:else if node_executor._variant == NodeExecutorVariant.Parallel}
+        {#each node_executor.value.executors as _, i}
+            <Box title={"Executor "+i} base_path={base_path+".value.executors["+i+"]"}>
+                <DataType 
+                    label={"Type"} 
+                    value={node_executor.value.executors[ i ].ty} 
+                    change_value={change_data_type} 
+                    base_path={base_path+".value.executors["+i+"].ty"} 
+                />
+                
+                {#if node_executor.value.executors[ i ]._variant == ParallelExecutorVariant.Command}
+                    <NodeExecutorCommand
+                        base_path={base_path+".value.executors["+i+"].executor"}
+                        command={node_executor.value.executors[ i ].executor}
+                    />
+                {:else if node_executor.value.executors[ i ]._variant == ParallelExecutorVariant.WebClient}
+                    <NodeExecutorWebClient
+                        base_path={base_path+".value.executors["+i+"].executor"}
+                        web_client={node_executor.value.executors[ i ].executor}
+                    />
+                {/if}
+            </Box>
+        {/each}
+        <div class="text-center">
+            <Button
+                text="Add Executor"
+                click={
+                    () => append_to_array( 
+                        base_path+".value.executors", 
+                        new ParallelExecutorCommand()
                     )
                 }
             />

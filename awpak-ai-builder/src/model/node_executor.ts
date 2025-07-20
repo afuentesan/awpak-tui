@@ -2,13 +2,15 @@ import { AIAgent } from "./agent";
 import type { AgentHistoryMut } from "./agent_history_mut";
 import { Command } from "./command";
 import type { ContextMut } from "./context_mut";
+import { Parallel } from "./parallel";
 import { WebClient } from "./web_client";
 
 export type NodeExecutor = NodeExecutorCommand | 
                            NodeExecutorContextMut | 
                            NodeExecutorAgent | 
                            NodeExecutorWebClient |
-                           NodeExecutorAgentHistoryMut;
+                           NodeExecutorAgentHistoryMut |
+                           NodeExecutorParallel;
 
 export enum NodeExecutorVariant
 {
@@ -16,7 +18,8 @@ export enum NodeExecutorVariant
     ContextMut = "ContextMut",
     Agent = "Agent",
     WebClient = "WebClient",
-    AgentHistoryMut = "AgentHistoryMut"
+    AgentHistoryMut = "AgentHistoryMut",
+    Parallel = "Parallel"
 }
 
 export class NodeExecutorAgent
@@ -67,4 +70,11 @@ export class NodeExecutorAgentHistoryMut
     readonly _variant = NodeExecutorVariant.AgentHistoryMut;
 
     value : Array<AgentHistoryMut> = []
+}
+
+export class NodeExecutorParallel
+{
+    readonly _variant = NodeExecutorVariant.Parallel;
+
+    value : Parallel = new Parallel();
 }
