@@ -2,7 +2,7 @@ import { atom } from 'nanostores';
 import { Graph } from './model/graph';
 import { GraphNodeOutputVariant, Node, NodeDestination, NodeNextExitErr, NodeNextExitOk, NodeNextNode, NodeNextVariant, NodeTypeVariant, type NodeType } from './model/node';
 import { DataFromVariant, DataMerge, DataToContext, DataToString, DataType, DataOperationVariant, FromAgentHistoryContentVariant } from './model/data';
-import { change_node_next_variant, change_node_variant, clean_graph_node_ids, new_agent_provider_variant, new_command_node_output_variant, new_graph_node_output_variant, new_node_executor_variant, new_web_client_output_variant, next_node_id, node_by_id, update_graph_node_ids } from './functions/node_functions';
+import { change_node_next_variant, change_node_variant, clean_graph_node_ids, new_agent_provider_variant, new_command_node_output_variant, new_graph_node_output_variant, new_node_executor_variant, new_parallel_executor_variant, new_web_client_output_variant, next_node_id, node_by_id, update_graph_node_ids } from './functions/node_functions';
 import { JSONPath } from 'jsonpath-plus';
 import { new_body_variant, new_data_comparator_variant, new_data_from_agent_history_content, new_data_from_variant, new_data_operation_variant, new_data_to_agent_history } from './functions/data_functions';
 import { is_type_in_enum } from './functions/form_utils';
@@ -14,6 +14,7 @@ import { load_graph_from_json } from './functions/load_json';
 import { ID_EXIT_ERR, ID_EXIT_OK } from './functions/graph_to_cytoscape';
 import { AwpakMethod, WebClientBodyVariant, WebClientOutputVariant } from './model/web_client';
 import type { DataToAgentHistoryVariant } from './model/agent_history_mut';
+import type { ParallelExecutorVariant } from './model/parallel';
 
 let g = new Graph();
 
@@ -368,6 +369,11 @@ export function change_variant(
 export function change_provider_variant( base_path : string, next_variant : AIAgentProviderConfigVariant )
 {
     change_variant( base_path, next_variant, new_agent_provider_variant );
+}
+
+export function change_parallel_executor_variant( base_path : string, next_variant : ParallelExecutorVariant )
+{
+    change_variant( base_path, next_variant, new_parallel_executor_variant );
 }
 
 export function change_node_executor_variant( base_path : string, next_variant : NodeExecutorVariant )

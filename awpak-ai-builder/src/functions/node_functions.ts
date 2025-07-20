@@ -6,7 +6,8 @@ import { DataFromVariant, DataOperationVariant, type DataFrom } from "../model/d
 import { DataComparatorVariant, type DataComparator } from "../model/data_comparator";
 import type { Graph } from "../model/graph";
 import { GraphNode, GraphNodeOutputErr, GraphNodeOutputObject, GraphNodeOutputOut, GraphNodeOutputSuccess, GraphNodeOutputVariant, Node, NodeDestination, NodeNextExitErr, NodeNextExitOk, NodeNextNode, NodeNextVariant, NodeTypeVariant, type GraphNodeOutput, type NodeNext, type NodeType } from "../model/node";
-import { NodeExecutorAgent, NodeExecutorAgentHistoryMut, NodeExecutorCommand, NodeExecutorContextMut, NodeExecutorVariant, NodeExecutorWebClient, type NodeExecutor } from "../model/node_executor";
+import { NodeExecutorAgent, NodeExecutorAgentHistoryMut, NodeExecutorCommand, NodeExecutorContextMut, NodeExecutorParallel, NodeExecutorVariant, NodeExecutorWebClient, type NodeExecutor } from "../model/node_executor";
+import { ParallelExecutorCommand, ParallelExecutorVariant, ParallelExecutorWebClient, type Parallel, type ParallelExecutor } from "../model/parallel";
 import { WebClient, WebClientBodyVariant, WebClientOutputBody, WebClientOutputHeader, WebClientOutputObject, WebClientOutputStatus, WebClientOutputVariant, WebClientOutputVersion, type WebClientOutput } from "../model/web_client";
 import { is_type_in_enum } from "./form_utils";
 
@@ -48,9 +49,33 @@ function update_ids_in_node( node : NodeType | undefined, id : string, new_id : 
         {
             update_ids_in_web_client( node.executor.value, id, new_id );
         }
+        else if( node.executor?._variant == NodeExecutorVariant.Parallel )
+        {
+            update_ids_in_parallel( node.executor.value, id, new_id );
+        }
+    }
+    else if( node._variant == NodeTypeVariant.GraphNode )
+    {
+        node.input.forEach( ( i ) => update_ids_in_data_from( i.from, id, new_id ) );
     }
 
     update_node_destinations_id( node, id, new_id );
+}
+
+function update_ids_in_parallel( parallel : Parallel, id : string, new_id : string | undefined )
+{
+    parallel.executors.forEach(
+        ( p ) => {
+            if( p._variant == ParallelExecutorVariant.Command )
+            {
+                update_ids_in_command( p.executor, id, new_id );
+            }
+            else if( p._variant == ParallelExecutorVariant.WebClient )
+            {
+                update_ids_in_web_client( p.executor, id, new_id );
+            }
+        }
+    )
 }
 
 function update_ids_in_web_client( client : WebClient, id : string, new_id : string | undefined )
@@ -377,6 +402,32 @@ export function new_agent_provider_variant( old : AIAgentProvider, new_variant :
     }
 }
 
+export function new_parallel_executor_variant( old : ParallelExecutor, new_variant : string ) : ParallelExecutor | undefined
+{
+    if( ! is_type_in_enum( ParallelExecutorVariant, new_variant ) ) { return undefined; }
+    
+    new_variant = new_variant as ParallelExecutorVariant;
+
+    if( old._variant == new_variant ) { return old; }
+
+    if( new_variant == ParallelExecutorVariant.Command )
+    {
+        let ret = new ParallelExecutorCommand();
+
+        ret.ty = old.ty;
+
+        return ret;
+    }
+    else if( new_variant == ParallelExecutorVariant.WebClient )
+    {
+        let ret = new ParallelExecutorWebClient();
+
+        ret.ty = old.ty;
+
+        return ret;
+    }
+}
+
 export function new_node_executor_variant( old : NodeExecutor, new_variant : string ) : NodeExecutor | undefined
 {
     if( ! is_type_in_enum( NodeExecutorVariant, new_variant ) ) { return undefined; }
@@ -404,6 +455,10 @@ export function new_node_executor_variant( old : NodeExecutor, new_variant : str
     else if( new_variant == NodeExecutorVariant.WebClient )
     {
         return new NodeExecutorWebClient();
+    }
+    else if( new_variant == NodeExecutorVariant.Parallel )
+    {
+        return new NodeExecutorParallel();
     }
 }
 

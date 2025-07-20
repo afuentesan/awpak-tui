@@ -2,7 +2,7 @@
 <script lang="ts">
     import { FromContext, type DataFrom as ExecutorDataFrom } from "../../model/data";
     import { NodeExecutorVariant, type NodeExecutor } from "../../model/node_executor";
-    import { append_to_array, change_boolean, change_data_type, change_node_executor_variant, change_option_string, change_request_method, graph, remove_from_array, swap_array_items } from "../../store";
+    import { append_to_array, change_boolean, change_data_type, change_node_executor_variant, change_option_string, change_parallel_executor_variant, change_request_method, graph, remove_from_array, swap_array_items } from "../../store";
     import DataFrom from "../data/DataFrom.svelte";
     import DataToContext from "../data/DataToContext.svelte";
     import { DataToContext as ContextMutDataToContext } from "../../model/data";
@@ -264,11 +264,19 @@
     {:else if node_executor._variant == NodeExecutorVariant.Parallel}
         {#each node_executor.value.executors as _, i}
             <Box title={"Executor "+i} base_path={base_path+".value.executors["+i+"]"}>
-                <DataType 
-                    label={"Type"} 
-                    value={node_executor.value.executors[ i ].ty} 
-                    change_value={change_data_type} 
-                    base_path={base_path+".value.executors["+i+"].ty"} 
+                
+                <Select
+                    label="Executor type" 
+                    options={
+                        select_options_from_enum(
+                            ParallelExecutorVariant,
+                            node_executor.value.executors[ i ]._variant,
+                            false
+                        )
+                    } 
+                    value={node_executor.value.executors[ i ]._variant} 
+                    change_value={change_parallel_executor_variant} 
+                    base_path={base_path+".value.executors["+i+"]"} 
                 />
                 
                 {#if node_executor.value.executors[ i ]._variant == ParallelExecutorVariant.Command}
@@ -282,6 +290,37 @@
                         web_client={node_executor.value.executors[ i ].executor}
                     />
                 {/if}
+
+                <DataType 
+                    label={"Output type"} 
+                    value={node_executor.value.executors[ i ].ty} 
+                    change_value={change_data_type} 
+                    base_path={base_path+".value.executors["+i+"].ty"} 
+                />
+
+                <div class="text-center">
+                    <Button
+                        text="Remove ParallelExecutor"
+                        click={
+                            () => remove_from_array( base_path+".value.executors", i )
+                        }
+                        color="red"
+                    />
+                    <Button 
+                        text="Up" 
+                        click={
+                            () => swap_array_items( base_path+".value.executors", i, i - 1 )
+                        } 
+                        color="blue" 
+                    />
+                    <Button 
+                        text="Down" 
+                        click={
+                            () => swap_array_items( base_path+".value.executors", i, i + 1 )
+                        } 
+                        color="blue" 
+                    />
+                </div>
             </Box>
         {/each}
         <div class="text-center">
