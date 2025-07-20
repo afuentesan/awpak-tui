@@ -195,6 +195,12 @@
                         }
                     },
                     {
+                        selector: `node[ty = "${NodeExecutorVariant.Parallel}"]`,
+                        style: {
+                        'background-color': '#5145CD'
+                        }
+                    },
+                    {
                         selector: `node[ty = "${NodeExecutorVariant.Agent}"]`,
                         style: {
                         'background-color': '#8E4B10'

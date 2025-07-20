@@ -69,10 +69,14 @@ function update_ids_in_parallel( parallel : Parallel, id : string, new_id : stri
             if( p._variant == ParallelExecutorVariant.Command )
             {
                 update_ids_in_command( p.executor, id, new_id );
+
+                update_ids_in_data_comparator( p.condition, id, new_id );
             }
             else if( p._variant == ParallelExecutorVariant.WebClient )
             {
                 update_ids_in_web_client( p.executor, id, new_id );
+
+                update_ids_in_data_comparator( p.condition, id, new_id );
             }
         }
     )
