@@ -178,12 +178,8 @@
         label="Output to context" 
         node_output={node._variant == NodeTypeVariant.Node ? node.output : node.node_output} 
         base_path={base_path+"."+(node._variant == NodeTypeVariant.Node ? "output" : "node_output")}
-        allowed_types={
+        hide_type={
             node._variant == NodeTypeVariant.Node && node.executor?._variant == NodeExecutorVariant.Parallel
-            ?
-            [ DataType.String, DataType.Array ]
-            :
-            undefined
         }
     />
     {/if}

@@ -14,20 +14,24 @@
         label : string,
         node_output : DataToContext | undefined,
         base_path : string,
-        allowed_types? : Array<DT>
+        allowed_types? : Array<DT>,
+        hide_type? : boolean
     }
 
     let { 
         label, 
         node_output, 
         base_path,
-        allowed_types
+        allowed_types,
+        hide_type
     } : InputProps = $props();
 </script>
 
 <Box title={label} base_path={base_path}>
 
     <Input label={"Path"} value={node_output?.path} change_value={change_option_string} base_path={base_path+".path"} />
+
+    {#if ! hide_type}
     <DataType 
         label={"Type"} 
         value={node_output?.ty} 
@@ -35,6 +39,8 @@
         base_path={base_path+".ty"} 
         allowed_types={allowed_types}
     />
+    {/if}
+    
     <DataMerge label={"Merge"} value={node_output?.merge} base_path={base_path+".merge"} />
     <Checkbox 
         label="Optional" 
