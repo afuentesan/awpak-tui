@@ -1,116 +1,129 @@
 {
-    "first" : {
-        "Node" : {
-            "id" : "node_1",
-            "executor" : {
-                "Command" : {
-                    "command" : "echo",
-                    "args" : [ 
-                        {
-                            "Input" : { "required" : true }
-                        }
-                    ],
-                    "output" : [ 
-                        {
-                            "Out" : {}
-                        }
-                    ]
-                }
-            },
-            "output" : {
-                "path" : "num_1"
-            },
-            "destination" : [
-                {
-                    "next" : {
-                        "Node" : "node_sum"
-                    },
-                    "condition" : {
-                        "Regex" : {
-                            "regex" : "^[0-9]+$",
-                            "from" : {
-                                "Context" : {
-                                    "path" : "num_1"
-                                }
-                            }
-                        }
-                    }
-                },
-                {
-                    "next" : {
-                        "ExitErr" : [
-                            {
-                                "from" : {
-                                    "Context" : {
-                                        "path" : "num_1"
-                                    }
-                                }
-                            },
-                            {
-                                "from" : {
-                                    "Static" : " is not a number"
-                                }
-                            }
-                        ]
-                    },
-                    "condition" : "True"
-                }
-            ]
-        }
-    },
-    "nodes" : [
-        {
-            "Node" : {
-                "id" : "node_sum",
-                "executor" : {
-                    "Command" : {
-                        "command" : "expr",
-                        "args" : [ 
-                            {
-                                "Context" : { 
-                                    "path" : "num_1",
-                                    "required" : true 
-                                }
-                            },
-                            {
-                                "Static" : "+"
-                            },
-                            {
-                                "Static" : 3
-                            }
-                        ],
-                        "output" : [ 
-                            {
-                                "Out" : {}
-                            }
-                        ]
-                    }
-                },
-                "output" : {
-                    "path" : "result"
-                },
-                "destination" : [
-                    {
-                        "next" : {
-                            "ExitOk" : [
-                                {
-                                    "from" : {
-                                        "Static" : "Sum result: "
-                                    }
-                                },
-                                {
-                                    "from" : {
-                                        "Context" : {
-                                            "path" : "result"
-                                        }
-                                    }
-                                }
-                            ]
-                        },
-                        "condition" : "True"
-                    }
-                ]
+  "context": {},
+  "preserve_context": false,
+  "first": {
+    "Node": {
+      "id": "node_1",
+      "executor": {
+        "Command": {
+          "command": {
+            "Static": "echo"
+          },
+          "args": [
+            {
+              "Input": {
+                "required": true
+              }
             }
+          ],
+          "output": [
+            {
+              "Out": {}
+            }
+          ]
         }
-    ]
+      },
+      "output": {
+        "path": "num_1",
+        "optional": false
+      },
+      "destination": [
+        {
+          "next": {
+            "Node": "node_sum"
+          },
+          "condition": {
+            "Regex": {
+              "regex": "^[0-9]+$",
+              "from": {
+                "Context": {
+                  "path": "num_1",
+                  "required": false
+                }
+              }
+            }
+          }
+        },
+        {
+          "next": {
+            "ExitErr": [
+              {
+                "from": {
+                  "Context": {
+                    "path": "num_1",
+                    "required": false
+                  }
+                }
+              },
+              {
+                "from": {
+                  "Static": " is not a number"
+                }
+              }
+            ]
+          },
+          "condition": "True"
+        }
+      ]
+    }
+  },
+  "nodes": [
+    {
+      "Node": {
+        "id": "node_sum",
+        "executor": {
+          "Command": {
+            "command": {
+              "Static": "expr"
+            },
+            "args": [
+              {
+                "Context": {
+                  "path": "num_1",
+                  "required": true
+                }
+              },
+              {
+                "Static": "+"
+              },
+              {
+                "Static": 3
+              }
+            ],
+            "output": [
+              {
+                "Out": {}
+              }
+            ]
+          }
+        },
+        "output": {
+          "path": "result",
+          "optional": false
+        },
+        "destination": [
+          {
+            "next": {
+              "ExitOk": [
+                {
+                  "from": {
+                    "Static": "Sum result: "
+                  }
+                },
+                {
+                  "from": {
+                    "Context": {
+                      "path": "result",
+                      "required": false
+                    }
+                  }
+                }
+              ]
+            },
+            "condition": "True"
+          }
+        ]
+      }
+    }
+  ]
 }

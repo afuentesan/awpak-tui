@@ -1,7 +1,7 @@
 
 use rig::{agent::Agent, client::CompletionClient};
 
-use crate::domain::{agent::{agent::{AIAgent, AIAgentProviderConfig, AnthropicConfig, DeepSeekConfig, GeminiConfig, OllamaConfig, OpenAIConfig}, agent_provider::AIAgentProvider}, error::Error, graph::graph::Graph, mcp::mcp_functions::add_mcp_clients_to_agent};
+use crate::domain::{agent::{agent::{AIAgent, AIAgentProviderConfig, AnthropicConfig, DeepSeekConfig, GeminiConfig, OllamaConfig, OpenAIConfig}, agent_provider::AIAgentProvider}, data::{data_selection::{data_selection, data_to_string}, data_utils::value_to_string}, error::Error, graph::graph::Graph, mcp::mcp_functions::add_mcp_clients_to_agent};
 
 // CREATE AGENT PROVIDER
 
@@ -30,13 +30,17 @@ async fn gemini_agent_provider(
 
     let client = rig::providers::gemini::Client::new( &api_key );
 
-    let agent = client.agent( &config.model );
+    let model = value_to_string( &data_selection( graph, &config.model )? );
+
+    let agent = client.agent( &model );
 
     let mut agent = add_mcp_clients_to_agent( graph, agent, &ai_agent.servers ).await?;
 
-    if let Some( p ) = ai_agent.system_prompt.as_ref()
+    let system_prompt = data_to_string( graph, ai_agent.system_prompt.clone() );
+
+    if system_prompt.trim() != ""
     {
-        agent = agent.preamble( p.as_str() );
+        agent = agent.preamble( system_prompt.as_str() );
     }
     
     let agent = agent.build();
@@ -54,7 +58,9 @@ async fn deepseek_agent_provider(
 
     let client = rig::providers::deepseek::Client::new( &api_key );
 
-    let mut agent = client.agent( &config.model );
+    let model = value_to_string( &data_selection( graph, &config.model )? );
+
+    let mut agent = client.agent( &model );
 
     if let Some( m ) = config.max_tokens
     {
@@ -63,9 +69,11 @@ async fn deepseek_agent_provider(
 
     let mut agent = add_mcp_clients_to_agent( graph, agent, &ai_agent.servers ).await?;
 
-    if let Some( p ) = ai_agent.system_prompt.as_ref()
+    let system_prompt = data_to_string( graph, ai_agent.system_prompt.clone() );
+
+    if system_prompt.trim() != ""
     {
-        agent = agent.preamble( p.as_str() );
+        agent = agent.preamble( system_prompt.as_str() );
     }
     
     let agent = agent.build();
@@ -81,13 +89,17 @@ async fn ollama_agent_provider(
 {
     let client = rig::providers::ollama::Client::new();
 
-    let agent = client.agent( &config.model );
+    let model = value_to_string( &data_selection( graph, &config.model )? );
+
+    let agent = client.agent( &model );
 
     let mut agent = add_mcp_clients_to_agent( graph, agent, &ai_agent.servers ).await?;
 
-    if let Some( p ) = ai_agent.system_prompt.as_ref()
+    let system_prompt = data_to_string( graph, ai_agent.system_prompt.clone() );
+
+    if system_prompt.trim() != ""
     {
-        agent = agent.preamble( p.as_str() );
+        agent = agent.preamble( system_prompt.as_str() );
     }
 
     Ok( AIAgentProvider::Ollama( agent.build() ) )
@@ -103,13 +115,17 @@ async fn openai_agent_provider(
 
     let client = rig::providers::openai::Client::new( &api_key );
 
-    let agent = client.agent( &config.model );
+    let model = value_to_string( &data_selection( graph, &config.model )? );
+
+    let agent = client.agent( &model );
 
     let mut agent = add_mcp_clients_to_agent( graph, agent, &ai_agent.servers ).await?;
 
-    if let Some( p ) = ai_agent.system_prompt.as_ref()
+    let system_prompt = data_to_string( graph, ai_agent.system_prompt.clone() );
+
+    if system_prompt.trim() != ""
     {
-        agent = agent.preamble( p.as_str() );
+        agent = agent.preamble( system_prompt.as_str() );
     }
     
     let agent = agent.build();
@@ -143,13 +159,17 @@ async fn anthropic_agent_provider(
 
     // let client = rig::providers::anthropic::Client::from_env()
 
-    let agent = client.agent( &config.model ).max_tokens( config.max_tokens );
+    let model = value_to_string( &data_selection( graph, &config.model )? );
+
+    let agent = client.agent( &model ).max_tokens( config.max_tokens );
 
     let mut agent = add_mcp_clients_to_agent( graph, agent, &ai_agent.servers ).await?;
 
-    if let Some( p ) = ai_agent.system_prompt.as_ref()
+    let system_prompt = data_to_string( graph, ai_agent.system_prompt.clone() );
+
+    if system_prompt.trim() != ""
     {
-        agent = agent.preamble( p.as_str() );
+        agent = agent.preamble( system_prompt.as_str() );
     }
     
     let agent = agent.build();

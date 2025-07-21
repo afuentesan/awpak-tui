@@ -1,46 +1,55 @@
 {
-    "first" : {
-        "Node" : {
-            "id" : "node_1",
-            "executor" : {
-                "Command" : {
-                    "command" : "echo",
-                    "args" : [ 
-                        {
-                            "Input" : { "required" : true }
-                        }
-                    ],
-                    "output" : [ 
-                        {
-                            "Out" : {}
-                        }
-                    ]
-                }
-            },
-            "output" : {
-                "path" : "output"
-            },
-            "destination" : [
-                {
-                    "next" : {
-                        "ExitOk" : [
-                            {
-                                "from" : {
-                                    "Static" : "Exit ok\n"
-                                }
-                            },
-                            {
-                                "from" : {
-                                    "Context" : {
-                                        "path" : "output"
-                                    }
-                                }
-                            }
-                        ]
-                    },
-                    "condition" : "True"
-                }
-            ]
+  "context": {},
+  "preserve_context": false,
+  "first": {
+    "Node": {
+      "id": "node_1",
+      "executor": {
+        "Command": {
+          "command": {
+            "Static": "echo"
+          },
+          "args": [
+            {
+              "Input": {
+                "required": true
+              }
+            }
+          ],
+          "output": [
+            {
+              "Out": {}
+            }
+          ]
         }
+      },
+      "output": {
+        "path": "output",
+        "optional": false
+      },
+      "destination": [
+        {
+          "next": {
+            "ExitOk": [
+              {
+                "from": {
+                  "Static": "Exit ok\n"
+                }
+              },
+              {
+                "from": {
+                  "Context": {
+                    "path": "output",
+                    "required": false
+                  }
+                }
+              }
+            ]
+          },
+          "condition": "True"
+        }
+      ]
     }
+  },
+  "nodes": []
 }

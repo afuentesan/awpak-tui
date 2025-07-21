@@ -1,7 +1,8 @@
 use rig::message::Message;
 use serde::{Deserialize, Serialize};
+use serde_json::Value;
 
-use crate::domain::{data::data::DataToString, mcp::mcp::NodeMCPServer};
+use crate::domain::{data::data::{DataFrom, DataToString}, mcp::mcp::NodeMCPServer};
 
 
 #[derive(Serialize, Deserialize, Clone)]
@@ -10,7 +11,7 @@ pub struct AIAgent
     pub provider : AIAgentProviderConfig,
 
     #[serde(default)]
-    pub system_prompt : Option<String>,
+    pub system_prompt : Vec<DataToString>,
     #[serde(default)]
     pub save_history : bool,
 
@@ -36,8 +37,8 @@ impl Default for AIAgent
     {
         Self 
         { 
-            provider : AIAgentProviderConfig::Ollama( OllamaConfig { model : "llama3.1".into() } ), 
-            system_prompt : None, 
+            provider : AIAgentProviderConfig::Ollama( OllamaConfig { model : DataFrom::Static( Value::String( "llama3.1".into() ) ) } ), 
+            system_prompt : vec![], 
             save_history : false, 
             servers : vec![], 
             prompt : vec![], 
@@ -61,21 +62,21 @@ pub enum AIAgentProviderConfig
 #[derive(Serialize, Deserialize, Clone)]
 pub struct OllamaConfig
 {
-    pub model : String
+    pub model : DataFrom
 }
 
 #[derive(Serialize, Deserialize, Clone)]
 pub struct OpenAIConfig
 {
     pub api_key : String,
-    pub model : String
+    pub model : DataFrom
 }
 
 #[derive(Serialize, Deserialize, Clone)]
 pub struct AnthropicConfig
 {
     pub api_key : String,
-    pub model : String,
+    pub model : DataFrom,
     pub max_tokens : u64
 }
 
@@ -83,7 +84,7 @@ pub struct AnthropicConfig
 pub struct DeepSeekConfig
 {
     pub api_key : String,
-    pub model : String,
+    pub model : DataFrom,
     #[serde(default)]
     pub max_tokens : Option<u64>
 }
@@ -92,5 +93,5 @@ pub struct DeepSeekConfig
 pub struct GeminiConfig
 {
     pub api_key : String,
-    pub model : String
+    pub model : DataFrom
 }

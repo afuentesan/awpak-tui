@@ -8,9 +8,17 @@ pub fn command_output(
 {
     let mut ret = String::new();
 
+    let mut count = 0;
+
     for out in output
     {
-        ret.push_str( item_command_output( result, out )?.as_str() );
+        ret.push_str( 
+            item_command_output( result, out )
+            .map_err( 
+                | e | e.prepend_str( format!( "Command output {}\n", count ) )
+            )?.as_str() );
+
+        count += 1;
     }
 
     Ok( ret )

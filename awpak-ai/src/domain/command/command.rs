@@ -6,7 +6,7 @@ use crate::domain::data::data::DataFrom;
 #[derive(Serialize, Deserialize, Clone)]
 pub struct Command
 {
-    pub command : String,
+    pub command : DataFrom,
     #[serde(default)]
     pub args : Vec<DataFrom>,
     #[serde(default)]

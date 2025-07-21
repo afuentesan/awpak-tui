@@ -1,8 +1,8 @@
-import type { DataFrom } from "./data";
+import { FromStatic, type DataFrom } from "./data";
 
 export class Command
 {
-    command : string | undefined;
+    command : DataFrom = new FromStatic();
     args : Array<DataFrom> = [];
     output : Array<CommandOutput> = [];
 }

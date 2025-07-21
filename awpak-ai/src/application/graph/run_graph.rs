@@ -4,7 +4,7 @@ use serde_json::Value;
 use async_recursion::async_recursion;
 use tracing::info;
 
-use crate::{application::graph::execute_graph::execute_graph, domain::{agent::execute_agent::execute_agent, agent_history_mut::change_agent_history::change_agent_history, command::execute_command::execute_command, context_mut::change_context::change_context, data::{data::{DataComparator, DataType}, data_compare::compare_data, data_insert::{str_to_context, value_to_context}, data_selection::data_to_string, data_utils::str_to_value}, error::Error, graph::{graph::Graph, node::{NodeDestination, NodeExecutor, NodeNext}}, parallel::execute_parallel::execute_parallel, tracing::filter_layer::{GRAPH_INPUT, GRAPH_OUTPUT_ERR, GRAPH_OUTPUT_OK, NODE_DESTINATION, NODE_EXECUTION, NODE_OUTPUT}, utils::string_utils::option_string_to_str, web_client::execute_web_client::execute_web_client}};
+use crate::{application::graph::execute_graph::execute_graph, domain::{agent::execute_agent::execute_agent, agent_history_mut::change_agent_history::change_agent_history, command::execute_command::execute_command, context_mut::change_context::change_context, data::{data::{DataComparator, DataType}, data_compare::compare_data, data_insert::{str_to_context, value_to_context}, data_selection::data_to_string, data_utils::str_to_value}, error::{ChangeError, Error}, graph::{graph::Graph, node::{NodeDestination, NodeExecutor, NodeNext}}, parallel::execute_parallel::execute_parallel, tracing::filter_layer::{GRAPH_INPUT, GRAPH_OUTPUT_ERR, GRAPH_OUTPUT_OK, NODE_DESTINATION, NODE_EXECUTION, NODE_OUTPUT}, utils::string_utils::option_string_to_str, web_client::execute_web_client::execute_web_client}};
 
 
 struct GraphRunner
@@ -95,7 +95,12 @@ fn init_graph(
     let parsed_input = match graph_parsed_input( graph.input_type.as_ref(), input.as_str() )
     {
         Ok( p ) => p,
-        Err( e ) => return AwpakResult::new_err( graph, e )
+        Err( e ) => 
+        {
+            let msg = format!( "Init graph {:?}.\n", graph.id );
+
+            return AwpakResult::new_err( graph, e.prepend_str( msg ) )
+        }
     };
 
     graph.input = opt_input;
@@ -134,7 +139,8 @@ async fn execute_node( mut runner : GraphRunner ) -> ( AwpakResult<GraphRunner, 
             let result = execute_parallel(
                 &runner.graph, 
                 p
-            ).await;
+            ).await
+            .prepend_err( format!( "NodeExecutor::Parallel {}\n", node.id ) );
 
             runner.graph.nodes.insert( runner.next.clone(), node );
 
@@ -149,7 +155,8 @@ async fn execute_node( mut runner : GraphRunner ) -> ( AwpakResult<GraphRunner, 
             let result = execute_web_client( 
                 &runner.graph, 
                 c 
-            ).await;
+            ).await
+            .prepend_err( format!( "NodeExecutor::WebClient {}\n", node.id ) );
 
             (
                 node,
@@ -161,7 +168,8 @@ async fn execute_node( mut runner : GraphRunner ) -> ( AwpakResult<GraphRunner, 
             let result = execute_command( 
                 &runner.graph,
                 c 
-            ).await;
+            ).await
+            .prepend_err( format!( "NodeExecutor::Command {}\n", node.id ) );
 
             (
                 node,
@@ -173,7 +181,8 @@ async fn execute_node( mut runner : GraphRunner ) -> ( AwpakResult<GraphRunner, 
             let result = execute_agent( 
                 &runner.graph, 
                 a 
-            ).await;
+            ).await
+            .prepend_err( format!( "NodeExecutor::Agent {}\n", node.id ) );
 
             match result
             {
@@ -220,9 +229,11 @@ async fn execute_node( mut runner : GraphRunner ) -> ( AwpakResult<GraphRunner, 
                 {
                     node.executor = NodeExecutor::Graph( g );
 
+                    let msg = format!( "NodeExecutor::Graph {}\n", node.id );
+
                     (
                         node,
-                        Err( e )
+                        Err( e.prepend_str( msg ) )
                     )
                 }
             }
@@ -251,9 +262,11 @@ async fn execute_node( mut runner : GraphRunner ) -> ( AwpakResult<GraphRunner, 
                 {
                     runner.graph = g;
 
+                    let msg = format!( "NodeExecutor::ContextMut {}\n", node.id );
+
                     (
                         node,
-                        Err( e )
+                        Err( e.prepend_str( msg ) )
                     )
                 }
             }
@@ -282,9 +295,11 @@ async fn execute_node( mut runner : GraphRunner ) -> ( AwpakResult<GraphRunner, 
                 {
                     runner.graph = g;
 
+                    let msg = format!( "NodeExecutor::AgentHistoryMut {}\n", node.id );
+
                     (
                         node,
-                        Err( e )
+                        Err( e.prepend_str( msg ) )
                     )
                 }
             }
@@ -355,6 +370,8 @@ async fn redirect_or_exit( runner : GraphRunner ) -> ( AwpakResult<GraphRunner, 
 {
     let node = runner.graph.nodes.get( runner.next.as_str() ).unwrap();
 
+    let mut count : usize = 0;
+
     for d in &node.destination
     {
         match check_node_destination_condition( &runner.graph, &d.condition )
@@ -365,12 +382,27 @@ async fn redirect_or_exit( runner : GraphRunner ) -> ( AwpakResult<GraphRunner, 
 
                 return update_next( node.id.clone(), runner, d ).await
             }
-            Ok( _ ) => continue,
-            Err( e ) => return ( AwpakResult::new_err( runner, e ), false )
+            Ok( _ ) => {},
+            Err( e ) => 
+            {
+                let msg = format!( "NodeDestination condition. NodeId: {}. Destination {}\n", node.id, count );
+
+                return ( 
+                    AwpakResult::new_err( 
+                        runner, 
+                        e.prepend_str( msg )
+                    ), 
+                    false 
+                )
+            }
         }
+
+        count += 1;
     }
 
-    ( AwpakResult::new_err( runner, Error::NodeNotFound( "Destination not found".into() ) ), false )
+    let msg = format!( "Destination not found in node: {}", node.id );
+
+    ( AwpakResult::new_err( runner, Error::NodeNotFound( msg ) ), false )
 }
 
 fn trace_node_destination( from : String, to : &str, graph_id : Option<&String> )
@@ -428,7 +460,13 @@ async fn update_next( from : String, mut runner : GraphRunner, destination : Nod
 
                     ( AwpakResult::new( runner ), true )
                 },
-                _ => ( AwpakResult::new_err( runner, Error::NodeNotFound( format!( "Node {} not found.", n ) ) ), false )
+                _ => ( 
+                    AwpakResult::new_err( 
+                        runner, 
+                        Error::NodeNotFound( format!( "Node {} not found. Destination from: {}", n, from ) ) 
+                    ), 
+                    false 
+                )
             }
         }
     }
@@ -447,6 +485,8 @@ async fn output_to_context( output : String, mut runner : GraphRunner ) -> Awpak
     {
         Some( c ) =>
         {
+            let msg_err = format!( "Data to context. NodeId: {}\nOutput: {}\n{:?}\n", node.id, output, c );
+
             let context = str_to_context( output, runner.graph.context, c );
 
             match context.collect()
@@ -461,7 +501,7 @@ async fn output_to_context( output : String, mut runner : GraphRunner ) -> Awpak
                 {
                     runner.graph.context = c;
 
-                    AwpakResult::new_err( runner, e )
+                    AwpakResult::new_err( runner, e.prepend_str( msg_err ) )
                 }
             }
         },
@@ -476,7 +516,12 @@ fn graph_parsed_input(
 {
     match input_type
     {
-        Some( t ) => str_to_value( input, t, false ),
+        Some( t ) => str_to_value( input, t, false )
+                                .map_err( 
+                                    | e | e.prepend_str( 
+                                        format!( "ParsedInput. Type: {:?}. Input: {}\n", input_type, input ) 
+                                    )
+                                ),
         None => Ok( Value::Null )
     }
 }

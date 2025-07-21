@@ -19,11 +19,10 @@
 
 </script>
 
-<Input
+<DataFrom
     label="Command"
-    value={command.command}
-    change_value={change_option_string}
     base_path={base_path+".command"}
+    from={command.command}
 />
 
 <Box title="Arguments" base_path={base_path+".args"}>

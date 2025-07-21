@@ -24,7 +24,7 @@ export function generate_json( graph : Graph ) : string
 
     append_nodes( json, graph );
 
-    return JSON.stringify( json );
+    return JSON.stringify( json, null, 2 );
 }
 
 function append_nodes( json : any, graph : Graph )
@@ -122,7 +122,7 @@ function json_agent( executor : NodeExecutorAgent ) : any
     return {
         "Agent" : {
             provider : json_agent_provider( executor.value.provider ),
-            system_prompt : executor.value.system_prompt,
+            system_prompt : json_vec_data_to_string( executor.value.system_prompt ),
             save_history : executor.value.save_history,
             prompt : json_vec_data_to_string( executor.value.prompt ),
             servers : json_vec_mcp_server( executor.value.servers )
@@ -153,7 +153,7 @@ function json_agent_provider( provider : AIAgentProvider ) : any
         return {
             [provider._variant] : {
                 api_key : provider.api_key,
-                model : provider.model,
+                model : json_data_from( provider.model ),
                 max_tokens : provider.max_tokens
             }
         }
@@ -166,7 +166,7 @@ function json_agent_provider( provider : AIAgentProvider ) : any
         return {
             [provider._variant] : {
                 api_key : provider.api_key,
-                model : provider.model
+                model : json_data_from( provider.model )
             }
         }
     }
@@ -176,7 +176,7 @@ function json_agent_provider( provider : AIAgentProvider ) : any
     {
         return {
             [provider._variant] : {
-                model : provider.model
+                model : json_data_from( provider.model )
             }
         }
     }
@@ -230,7 +230,7 @@ function json_executor_command( executor : NodeExecutorCommand ) : any
 function json_command( command : Command ) : any
 {
     return {
-            command : command.command,
+            command : json_data_from( command.command ),
             args : json_vec_data_from( command.args ),
             output : json_vec_command_output( command.output )
     }

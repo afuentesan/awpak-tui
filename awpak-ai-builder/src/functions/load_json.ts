@@ -201,7 +201,7 @@ function load_command( command : any ) : Command
     let value = new Command();
 
     value.args = load_vec_data_from( command.args );
-    value.command = command.command;
+    value.command = load_data_from( command.command );
 
     value.output = load_vec_command_output( command.output );
 
@@ -365,7 +365,7 @@ function load_node_executor_agent( agent : any ) : NodeExecutorAgent
 
     value.provider = load_ai_agent_provider( agent.provider );
     
-    value.system_prompt = agent.system_prompt;
+    value.system_prompt = load_vec_data_to_string( agent.system_prompt );
     value.save_history = agent.save_history ? true : false;
 
     if( agent.servers ) value.servers = load_mcp_servers( agent.servers );
@@ -408,7 +408,7 @@ function load_ai_agent_provider_model(
     src : AIAgentProviderOllama
 ) : AIAgentProviderOllama
 {
-    src.model = provider.model;
+    src.model = load_data_from( provider.model );
 
     return src;
 }
@@ -418,7 +418,7 @@ function load_ai_agent_provider_model_api_key(
     src : AIAgentProviderOpenAI | AIAgentProviderGemini
 ) : AIAgentProviderOpenAI | AIAgentProviderGemini
 {
-    src.model = provider.model;
+    src.model = load_data_from( provider.model );
     src.api_key = provider.api_key;
 
     return src;
@@ -429,7 +429,7 @@ function load_ai_agent_provider_model_api_key_max_tokens(
     src : AIAgentProviderAnthropic | AIAgentProviderDeepSeek
 ) : AIAgentProviderAnthropic | AIAgentProviderDeepSeek
 {
-    src.model = provider.model;
+    src.model = load_data_from( provider.model );
     src.api_key = provider.api_key;
     src.max_tokens = provider.max_tokens;
 
@@ -694,6 +694,8 @@ function load_data_comparator_from_1_from_2(
 
 function load_vec_data_to_string( data : Array<any> ) : Array<DataToString>
 {
+    if( ! data?.length ) return [];
+    
     return data.map( ( d ) => load_data_to_string( d ) );
 }
 
@@ -713,6 +715,15 @@ function load_vec_data_from( data : Array<any> ) : Array<DataFrom>
 
 function load_data_from( data : any ) : DataFrom
 {
+    if( typeof( data ) === "string" )
+    {
+        let ret = new FromStatic();
+
+        ret.value = data;
+
+        return ret;
+    }
+
     if( ! is_empty( data?.[ "Context" ] ) )
     {
         return load_from_context( data[ "Context" ] );

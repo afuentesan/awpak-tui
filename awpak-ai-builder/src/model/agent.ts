@@ -1,11 +1,11 @@
-import type { DataFrom, DataToString } from "./data";
+import { FromStatic, type DataFrom, type DataToString } from "./data";
 
 
 export class AIAgent
 {
     provider : AIAgentProvider;
 
-    system_prompt : string | undefined;
+    system_prompt : Array<DataToString> = [];
     save_history : boolean = false;
     
     servers : Array<NodeMCPServer> = [];
@@ -44,14 +44,14 @@ export class AIAgentProviderOllama
 {
     readonly _variant = AIAgentProviderConfigVariant.Ollama;
 
-    model : string | undefined
+    model : DataFrom = new FromStatic();
 }
 
 export class AIAgentProviderOpenAI
 {
     readonly _variant = AIAgentProviderConfigVariant.OpenAI;
 
-    model : string | undefined;
+    model : DataFrom = new FromStatic();
     api_key : string | undefined;
 }
 
@@ -59,7 +59,7 @@ export class AIAgentProviderAnthropic
 {
     readonly _variant = AIAgentProviderConfigVariant.Anthropic;
 
-    model : string | undefined;
+    model : DataFrom = new FromStatic();
     api_key : string | undefined;
     max_tokens : number | undefined;
 }
@@ -68,7 +68,7 @@ export class AIAgentProviderDeepSeek
 {
     readonly _variant = AIAgentProviderConfigVariant.DeepSeek;
 
-    model : string | undefined;
+    model : DataFrom = new FromStatic();
     api_key : string | undefined;
     max_tokens : number | undefined;
 }
@@ -77,6 +77,6 @@ export class AIAgentProviderGemini
 {
     readonly _variant = AIAgentProviderConfigVariant.Gemini;
 
-    model : string | undefined;
+    model : DataFrom = new FromStatic();
     api_key : string | undefined;
 }

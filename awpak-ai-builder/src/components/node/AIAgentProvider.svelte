@@ -3,6 +3,7 @@
     import { select_options_from_enum } from "../../functions/form_utils";
     import { AIAgentProviderConfigVariant, type AIAgentProvider } from "../../model/agent";
     import { change_option_number, change_option_string, change_provider_variant } from "../../store";
+    import DataFrom from "../data/DataFrom.svelte";
     import Box from "../form/Box.svelte";
     import Input from "../form/Input.svelte";
     import Select from "../form/Select.svelte";
@@ -48,11 +49,10 @@
         />
     {/if}
 
-    <Input
-        label="Model"
-        value={provider.model}
-        change_value={change_option_string}
+    <DataFrom
         base_path={base_path+".model"}
+        from={provider.model}
+        label="Model"
     />
 
     {#if 

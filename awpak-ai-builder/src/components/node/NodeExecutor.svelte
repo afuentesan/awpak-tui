@@ -35,13 +35,16 @@
 
     let { node_executor, base_path } : InputProps = $props();
 
-    function send_add_prompt_part()
+    function send_add_prompt_part( key : string )
     {
-        let path = base_path + ".value.prompt";
+        return () => {
+            let path = base_path + ".value." + key;
 
-        let new_input = new PromptDataToString();
+            let new_input = new PromptDataToString();
 
-        append_to_array( path, new_input );
+            append_to_array( path, new_input );
+        }
+        
     }
 
 </script>
@@ -69,12 +72,27 @@
             base_path={base_path+".value.provider"}
         />
 
-        <TextArea
-            label="System prompt"
-            value={node_executor.value.system_prompt}
-            change_value={change_option_string}
-            base_path={base_path+".value.system_prompt"}
-        />
+        <Box title="System prompt" base_path={base_path+".value.system_prompt"}>
+            {#each node_executor.value.system_prompt as _, i}
+                <DataToString 
+                    label={"System prompt part "+i} 
+                    data={node_executor.value.system_prompt[i]} 
+                    base_path={base_path+".value.system_prompt["+i+"]"} 
+                    remove_from_loop={
+                        () => remove_from_array( base_path+".value.system_prompt", i )
+                    }
+                    swap_items_in_array={
+                        ( up : boolean ) =>
+                        {
+                            swap_array_items( base_path+".value.system_prompt", i, ( up ? i - 1 : i + 1 ) );
+                        }
+                    }
+                />
+            {/each}
+            <div class="text-center">
+                <Button text="New system prompt part" click={send_add_prompt_part( "system_prompt" )} />
+            </div>
+        </Box>
 
         <Box title="Prompt" base_path={base_path+".value.prompt"}>
             {#each node_executor.value.prompt as _, i}
@@ -94,7 +112,7 @@
                 />
             {/each}
             <div class="text-center">
-                <Button text="New prompt part" click={send_add_prompt_part} />
+                <Button text="New prompt part" click={send_add_prompt_part( "prompt" )} />
             </div>
         </Box>
 

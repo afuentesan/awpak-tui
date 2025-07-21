@@ -1,7 +1,7 @@
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
 
-#[derive(Serialize, Deserialize, Clone, Default)]
+#[derive(Debug, Serialize, Deserialize, Clone, Default)]
 pub enum DataType
 {
     Null,
@@ -87,7 +87,7 @@ pub struct DataToString
     pub suffix : Option<String>
 }
 
-#[derive(Serialize, Deserialize, Clone)]
+#[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct DataToContext
 {
     pub path : String,
@@ -99,7 +99,7 @@ pub struct DataToContext
     pub optional : bool
 }
 
-#[derive(Serialize, Deserialize, Clone, Default)]
+#[derive(Debug, Serialize, Deserialize, Clone, Default)]
 pub enum DataMerge
 {
     #[default]

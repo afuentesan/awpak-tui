@@ -111,13 +111,19 @@ function update_ids_in_web_client( client : WebClient, id : string, new_id : str
 
 function update_ids_in_ai_agent( agent : AIAgent, id : string, new_id : string | undefined )
 {
+    agent.system_prompt.forEach( ( p ) => update_ids_in_data_from( p.from, id, new_id ) );
+
     agent.prompt.forEach( ( p ) => update_ids_in_data_from( p.from, id, new_id ) );
 
     agent.servers.forEach( ( s ) => s.args.forEach( ( a ) => update_ids_in_data_from( a, id, new_id ) ) );
+
+    update_ids_in_data_from( agent.provider.model, id, new_id );
 }
 
 function update_ids_in_command( command : Command, id : string, new_id : string | undefined )
 {
+    update_ids_in_data_from( command.command, id, new_id );
+
     command.args.forEach( ( a ) => update_ids_in_data_from( a, id, new_id ) );
 }
 

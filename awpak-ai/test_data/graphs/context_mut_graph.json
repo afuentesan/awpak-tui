@@ -1,197 +1,216 @@
 {
-    "first" : {
-        "Node" : {
-            "id" : "node_1",
-            "executor" : {
-                "ContextMut" : [
-                    {
-                        "from" : {
-                            "Static" : 2
-                        },
-                        "to" : {
-                            "path" : "/operations/add/num_1"
-                        }
-                    },
-                    {
-                        "from" : {
-                            "Static" : 7
-                        },
-                        "to" : {
-                            "path" : "/operations/add/num_2"
-                        }
-                    },
-                    {
-                        "from" : {
-                            "Operation" : {
-                                "Add" : {
-                                    "num_1" : {
-                                        "Context" : {
-                                            "path" : "/operations/add/num_1"
-                                        }
-                                    },
-                                    "num_2" : {
-                                        "Context" : {
-                                            "path" : "/operations/add/num_2"
-                                        }
-                                    }
-                                }
-                            }
-                        },
-                        "to" : {
-                            "path" : "/operations/add/result"
-                        }
-                    }
-                ]
+  "context": {},
+  "preserve_context": false,
+  "first": {
+    "Node": {
+      "id": "node_1",
+      "executor": {
+        "ContextMut": [
+          {
+            "from": {
+              "Static": 2
             },
-            "destination" : [
-                {
-                    "next" : {
-                        "Node" : "node_2"
-                    },
-                    "condition" : "True"
+            "to": {
+              "path": "/operations/add/num_1",
+              "optional": false
+            },
+            "condition": "True"
+          },
+          {
+            "from": {
+              "Static": 7
+            },
+            "to": {
+              "path": "/operations/add/num_2",
+              "optional": false
+            },
+            "condition": "True"
+          },
+          {
+            "from": {
+              "Operation": {
+                "Add": {
+                  "num_1": {
+                    "Context": {
+                      "path": "/operations/add/num_1",
+                      "required": false
+                    }
+                  },
+                  "num_2": {
+                    "Context": {
+                      "path": "/operations/add/num_2",
+                      "required": false
+                    }
+                  }
                 }
-            ]
-        }
-    },
-    "nodes" : [ 
+              }
+            },
+            "to": {
+              "path": "/operations/add/result",
+              "optional": false
+            },
+            "condition": "True"
+          }
+        ]
+      },
+      "destination": [
         {
-            "Graph" : {
-                "id" : "node_2",
-                "path" : "test_data/graphs/pure_echo_graph.json",
-
-                "input" : [
-                    {
-                        "from" : {
-                            "Context" : {
-                                "path" : "/operations/add/result",
-                                "required" : true
-                            }
-                        }
-                    }
-                ],
-
-                "output" : [
-                    {
-                        "Out" : {}
-                    }
-                ],
-                "node_output" : {
-                    "path" : "output",
-                    "ty" : "Number"
-                },
-                "node_destination" : [
-                    {
-                        "next" : {
-                            "Node" : "node_3"
-                        },
-                        "condition" : {
-                            "Regex" : {
-                                "regex" : "^[0-9.]+$",
-                                "from" : {
-                                    "Context" : {
-                                        "path" : "output"
-                                    }
-                                }
-                            }
-                        }
-                    }
-                ]
+          "next": {
+            "Node": "node_2"
+          },
+          "condition": "True"
+        }
+      ]
+    }
+  },
+  "nodes": [
+    {
+      "Graph": {
+        "id": "node_2",
+        "path": "test_data/graphs/pure_echo_graph.json",
+        "input": [
+          {
+            "from": {
+              "Context": {
+                "path": "/operations/add/result",
+                "required": true
+              }
             }
+          }
+        ],
+        "output": [
+          {
+            "Out": {}
+          }
+        ],
+        "node_output": {
+          "path": "output",
+          "ty": "Number",
+          "optional": false
         },
-        {
-            "Node" : {
-                "id" : "node_3",
-                "executor" : {
-                    "ContextMut" : [
-                        {
-                            "from" : {
-                                "Operation" : {
-                                    "Substract" : {
-                                        "num_1" : {
-                                            "Context" : {
-                                                "path" : "output"
-                                            }
-                                        },
-                                        "num_2" : {
-                                            "Context" : {
-                                                "path" : "/operations/add/num_2"
-                                            }
-                                        }
-                                    }
-                                }
-                            },
-                            "to" : {
-                                "path" : "/final_result"
-                            }
-                        }
-                    ]
-                },
-                "destination" : [
-                    {
-                        "next" : {
-                            "ExitOk" : [
-                                {
-                                    "from" : {
-                                        "Static" : "Exit ok: "
-                                    }
-                                },
-                                {
-                                    "from" : {
-                                        "Context" : {
-                                            "path" : "final_result"
-                                        }
-                                    }
-                                }
-                            ]
-                        },
-                        "condition" : {
-                            "Eq" : {
-                                "from_1" : {
-                                    "Context" : {
-                                        "path" : "/operations/add/num_1"
-                                    }
-                                },
-                                "from_2" : {
-                                    "Context" : {
-                                        "path" : "final_result"
-                                    }
-                                }
-                            }
-                        }
-                    },
-                    {
-                        "next" : {
-                            "ExitErr" : [
-                                {
-                                    "from" : {
-                                        "Static" : "Exit err. Final result: "
-                                    }
-                                },
-                                {
-                                    "from" : {
-                                        "Context" : {
-                                            "path" : "final_result"
-                                        }
-                                    }
-                                },
-                                {
-                                    "from" : {
-                                        "Static" : "Num 1: "
-                                    }
-                                },
-                                {
-                                    "from" : {
-                                        "Context" : {
-                                            "path" : "/operations/add/num_1"
-                                        }
-                                    }
-                                }
-                            ]
-                        },
-                        "condition" : "True"
-                    }
-                ]
+        "node_destination": [
+          {
+            "next": {
+              "Node": "node_3"
+            },
+            "condition": {
+              "Regex": {
+                "regex": "^[0-9.]+$",
+                "from": {
+                  "Context": {
+                    "path": "output",
+                    "required": false
+                  }
+                }
+              }
             }
-        }
-    ]
+          }
+        ]
+      }
+    },
+    {
+      "Node": {
+        "id": "node_3",
+        "executor": {
+          "ContextMut": [
+            {
+              "from": {
+                "Operation": {
+                  "Substract": {
+                    "num_1": {
+                      "Context": {
+                        "path": "output",
+                        "required": false
+                      }
+                    },
+                    "num_2": {
+                      "Context": {
+                        "path": "/operations/add/num_2",
+                        "required": false
+                      }
+                    }
+                  }
+                }
+              },
+              "to": {
+                "path": "/final_result",
+                "optional": false
+              },
+              "condition": "True"
+            }
+          ]
+        },
+        "destination": [
+          {
+            "next": {
+              "ExitOk": [
+                {
+                  "from": {
+                    "Static": "Exit ok: "
+                  }
+                },
+                {
+                  "from": {
+                    "Context": {
+                      "path": "final_result",
+                      "required": false
+                    }
+                  }
+                }
+              ]
+            },
+            "condition": {
+              "Eq": {
+                "from_1": {
+                  "Context": {
+                    "path": "/operations/add/num_1",
+                    "required": false
+                  }
+                },
+                "from_2": {
+                  "Context": {
+                    "path": "final_result",
+                    "required": false
+                  }
+                }
+              }
+            }
+          },
+          {
+            "next": {
+              "ExitErr": [
+                {
+                  "from": {
+                    "Static": "Exit err. Final result: "
+                  }
+                },
+                {
+                  "from": {
+                    "Context": {
+                      "path": "final_result",
+                      "required": false
+                    }
+                  }
+                },
+                {
+                  "from": {
+                    "Static": "Num 1: "
+                  }
+                },
+                {
+                  "from": {
+                    "Context": {
+                      "path": "/operations/add/num_1",
+                      "required": false
+                    }
+                  }
+                }
+              ]
+            },
+            "condition": "True"
+          }
+        ]
+      }
+    }
+  ]
 }

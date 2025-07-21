@@ -1,6 +1,7 @@
 use serde::{Deserialize, Serialize};
+use serde_json::Value;
 
-use crate::domain::{agent::agent::AIAgent, agent_history_mut::agent_history_mut::AgentHistoryMut, command::command::Command, context_mut::context_mut::ContextMut, data::data::{DataComparator, DataToContext, DataToString}, graph::graph_node::{GraphNode, GraphNodeOutput}, parallel::parallel::Parallel, web_client::web_client::WebClient};
+use crate::domain::{agent::agent::AIAgent, agent_history_mut::agent_history_mut::AgentHistoryMut, command::command::Command, context_mut::context_mut::ContextMut, data::data::{DataComparator, DataFrom, DataToContext, DataToString}, graph::graph_node::{GraphNode, GraphNodeOutput}, parallel::parallel::Parallel, web_client::web_client::WebClient};
 
 
 #[derive(Serialize, Deserialize, Clone)]
@@ -85,7 +86,7 @@ impl NodeExecutor
                 NodeExecutor::Command( 
                     Command 
                     { 
-                        command : "fake command".into(), 
+                        command : DataFrom::Static( Value::String( "fake command".into() ) ), 
                         args : vec![], 
                         output : vec![]
                     }
