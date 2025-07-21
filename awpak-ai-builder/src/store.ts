@@ -4,7 +4,7 @@ import { GraphNodeOutputVariant, Node, NodeDestination, NodeNextExitErr, NodeNex
 import { DataFromVariant, DataMerge, DataToContext, DataToString, DataType, DataOperationVariant, FromAgentHistoryContentVariant } from './model/data';
 import { change_node_next_variant, change_node_variant, clean_graph_node_ids, new_agent_provider_variant, new_command_node_output_variant, new_graph_node_output_variant, new_node_executor_variant, new_parallel_executor_variant, new_web_client_output_variant, next_node_id, node_by_id, update_graph_node_ids } from './functions/node_functions';
 import { JSONPath } from 'jsonpath-plus';
-import { new_body_variant, new_data_comparator_variant, new_data_from_agent_history_content, new_data_from_variant, new_data_operation_variant, new_data_to_agent_history } from './functions/data_functions';
+import { is_empty, new_body_variant, new_data_comparator_variant, new_data_from_agent_history_content, new_data_from_variant, new_data_operation_variant, new_data_to_agent_history } from './functions/data_functions';
 import { is_type_in_enum } from './functions/form_utils';
 import type { DataComparatorVariant } from './model/data_comparator';
 import type { NodeExecutorVariant } from './model/node_executor';
@@ -54,6 +54,34 @@ export function element_from_path( graph : Graph, path : string ) : any
     if( ! result?.length || ! result[ 0 ].value ) { return undefined; }
 
     return result[ 0 ].value;
+}
+
+export function clone_and_append_to_array( array_path : string, object : any )
+{
+    if( is_empty( object ) ) return;
+
+    let cloned;
+
+    try
+    {
+        cloned = JSON.parse( JSON.stringify( object ) );
+    }
+    catch( e )
+    {
+        console.error( e );
+
+        return;
+    }
+
+    let new_graph = Object.assign( {}, graph.get() );
+
+    const result = JSONPath( { path : array_path, json : new_graph, resultType : "all" } );
+
+    if( ! result?.length || ! result[ 0 ].parent ) { return; }
+
+    ( result[ 0 ].parent[ result[ 0 ].parentProperty ] as Array<any> ).push( cloned );
+
+    graph.set( new_graph );
 }
 
 export function add_node()
@@ -308,7 +336,11 @@ export function change_boolean( base_path : string, next : boolean )
 
 export function change_option_number( base_path : string, next : number | undefined )
 {
-    if( typeof( next ) === "undefined" || next === null ) { next = undefined; }
+    if( 
+        typeof( next ) === "undefined" || 
+        next === null ||
+        ( typeof( next ) === "string" && ( next + "" ).trim() == "" )
+    ) { next = undefined; }
 
     if( next !== undefined )
     {

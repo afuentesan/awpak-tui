@@ -13,7 +13,9 @@ pub struct AwpakRequest
     #[serde(default)]
     pub query_params : Vec<AwpakQueryParam>,
     #[serde(default)]
-    pub body : Option<AwpakBody>
+    pub body : Option<AwpakBody>,
+    #[serde(default)]
+    pub timeout : Option<u64>
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone)]

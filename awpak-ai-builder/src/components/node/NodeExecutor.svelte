@@ -2,7 +2,7 @@
 <script lang="ts">
     import { FromContext, type DataFrom as ExecutorDataFrom } from "../../model/data";
     import { NodeExecutorVariant, type NodeExecutor } from "../../model/node_executor";
-    import { append_to_array, change_boolean, change_data_type, change_node_executor_variant, change_option_string, change_parallel_executor_variant, change_request_method, graph, remove_from_array, swap_array_items } from "../../store";
+    import { append_to_array, change_boolean, change_data_type, change_node_executor_variant, change_option_string, change_parallel_executor_variant, change_request_method, clone_and_append_to_array, graph, remove_from_array, swap_array_items } from "../../store";
     import DataFrom from "../data/DataFrom.svelte";
     import DataToContext from "../data/DataToContext.svelte";
     import { DataToContext as ContextMutDataToContext } from "../../model/data";
@@ -328,6 +328,13 @@
                             () => remove_from_array( base_path+".value.executors", i )
                         }
                         color="red"
+                    />
+                    <Button
+                        text="Clone"
+                        click={
+                            () => clone_and_append_to_array( base_path+".value.executors", node_executor.value.executors[ i ] )
+                        }
+                        color="purple"
                     />
                     <Button 
                         text="Up" 

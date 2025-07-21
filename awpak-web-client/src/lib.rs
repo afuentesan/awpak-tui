@@ -1,7 +1,7 @@
 
 pub mod request;
 pub mod response;
-use std::{collections::HashMap, time::Instant};
+use std::{collections::HashMap, time::{Duration, Instant}};
 
 use reqwest::RequestBuilder;
 
@@ -13,7 +13,12 @@ pub async fn send_request( request : AwpakRequest ) -> Result<AwpakResponse, req
 
     let builder = append_headers(builder, request.headers );
 
-    let builder = append_query_params( builder, request.query_params );
+    let mut builder = append_query_params( builder, request.query_params );
+
+    if let Some( t ) = request.timeout
+    {
+        if t > 0 { builder = builder.timeout( Duration::from_secs( t ) ) }
+    }
 
     let builder = match request.body
     {

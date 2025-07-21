@@ -8,6 +8,7 @@ export class WebClient
     query_params : Array<WebClientNameValue> = [];
     body : WebClientBody | undefined;
     output : Array<WebClientOutput> = [];
+    timeout : number | undefined;
 }
 
 export enum AwpakMethod

@@ -169,7 +169,8 @@ fn request(
         method, 
         headers, 
         query_params, 
-        body
+        body,
+        timeout : client.timeout
     };
 
     trace_request( id, &request );

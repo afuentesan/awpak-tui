@@ -15,7 +15,9 @@ pub struct WebClient
     #[serde(default)]
     pub body : Option<WebClientBody>,
     #[serde(default)]
-    pub output : Vec<WebClientOutput>
+    pub output : Vec<WebClientOutput>,
+    #[serde(default)]
+    pub timeout : Option<u64>
 }
 
 #[derive(Serialize, Deserialize, Clone)]

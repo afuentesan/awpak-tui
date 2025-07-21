@@ -2,11 +2,12 @@
 <script lang="ts">
     import { select_options_from_enum } from "../../functions/form_utils";
     import { AwpakMethod, WebClientNameValue, WebClientOutputStatus, type WebClient } from "../../model/web_client";
-    import { append_to_array, change_request_method, remove_from_array, swap_array_items } from "../../store";
+    import { append_to_array, change_option_number, change_request_method, remove_from_array, swap_array_items } from "../../store";
     import DataFrom from "../data/DataFrom.svelte";
     import NameValue from "../data/NameValue.svelte";
     import Box from "../form/Box.svelte";
     import Button from "../form/Button.svelte";
+    import Input from "../form/Input.svelte";
     import Select from "../form/Select.svelte";
     import WebClientBody from "./WebClientBody.svelte";
     import WebClientOutput from "./WebClientOutput.svelte";
@@ -27,6 +28,7 @@
     label="URL"
     base_path={base_path+".url"}
 />
+
 <Select
     label="Method"
     base_path={base_path+".method"}
@@ -39,6 +41,14 @@
         )
     }
     value={web_client.method}
+/>
+
+<Input 
+    label="Timeout (secs.)" 
+    input_type="number" 
+    value={web_client.timeout} 
+    change_value={change_option_number} 
+    base_path={base_path+".timeout"} 
 />
 
 <Box title="Headers" base_path={base_path+".headers"}>
