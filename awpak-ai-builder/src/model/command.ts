@@ -5,6 +5,7 @@ export class Command
     command : DataFrom = new FromStatic();
     args : Array<DataFrom> = [];
     output : Array<CommandOutput> = [];
+    timeout : number | undefined;
 }
 
 export type CommandOutput = CommandOutputOut | CommandOutputErr | CommandOutputSuccess | CommandOutputCode | CommandOutputObject;

@@ -232,7 +232,8 @@ function json_command( command : Command ) : any
     return {
             command : json_data_from( command.command ),
             args : json_vec_data_from( command.args ),
-            output : json_vec_command_output( command.output )
+            output : json_vec_command_output( command.output ),
+            timeout : command.timeout
     }
 }
 
@@ -277,7 +278,8 @@ function json_web_client( web_client : WebClient ) : any
         headers : json_vec_name_value( web_client.headers ),
         query_params : json_vec_name_value( web_client.query_params ),
         body : json_request_body( web_client.body ),
-        output : json_vec_web_client_output( web_client.output )
+        output : json_vec_web_client_output( web_client.output ),
+        timeout : web_client.timeout
     };
 }
 
@@ -464,7 +466,7 @@ function json_data_from( data_from : DataFrom ) : any
     else if( data_from._variant == DataFromVariant.Static )
     {
         return {
-            [data_from._variant] : json_from_any( data_from.value )
+            [data_from._variant] : json_from_static( data_from.value )
         }
     }
     else if( data_from._variant == DataFromVariant.Concat )
@@ -530,7 +532,7 @@ function json_from_agent_history_content( content : FromAgentHistoryContent ) : 
     }
 }
 
-function json_from_any( input : any ) : any
+function json_from_static( input : any ) : any
 {
     if( is_empty( input ) ) return "";
 
@@ -548,12 +550,16 @@ function json_from_any( input : any ) : any
     }
     catch( e )
     {
-        return json_number_or_string( input );
+        return json_number_string_or_boolean( input );
     }
 }
 
-function json_number_or_string( input : any ) : number | string
+function json_number_string_or_boolean( input : any ) : number | string | boolean
 {
+    if( typeof( input ) === "string" && input?.trim() == "" ) return input;
+
+    if( typeof( input ) === "string" && ( input === "true" || input === "false" ) ) return input === "true";
+
     try
     {
         let n = Number( input );

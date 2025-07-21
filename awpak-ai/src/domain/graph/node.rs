@@ -88,7 +88,8 @@ impl NodeExecutor
                     { 
                         command : DataFrom::Static( Value::String( "fake command".into() ) ), 
                         args : vec![], 
-                        output : vec![]
+                        output : vec![],
+                        timeout : None
                     }
                 ),
                 Some( g )

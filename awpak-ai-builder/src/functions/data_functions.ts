@@ -293,3 +293,18 @@ export function new_data_from_variant( old : DataFrom, new_variant : string ) : 
         return undefined;
     }
 }
+
+export function number_from_any( next : any ) : number | undefined
+{
+    if( 
+        typeof( next ) === "undefined" || 
+        next === null ||
+        ( typeof( next ) === "string" && next.trim() == "" )
+    ) { return undefined; }
+
+    next = Number( next );
+
+    if( typeof( next ) === "undefined" || next === null || isNaN( next ) ) return undefined;
+
+    return next;
+}

@@ -10,7 +10,9 @@ pub struct Command
     #[serde(default)]
     pub args : Vec<DataFrom>,
     #[serde(default)]
-    pub output : Vec<CommandOutput>
+    pub output : Vec<CommandOutput>,
+    #[serde(default)]
+    pub timeout : Option<u64>
 }
 
 #[derive(Serialize, Deserialize, Clone)]

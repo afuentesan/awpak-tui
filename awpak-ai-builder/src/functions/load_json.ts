@@ -9,7 +9,7 @@ import { GraphNode, GraphNodeOutputErr, GraphNodeOutputObject, GraphNodeOutputOu
 import { NodeExecutorAgent, NodeExecutorAgentHistoryMut, NodeExecutorCommand, NodeExecutorContextMut, NodeExecutorParallel, NodeExecutorWebClient, type NodeExecutor } from "../model/node_executor";
 import { Parallel, ParallelExecutorCommand, ParallelExecutorWebClient, type ParallelExecutor } from "../model/parallel";
 import { AwpakMethod, WebClient, WebClientBodyForm, WebClientBodyJson, WebClientNameValue, WebClientOutputBody, WebClientOutputHeader, WebClientOutputObject, WebClientOutputStatus, WebClientOutputVersion, type WebClientBody, type WebClientOutput } from "../model/web_client";
-import { is_empty, not_empty_or_string_eq } from "./data_functions";
+import { is_empty, not_empty_or_string_eq, number_from_any } from "./data_functions";
 import { is_type_in_enum } from "./form_utils";
 
 export function load_graph_from_json( json : any ) : Graph
@@ -205,6 +205,8 @@ function load_command( command : any ) : Command
 
     value.output = load_vec_command_output( command.output );
 
+    value.timeout = number_from_any( command.timeout );
+
     return value;
 }
 
@@ -276,6 +278,7 @@ function load_web_client( web_client : any ) : WebClient
     value.query_params = load_vec_name_value( web_client.query_params );
     value.body = load_body( web_client.body );
     value.output = load_vec_web_client_output( web_client.output );
+    value.timeout = number_from_any( web_client.timeout );
 
     return value;
 }

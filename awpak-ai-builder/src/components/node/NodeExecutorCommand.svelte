@@ -2,7 +2,7 @@
 <script lang="ts">
     import { CommandOutputOut, type Command } from "../../model/command";
     import { FromContext } from "../../model/data";
-    import { append_to_array, change_option_string, remove_from_array, swap_array_items } from "../../store";
+    import { append_to_array, change_option_number, change_option_string, remove_from_array, swap_array_items } from "../../store";
     import DataFrom from "../data/DataFrom.svelte";
     import Box from "../form/Box.svelte";
     import Button from "../form/Button.svelte";
@@ -51,6 +51,15 @@
         />
     </div>
 </Box>
+
+<Input 
+    label="Timeout (secs.)" 
+    input_type="number" 
+    value={command.timeout} 
+    change_value={change_option_number} 
+    base_path={base_path+".timeout"} 
+/>
+
 <Box title="Command output" base_path={base_path+".output"}>
     {#each command.output as _, i}
         <CommandOutput
