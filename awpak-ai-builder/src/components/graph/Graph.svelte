@@ -7,7 +7,7 @@
     import Node from "./Node.svelte";
 </script>
 
-<div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-8 p-2 overflow-auto">
+<div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-8">
     <div>
         <Card title="Graph config">
             <GraphConfig />

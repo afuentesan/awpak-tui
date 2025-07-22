@@ -1,9 +1,32 @@
 ---
-// import Graph from '../components//graph/Graph.svelte';
-import MainPage from '../components/MainPage.svelte';
 import MainLayout from '../layouts/MainLayout.astro';
 ---
 
 <MainLayout>
-    <MainPage client:load />
+    <article class="grid grid-cols-1 xl:grid-cols-3 gap-2 justify-center p-4">
+        <header class="xl:col-start-2"><h1 class="text-3xl p-2">AwpakAI</h1></header>
+        <section class="xl:col-start-2">
+            <p><b>AwpakAI</b> is a Rust library for orchestrating the execution of <b>artificial intelligence agents</b>, <b>system commands</b>, and <b>HTTP requests</b>, modeled as a <b>directed graph</b>.</p>
+            <p>Each node in the graph can perform one of the following actions:</p>
+            <ul class="ps-5 mt-2 mb-2 space-y-1 list-disc list-inside">
+                <li>Execute a **system command**.</li>
+                <li>Make an **HTTP request** (e.g., to a REST API).</li>
+                <li>Invoke an **AI agent** (such as a language model or custom logic).</li>
+            </ul>
+
+            <p>This structure enables the creation of flexible and powerful pipelines, where each node's output can be passed as input to other nodes, and the execution path can depend on intermediate results.</p>
+        </section>
+        <section class="xl:col-start-2">
+            <h2 class="text-2xl">Use Cases</h2>
+            <p>AwpakAI is ideal for:</p>
+            <ul class="ps-5 mt-2 mb-2 space-y-1 list-disc list-inside">
+                <li>Coordinating language models (LLMs) or AI agents in complex workflows.</li>
+                <li>Automating pipelines that combine AI, web services, and shell commands.</li>
+                <li>Defining flexible, declarative flows in JSON for easy maintenance and dynamic reconfiguration.</li>
+            </ul>
+        </section>
+        <section class="xl:col-start-2">
+            <p><a href="/builder" title="Build a graph">Graph builder</a></p>
+        </section>
+    </article>
 </MainLayout>

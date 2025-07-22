@@ -1,5 +1,5 @@
 
-use awpak_ai::{domain::graph::{build_graph::build_graph_from_path, graph::Graph}, infrastructure::graph::run_graph::run_graph as rg };
+use awpak_ai::{domain::graph::graph::Graph, infrastructure::graph::{build_graph::graph_from_json_file_path, run_graph::run_graph as rg} };
 use neon::prelude::*;
 use once_cell::sync::OnceCell;
 use tokio::runtime::Runtime;
@@ -79,7 +79,7 @@ fn run_graph_once( mut cx : FunctionContext ) -> JsResult<JsPromise>
     let path = path.value( &mut cx );
     let input = input.value( &mut cx );
 
-    let graph = match build_graph_from_path( path.as_str() )
+    let graph = match graph_from_json_file_path( path.as_str() )
     {
         Ok( g ) => g,
         Err( e ) => return JsResult::Err( cx.throw_error( e.to_string() )? )

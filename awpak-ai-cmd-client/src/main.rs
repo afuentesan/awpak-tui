@@ -1,6 +1,6 @@
 use std::{io::Write as _, sync::mpsc::{self}, time::Duration};
 
-use awpak_ai::{domain::{error::Error, graph::graph::Graph, tracing::filter_layer::{AwpakAIFilterLayer, AwpakAITarget, AwpakTracingMessage}}, infrastructure::graph::{build_graph::graph_from_path, run_graph::run_graph}};
+use awpak_ai::{domain::{error::Error, graph::graph::Graph, tracing::filter_layer::{AwpakAIFilterLayer, AwpakAITarget, AwpakTracingMessage}}, infrastructure::graph::{build_graph::graph_from_json_file_path, run_graph::run_graph}};
 use clap::{arg, Command};
 use text_io::read;
 use tokio::time::sleep;
@@ -26,7 +26,7 @@ async fn main() -> Result<(), ()>
 
     // let path = std::env::args().nth( 1 ).ok_or( Error::Ignore ).map_err( | _ | () )?;
 
-    let mut graph = match graph_from_path( path )
+    let mut graph = match graph_from_json_file_path( path )
     {
         Ok( g ) => g,
         Err( e ) =>
@@ -129,7 +129,7 @@ async fn execute_graph( graph : Graph, input : String ) -> Graph
 {
     let result = run_graph( input, graph ).await;
 
-    let _ = sleep( Duration::from_millis( 1000 ) ).await;
+    let _ = sleep( Duration::from_millis( 100 ) ).await;
 
     match result.collect()
     {

@@ -1,6 +1,6 @@
 use std::{collections::HashMap, fs::File, io::BufReader, sync::{Arc, Mutex, OnceLock}};
 
-use awpak_ai::domain::graph::{build_graph::build_graph_from_path, graph::Graph};
+use awpak_ai::{domain::graph::graph::Graph, infrastructure::graph::build_graph::graph_from_json_file_path};
 
 use crate::{domain::{error::Error, graph::graph::{AwpakTUIGraph, GraphRequest}, path::path_utils::path_for_file}, infrastructure::config::model::graph_config::{AwpakTUIGraphConfig, AwpakTUIGraphOutputConfig}};
 
@@ -68,7 +68,7 @@ pub fn init_graphs_from_config() -> Vec<AwpakTUIGraph>
             .flat_map( 
                 | c | 
                 {
-                    let graph = build_graph_from_path( &c.path ).ok()?;
+                    let graph = graph_from_json_file_path( &c.path ).ok()?;
 
                     let graph_output = c.output.clone();
 

@@ -4,6 +4,13 @@ use awpak_utils::file_utils::path_for_file;
 
 use crate::domain::{error::Error, graph::{graph::{Graph, GraphConfig}, build_graph_node::graph_node_from_config, node::{Node, NodeConfig}}};
 
+pub fn build_graph_from_str( str : impl AsRef<str> ) -> Result<Graph, Error>
+{
+    let config : GraphConfig = serde_json::from_str( str.as_ref() ).map_err( | e | Error::ParseData( e.to_string() ) )?;
+
+    build_graph( config )
+}
+
 pub fn build_graph_from_path( path : &str ) -> Result<Graph, Error>
 {
     let path = path_for_file( path ).map_err( | e | Error::File( e.to_string() ) )?;

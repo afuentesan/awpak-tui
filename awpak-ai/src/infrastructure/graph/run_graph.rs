@@ -14,14 +14,14 @@ pub async fn run_graph(
 #[cfg(test)]
 mod tests
 {
-    use crate::infrastructure::graph::build_graph::graph_from_path;
+    use crate::infrastructure::graph::build_graph::graph_from_json_file_path;
 
     use super::*;
 
     #[tokio::test]
     async fn test_run_loop_from_parsed_input_context_mut_ok()
     {
-        let graph = graph_from_path( "test_data/graphs/loop_from_parsed_input_graph.json" );
+        let graph = graph_from_json_file_path( "test_data/graphs/loop_from_parsed_input_graph.json" );
 
         assert!( graph.is_ok() );
 
@@ -47,7 +47,7 @@ mod tests
     #[tokio::test]
     async fn test_run_loop_context_mut_ok()
     {
-        let graph = graph_from_path( "test_data/graphs/loop_graph.json" );
+        let graph = graph_from_json_file_path( "test_data/graphs/loop_graph.json" );
 
         assert!( graph.is_ok() );
 
@@ -73,7 +73,7 @@ mod tests
     #[tokio::test]
     async fn test_run_context_mut_ok()
     {
-        let graph = graph_from_path( "test_data/graphs/context_mut_graph.json" );
+        let graph = graph_from_json_file_path( "test_data/graphs/context_mut_graph.json" );
 
         assert!( graph.is_ok() );
 
@@ -99,7 +99,7 @@ mod tests
     #[tokio::test]
     async fn test_run_graph_node_ok()
     {
-        let graph = graph_from_path( "test_data/graphs/graph_node_executor_graph.json" );
+        let graph = graph_from_json_file_path( "test_data/graphs/graph_node_executor_graph.json" );
 
         assert!( graph.is_ok() );
 
@@ -127,7 +127,7 @@ mod tests
     #[tokio::test]
     async fn test_run_add_two_numbers_graph_ok()
     {
-        let graph = graph_from_path( "test_data/graphs/add_two_numbers_graph.json" );
+        let graph = graph_from_json_file_path( "test_data/graphs/add_two_numbers_graph.json" );
 
         assert!( graph.is_ok() );
 
@@ -153,7 +153,7 @@ mod tests
     #[tokio::test]
     async fn test_run_add_two_numbers_graph_a_is_string()
     {
-        let graph = graph_from_path( "test_data/graphs/add_two_numbers_graph.json" );
+        let graph = graph_from_json_file_path( "test_data/graphs/add_two_numbers_graph.json" );
 
         assert!( graph.is_ok() );
 
@@ -179,7 +179,7 @@ mod tests
     #[tokio::test]
     async fn test_run_add_3_graph_ok()
     {
-        let graph = graph_from_path( "test_data/graphs/add_3_graph.json" );
+        let graph = graph_from_json_file_path( "test_data/graphs/add_3_graph.json" );
 
         assert!( graph.is_ok() );
 
@@ -205,7 +205,7 @@ mod tests
     #[tokio::test]
     async fn test_run_add_3_graph_input_is_a_string()
     {
-        let graph = graph_from_path( "test_data/graphs/add_3_graph.json" );
+        let graph = graph_from_json_file_path( "test_data/graphs/add_3_graph.json" );
 
         assert!( graph.is_ok() );
 
@@ -231,7 +231,7 @@ mod tests
     #[tokio::test]
     async fn test_run_echo_graph_ok()
     {
-        let graph = graph_from_path( "test_data/graphs/echo_graph.json" );
+        let graph = graph_from_json_file_path( "test_data/graphs/echo_graph.json" );
 
         assert!( graph.is_ok() );
 
@@ -259,7 +259,7 @@ mod tests
     #[tokio::test]
     async fn test_run_echo_graph_empty_input()
     {
-        let graph = graph_from_path( "test_data/graphs/echo_graph.json" );
+        let graph = graph_from_json_file_path( "test_data/graphs/echo_graph.json" );
 
         assert!( graph.is_ok() );
 

@@ -1,7 +1,7 @@
 
 use std::{collections::HashMap, sync::{Arc, Mutex, OnceLock}};
 
-use awpak_ai::domain::{error::Error, graph::{build_graph::build_graph_from_path, graph::Graph}};
+use awpak_ai::{domain::{error::Error, graph::graph::Graph}, infrastructure::graph::build_graph::graph_from_json_file_path};
 
 pub fn graphs() -> &'static Arc<Mutex<HashMap<String, Graph>>>
 {
@@ -41,7 +41,7 @@ pub fn graph( id : &str, path : &str ) -> Result<Graph, Error>
 
 fn new_graph( id : &str, path : &str ) -> Result<Graph, Error>
 {
-    match build_graph_from_path( path )
+    match graph_from_json_file_path( path )
     {
         Ok( g ) =>
         {
