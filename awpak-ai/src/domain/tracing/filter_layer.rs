@@ -34,6 +34,7 @@ pub const NODE_DESTINATION : &'static str = "node_destination";
 pub const NODE_EXECUTION : &'static str = "node_execution";
 pub const NODE_OUTPUT : &'static str = "node_output";
 
+#[derive(Debug, PartialEq, Eq)]
 pub enum AwpakAITarget
 {
     GraphInput,
@@ -85,6 +86,36 @@ impl AwpakAITarget
             AwpakAITarget::NodeExecution => NODE_EXECUTION,
             AwpakAITarget::NodeOutput => NODE_OUTPUT
         }
+    }
+
+    pub fn from_str( str : impl AsRef<str> ) -> Option<AwpakAITarget>
+    {
+        Some(
+            match str.as_ref()
+            {
+                GRAPH_INPUT => AwpakAITarget::GraphInput,
+                GRAPH_OUTPUT_OK => AwpakAITarget::GraphOutputOk,
+                GRAPH_OUTPUT_ERR => AwpakAITarget::GraphOutputErr,
+                AGENT_PROMPT => AwpakAITarget::AgentPrompt,
+                AGENT_STREAM => AwpakAITarget::AgentStream,
+                AGENT_SYNC => AwpakAITarget::AgentSync,
+                AGENT_TOOL_CALL => AwpakAITarget::AgentToolCall,
+                AGENT_TOOL_RESULT => AwpakAITarget::AgentToolResult,
+                COMMAND_AND_ARGS => AwpakAITarget::CommandAndArgs,
+                COMMAND_RESULT => AwpakAITarget::CommandResult,
+                WEB_CLIENT_REQUEST => AwpakAITarget::WebClientRequest,
+                WEB_CLIENT_REQUEST_BODY => AwpakAITarget::WebClientRequestBody,
+                WEB_CLIENT_REQUEST_HEADERS => AwpakAITarget::WebClientRequestHeaders,
+                WEB_CLIENT_REQUEST_QUERY_PARAMS => AwpakAITarget::WebClientRequestQueryParams,
+                WEB_CLIENT_RESPONSE => AwpakAITarget::WebClientResponse,
+                WEB_CLIENT_RESPONSE_HEADERS => AwpakAITarget::WebClientResponseHeaders,
+                WEB_CLIENT_RESPONSE_BODY => AwpakAITarget::WebClientResponseBody,
+                NODE_DESTINATION => AwpakAITarget::NodeDestination,
+                NODE_EXECUTION => AwpakAITarget::NodeExecution,
+                NODE_OUTPUT => AwpakAITarget::NodeOutput,
+                _ => return None
+            }
+        )
     }
 }
 

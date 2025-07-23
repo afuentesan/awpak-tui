@@ -12,6 +12,8 @@ export class AIAgent
 
     prompt : Array<DataToString> = [];
 
+    is_stream : boolean = false;
+
     constructor()
     {
         this.provider = new AIAgentProviderOllama();

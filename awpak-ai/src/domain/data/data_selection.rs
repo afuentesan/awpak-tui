@@ -3,7 +3,7 @@ use std::collections::HashMap;
 use awpak_utils::string_utils::str_len;
 use serde_json::Value;
 
-use crate::domain::{data::{data::{DataFrom, DataOperation, DataToString, FromContext, FromParsedInput}, data_history::data_from_agent_history, data_insert::merge_values, data_operations::{add_values, substract_values}, data_utils::{value_from_map, value_is_null, value_to_string}}, error::Error, graph::graph::Graph, path::expand_path::expand_path};
+use crate::domain::{data::{data::{DataFrom, DataOperation, DataToString, FromContext, FromParsedInput}, data_history::data_from_agent_history, data_insert::merge_values, data_operations::{add_values, string_split, substract_values}, data_utils::{value_from_map, value_is_null, value_to_string}}, error::Error, graph::graph::Graph, path::expand_path::expand_path};
 
 pub fn data_to_string(
     graph : &Graph,
@@ -95,6 +95,12 @@ fn operation_data_from(
             let v2 = data_selection( graph, num_2 )?;
 
             add_values( v1, v2 )
+        },
+        DataOperation::StringSplit { from, sep } =>
+        {
+            let value = data_selection( graph, from )?;
+
+            Ok( string_split( value, sep ) )
         }
     }
 }

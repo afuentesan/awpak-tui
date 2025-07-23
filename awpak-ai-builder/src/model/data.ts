@@ -209,13 +209,14 @@ export class FromAgentHistoryContentItemMessage
     value : number = 0;
 }
 
-export type DataOperation = DataOperationLen | DataOperationSubstract | DataOperationAdd;
+export type DataOperation = DataOperationLen | DataOperationSubstract | DataOperationAdd | DataOperationStringSplit;
 
 export enum DataOperationVariant
 {
     Len = "Len",
     Substract = "Substract",
-    Add = "Add"
+    Add = "Add",
+    StringSplit = "StringSplit"
 }
 
 export class DataOperationLen
@@ -256,4 +257,12 @@ export class DataOperationAdd
         this.num_1 = new FromContext();
         this.num_2 = new FromContext();
     }
+}
+
+export class DataOperationStringSplit
+{
+    readonly _variant = DataOperationVariant.StringSplit;
+
+    from : DataFrom = new FromContext();
+    sep : string = "";
 }

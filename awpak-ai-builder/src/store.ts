@@ -362,7 +362,7 @@ export function change_option_number( base_path : string, next : number | undefi
 
 export function change_option_string( base_path : string, next : string )
 {
-    if( ! next.trim() ) { next = ""; }
+    if( is_empty( next ) ) { next = ""; }
 
     let new_graph = Object.assign( {}, graph.get() );
 

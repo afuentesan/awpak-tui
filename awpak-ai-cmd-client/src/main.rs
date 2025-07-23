@@ -1,4 +1,4 @@
-use std::{io::Write as _, sync::mpsc::{self}, time::Duration};
+use std::{io::Write as _, sync::mpsc::{self, Sender}, time::Duration};
 
 use awpak_ai::{domain::{error::Error, graph::graph::Graph, tracing::filter_layer::{AwpakAIFilterLayer, AwpakAITarget, AwpakTracingMessage}}, infrastructure::graph::{build_graph::graph_from_json_file_path, run_graph::run_graph}};
 use clap::{arg, Command};
@@ -15,14 +15,16 @@ async fn main() -> Result<(), ()>
         .about("Client for Awpak AI")
         .arg(arg!(--path <VALUE>).required(true))
         .arg(arg!(--input <VALUE>))
+        .arg(arg!(--trace <VALUE>))
         .arg(arg!(--chat))
         .get_matches();
     
     let path = matches.get_one::<String>( "path" ).ok_or( Error::Ignore ).map_err( | _ | () )?;
     let input = matches.get_one::<String>( "input" );
+    let trace = matches.get_one::<String>( "trace" );
     let chat = matches.get_flag( "chat" );
 
-    subscribe_tracing();
+    subscribe_tracing( trace );
 
     // let path = std::env::args().nth( 1 ).ok_or( Error::Ignore ).map_err( | _ | () )?;
 
@@ -58,23 +60,64 @@ async fn main() -> Result<(), ()>
     Ok( () )
 }
 
-fn subscribe_tracing()
+fn default_trace_options( tx : Sender<AwpakTracingMessage> ) -> Vec<( AwpakAITarget, Sender<AwpakTracingMessage> )>
+{
+    vec![
+        ( AwpakAITarget::GraphOutputOk, tx.clone() ),
+        ( AwpakAITarget::GraphOutputErr, tx.clone() )
+    ]
+}
+
+fn trace_options_from_str( 
+    trace : &str, 
+    tx : Sender<AwpakTracingMessage>,
+    tx_stream : Sender<AwpakTracingMessage>
+) -> Vec<( AwpakAITarget, Sender<AwpakTracingMessage> )>
+{
+    let options = trace.split( "," )
+    .flat_map(
+        | o | AwpakAITarget::from_str( o )
+    )
+    .collect::<Vec<_>>();
+
+    if options.len() == 0 { return default_trace_options( tx ) };
+
+    options.into_iter().map( 
+        | o | 
+        {
+            let tx = if o == AwpakAITarget::AgentStream { tx_stream.clone() } else { tx.clone() };
+
+            ( o, tx )
+        }
+        
+    ).collect()
+}
+
+fn trace_options( 
+    trace : Option<&String>, 
+    tx : Sender<AwpakTracingMessage>,
+    tx_stream : Sender<AwpakTracingMessage>
+) -> Vec<( AwpakAITarget, Sender<AwpakTracingMessage> )>
+{
+    match trace
+    {
+        Some( t ) => trace_options_from_str( t, tx, tx_stream ),
+        None => default_trace_options( tx )   
+    }
+}
+
+fn subscribe_tracing( trace : Option<&String> )
 {
     let ( tx, rx ) = mpsc::channel::<AwpakTracingMessage>();
     let ( tx_stream, rx_stream ) = mpsc::channel::<AwpakTracingMessage>();
 
+    let options = trace_options( trace, tx, tx_stream );
+
+    options.iter().for_each( | o | println!( "Option: {:?}", o.0 ) );
+
     let layer = AwpakAIFilterLayer 
     {
-        allowed : vec![ 
-            ( AwpakAITarget::AgentStream, tx_stream.clone() ),
-            ( AwpakAITarget::AgentSync, tx.clone() ),
-            ( AwpakAITarget::AgentToolCall, tx.clone() ),
-            ( AwpakAITarget::AgentToolResult, tx.clone() ),
-            ( AwpakAITarget::CommandAndArgs, tx.clone() ),
-            ( AwpakAITarget::CommandResult, tx.clone() ),
-            ( AwpakAITarget::NodeExecution, tx.clone() ),
-            ( AwpakAITarget::NodeDestination, tx.clone() )
-        ],
+        allowed : options,
     };
 
     tracing_subscriber::registry()
@@ -135,40 +178,43 @@ async fn execute_graph( graph : Graph, input : String ) -> Graph
     {
         ( g, None ) => 
         {
-            show_graph_result( &g );
+            // show_graph_result( &g );
+            println!( "\n\n" );
+            let _ = std::io::stdout().flush();
 
             g
         },
         ( g, Some( e ) ) => 
         {
-            println!( "Error: {}", e.to_string() );
+            println!( "\n\nError: {}\n\n", e.to_string() );
             let _ = std::io::stdout().flush();
+            
             g
         }
     }
 }
 
-fn show_graph_result( graph : &Graph )
-{
-    match &graph.final_output
-    {
-        Some( o ) => match o
-        {
-            Ok( m ) => 
-            {
-                println!( "\nExitOk: {}", m );
-                let _ = std::io::stdout().flush();
-            },
-            Err( e ) => 
-            {
-                println!( "\nExitErr: {}", e );
-                let _ = std::io::stdout().flush();
-            }
-        },
-        None => 
-        {
-            println!( "End graph execution without output" );
-            let _ = std::io::stdout().flush();
-        }
-    }
-}
+// fn show_graph_result( graph : &Graph )
+// {
+//     match &graph.final_output
+//     {
+//         Some( o ) => match o
+//         {
+//             Ok( m ) => 
+//             {
+//                 println!( "\n- ExitOk:\n\n {}\n\n", m );
+//                 let _ = std::io::stdout().flush();
+//             },
+//             Err( e ) => 
+//             {
+//                 println!( "\n- ExitErr:\n\n {}\n\n", e );
+//                 let _ = std::io::stdout().flush();
+//             }
+//         },
+//         None => 
+//         {
+//             println!( "\n- End graph execution without output\n\n" );
+//             let _ = std::io::stdout().flush();
+//         }
+//     }
+// }

@@ -8,7 +8,7 @@ Each node in the graph can perform one of the following actions:
 * Make an **HTTP request** (e.g., to a REST API).
 * Invoke an **AI agent** (such as a language model or custom logic).
 
-This structure enables the creation of flexible and powerful pipelines, where each node's output can be passed as input to other nodes, and the execution path can depend on intermediate results.
+This structure enables the creation of flexible and powerful pipelines. Each graph has an internal **context**, where the output of every executed node is stored. Subsequent nodes can access the outputs of one or more previously executed nodes from this context, enabling flexible and dynamic data flow throughout the execution.
 
 ---
 

@@ -143,6 +143,14 @@
             base_path={base_path+".value.save_history"}
             value="true"
         />
+
+        <Checkbox
+            label="Streaming response"
+            checked={node_executor.value.is_stream}
+            change_value={change_boolean}
+            base_path={base_path+".value.is_stream"}
+            value="true"
+        />
     {:else if node_executor._variant == NodeExecutorVariant.Command}
 
         <NodeExecutorCommand

@@ -31,7 +31,8 @@ pub enum DataOperation
 {
     Len( DataFrom ),
     Substract { num_1 : DataFrom, num_2 : DataFrom },
-    Add { num_1 : DataFrom, num_2 : DataFrom }
+    Add { num_1 : DataFrom, num_2 : DataFrom },
+    StringSplit { from : DataFrom, sep : String }
 }
 
 #[derive(Serialize, Deserialize, Clone)]

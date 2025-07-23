@@ -125,7 +125,8 @@ function json_agent( executor : NodeExecutorAgent ) : any
             system_prompt : json_vec_data_to_string( executor.value.system_prompt ),
             save_history : executor.value.save_history,
             prompt : json_vec_data_to_string( executor.value.prompt ),
-            servers : json_vec_mcp_server( executor.value.servers )
+            servers : json_vec_mcp_server( executor.value.servers ),
+            is_stream : executor?.value?.is_stream ? true : false
         }
     }
 }
@@ -746,6 +747,15 @@ function json_data_operation( data : DataOperation ) : any
             [data._variant] : {
                 num_1 : data.num_1 ? json_data_from( data.num_1 ) : undefined,
                 num_2 : data.num_2 ? json_data_from( data.num_2 ) : undefined
+            }
+        }
+    }
+    else if( data._variant == DataOperationVariant.StringSplit )
+    {
+        return {
+            [data._variant] : {
+                from : json_data_from( data.from ),
+                sep : is_empty( data.sep ) ? "" : ( data.sep + "" )
             }
         }
     }

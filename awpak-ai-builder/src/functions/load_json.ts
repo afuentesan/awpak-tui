@@ -2,7 +2,7 @@ import { AIAgent, AIAgentProviderAnthropic, AIAgentProviderDeepSeek, AIAgentProv
 import { DataToAgentHistoryReplace, DataToAgentHistoryReplaceFirst, DataToAgentHistoryReplaceItem, DataToAgentHistoryReplaceLast, DataToAgentHistoryStringToFirst, DataToAgentHistoryStringToItem, DataToAgentHistoryStringToLast, type AgentHistoryMut, type DataToAgentHistory } from "../model/agent_history_mut";
 import { Command, CommandOutputCode, CommandOutputErr, CommandOutputObject, CommandOutputOut, CommandOutputSuccess, type CommandOutput } from "../model/command";
 import type { ContextMut } from "../model/context_mut";
-import { DataMerge, DataOperationAdd, DataOperationLen, DataOperationSubstract, DataToContext, DataToString, DataType, FromAgentHistory, FromAgentHistoryContentFirst, FromAgentHistoryContentFirstMessage, FromAgentHistoryContentFull, FromAgentHistoryContentFullMessages, FromAgentHistoryContentItem, FromAgentHistoryContentItemMessage, FromAgentHistoryContentLast, FromAgentHistoryContentLastMessage, FromAgentHistoryContentRange, FromAgentHistoryContentRangeMessages, FromConcat, FromContext, FromInput, FromNull, FromOperation, FromParsedInput, FromStatic, type DataFrom, type FromAgentHistoryContent } from "../model/data";
+import { DataMerge, DataOperationAdd, DataOperationLen, DataOperationStringSplit, DataOperationSubstract, DataToContext, DataToString, DataType, FromAgentHistory, FromAgentHistoryContentFirst, FromAgentHistoryContentFirstMessage, FromAgentHistoryContentFull, FromAgentHistoryContentFullMessages, FromAgentHistoryContentItem, FromAgentHistoryContentItemMessage, FromAgentHistoryContentLast, FromAgentHistoryContentLastMessage, FromAgentHistoryContentRange, FromAgentHistoryContentRangeMessages, FromConcat, FromContext, FromInput, FromNull, FromOperation, FromParsedInput, FromStatic, type DataFrom, type FromAgentHistoryContent } from "../model/data";
 import { DataComparatorAnd, DataComparatorEq, DataComparatorFalse, DataComparatorGt, DataComparatorLt, DataComparatorNot, DataComparatorNotEq, DataComparatorOr, DataComparatorRegex, DataComparatorTrue, type DataComparator } from "../model/data_comparator";
 import { Graph } from "../model/graph";
 import { GraphNode, GraphNodeOutputErr, GraphNodeOutputObject, GraphNodeOutputOut, GraphNodeOutputSuccess, Node, NodeDestination, NodeNextExitErr, NodeNextExitOk, NodeNextNode, type GraphNodeOutput, type NodeNext, type NodeType } from "../model/node";
@@ -374,6 +374,8 @@ function load_node_executor_agent( agent : any ) : NodeExecutorAgent
     if( agent.servers ) value.servers = load_mcp_servers( agent.servers );
 
     if( agent.prompt ) value.prompt = load_vec_data_to_string( agent.prompt );
+
+    value.is_stream = value.is_stream ? true : false;
 
     ret.value = value;
 
@@ -902,8 +904,24 @@ function load_from_operation( data : any ) : FromOperation
 
         return ret;
     }
+    else if( data?.[ "StringSplit" ] )
+    {
+        ret.value = load_from_operation_string_split( data[ "StringSplit" ] );
+
+        return ret;
+    }
 
     throw new Error( "DataOperation not found. " + JSON.stringify( data ) );
+}
+
+function load_from_operation_string_split( data : any ) : DataOperationStringSplit
+{
+    let ret = new DataOperationStringSplit();
+
+    ret.from = load_data_from( data.from );
+    ret.sep = is_empty( data.sep ) ? "" : ( data.sep + "" );
+
+    return ret;
 }
 
 function load_from_operation_len( data : any ) : DataOperationLen

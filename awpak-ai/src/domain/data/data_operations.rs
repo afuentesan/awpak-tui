@@ -1,8 +1,16 @@
 
 use serde_json::{Number, Value};
 
-use crate::domain::error::Error;
+use crate::domain::{data::data_utils::value_to_string, error::Error};
 
+pub fn string_split( v : Value, separator : impl AsRef<str> ) -> Value
+{
+    let str = value_to_string( &v );
+
+    Value::Array(
+        str.split( separator.as_ref() ).map( | s | Value::String( s.to_string() ) ).collect()
+    )
+}
 
 pub fn substract_values( v1 : Value, v2 : Value ) -> Result<Value, Error>
 {
