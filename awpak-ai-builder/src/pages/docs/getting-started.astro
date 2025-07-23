@@ -1,0 +1,40 @@
+---
+import MainLayout from '../../layouts/MainLayout.astro';
+import MenuLayout from '../../layouts/MenuLayout.astro';
+---
+
+<MainLayout>
+    <MenuLayout menu="getting-started">
+        <article class="p-2">
+            <header><h1 class="text-3xl">Getting started with AwpakAI</h1></header>
+            <section class="pt-2">
+                <p>In this first example, we are going to create a simple <b>chat workflow</b> to interact with an LLM (Large Language Model). We will use the <a href="/builder" target="_blank" title="Open graph Builder" class="font-bold">web-based graph builder</a> to define the workflow visually and export it as JSON for execution.</p>
+            </section>
+            <section class="pt-4">
+                <h2 class="text-2xl">Default Graph Layout</h2>
+                <p class="pb-2">When you open the graph builder, you will see <b>three disconnected nodes</b>:</p>
+                <ul>
+                    <li><b>Entry Node</b> - This is the starting point of the graph and will be executed first.</li>
+                    <li><b>Exit Ok</b> - A terminal node indicating that the workflow has completed successfully.</li>
+                    <li><b>Exit Err</b> - A terminal node indicating that the workflow has ended with an error.</li>
+                </ul>
+                <h3 class="text-xl pt-2 pb-1">About Exit Nodes</h3>
+
+                <p><b>Exit Ok</b> and <b>Exit Err</b> are <b>terminal nodes</b>: clicking on them does nothing because they have no configurable options.</p>
+                <p class="pt-2 pb-1">They are only used to signal how the workflow finishes:</p>
+
+                <p>- Use **Exit Ok** when execution completes successfully.</p>
+                <p>- Use **Exit Err** when execution fails.</p>
+
+            </section>
+            <section class="pt-4 pb-2">
+                <h2 class="text-2xl">Editing the Entry Node</h2>
+                
+                <p>Clicking on the <b>Entry Node</b> will open a configuration form where you can set its options.</p>
+                <p>For this first example, we will configure it to send the user's input to a language model and return its response.</p>
+                <p>In the next steps, we will connect the nodes together to define the workflow logic.</p>
+            </section>
+        </article>
+    </MenuLayout>
+</MainLayout>
+

@@ -3,9 +3,9 @@ import MainLayout from '../layouts/MainLayout.astro';
 ---
 
 <MainLayout>
-    <article class="grid grid-cols-1 xl:grid-cols-3 gap-2 justify-center p-4">
-        <header class="xl:col-start-2"><h1 class="text-3xl p-2">AwpakAI</h1></header>
-        <section class="xl:col-start-2">
+    <article class="grid grid-cols-1 md:grid-cols-6 lg:grid-cols-5 xl:grid-cols-4 gap-2 justify-center p-4">
+        <header class="md:col-start-2 md:col-span-4 lg:col-start-2 lg:col-span-3 xl:col-start-2 xl:col-span-2"><h1 class="text-3xl p-2">AwpakAI</h1></header>
+        <section class="md:col-start-2 md:col-span-4 lg:col-start-2 lg:col-span-3 xl:col-start-2 xl:col-span-2">
             <p><b>AwpakAI</b> is a Rust library for orchestrating the execution of <b>artificial intelligence agents</b>, <b>system commands</b>, and <b>HTTP requests</b>, modeled as a <b>directed graph</b>.</p>
             <p>Each node in the graph can perform one of the following actions:</p>
             <ul class="ps-5 mt-2 mb-2 space-y-1 list-disc list-inside">
@@ -16,7 +16,7 @@ import MainLayout from '../layouts/MainLayout.astro';
 
             <p>This structure enables the creation of flexible and powerful pipelines. Each graph has an internal <b>context</b>, where the output of every executed node is stored. Subsequent nodes can access the outputs of one or more previously executed nodes from this context, enabling flexible and dynamic data flow throughout the execution.</p>
         </section>
-        <section class="xl:col-start-2">
+        <section class="md:col-start-2 md:col-span-4 lg:col-start-2 lg:col-span-3 xl:col-start-2 xl:col-span-2">
             <h2 class="text-2xl">Use Cases</h2>
             <p>AwpakAI is ideal for:</p>
             <ul class="ps-5 mt-2 mb-2 space-y-1 list-disc list-inside">
@@ -25,8 +25,10 @@ import MainLayout from '../layouts/MainLayout.astro';
                 <li>Defining flexible, declarative flows in JSON for easy maintenance and dynamic reconfiguration.</li>
             </ul>
         </section>
-        <section class="xl:col-start-2">
-            <p><a href="/builder" title="Build a graph">Graph builder</a></p>
+        <section class="md:col-start-2 md:col-span-4 lg:col-start-2 lg:col-span-3 xl:col-start-2 xl:col-span-2">
+            <h2 class="text-2xl">Creating the JSON Definition</h2>
+            <p>Manually writing a JSON graph definition can be complex because of the number of available options. To simplify this process, we provide a <a href="/builder" title="Graph builder" class="font-bold">web-based editor</a> that helps you build graphs interactively and export them as JSON.</p>
+            <p>The <a href="/docs/getting-started" class="font-bold" title="Getting Started with Graph Builder">Getting Started</a> guide will walk you through how to generate and customize a graph using the web editor and how to integrate it into your Rust project.</p>
         </section>
     </article>
 </MainLayout>

@@ -1,0 +1,17 @@
+---
+const { menu } = Astro.props;
+---
+
+<div class="grid grid-cols-1 md:grid-cols-4 lg:grid-cols-9 xl:grid-cols-12">
+    <nav class="hidden md:block lg:col-span-2 lg:col-start-2 xl:col-start-3 p-2">
+        <h3 class="text-xl">Docs</h3>
+        <ul class="list-disc">
+            <li class={
+                ( menu == "getting-started" ) ? "font-bold" : ""
+            }><a href="/docs/getting-started" title="Getting Started with Graph Builder">Getting started</a></li>
+        </ul>
+    </nav>
+    <div class="md:col-span-3 lg:col-span-5 lg:col-start-4 xl:col-start-5 xl:col-span-6">
+        <slot />
+    </div>
+</div>

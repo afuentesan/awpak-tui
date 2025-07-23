@@ -89,3 +89,12 @@ This pattern ensures that:
 * Coordinating language models (LLMs) or AI agents in complex workflows.
 * Automating pipelines that combine AI, web services, and shell commands.
 * Defining flexible, declarative flows in JSON for easy maintenance and dynamic reconfiguration.
+
+## Creating the JSON Definition
+
+Manually writing a JSON graph definition can be complex because of the number of available options.
+To simplify this process, we provide a **web-based editor** that helps you build graphs interactively and export them as JSON.
+
+➡ **[Getting Started with Graph JSON](http://awpak.com/docs/getting-started)**
+
+The `Getting Started` guide will walk you through how to generate and customize a graph using the web editor and how to integrate it into your Rust project.
