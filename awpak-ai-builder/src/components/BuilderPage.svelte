@@ -10,6 +10,8 @@
     import NodeDestination from "./node/NodeDestination.svelte";
     import InputFile from "./form/InputFile.svelte";
     import { save_graph_to_file } from "../functions/save_to_file";
+    import Dropdown from "./form/Dropdown.svelte";
+    import DropwdownItem from "./form/DropwdownItem.svelte";
 
 
     let view_type = $state( ViewType.GraphView );
@@ -63,6 +65,8 @@
 
 <div class="h-screen grid grid-rows-[auto_1fr]">
     <div class="w-full text-center h-14 border-b border-gray-200 dark:border-gray-700">
+        <h1 class="inline"><a href="/" title="AwpakAI home">AwpakAI</a></h1>
+        <!--
         {#if view_type != ViewType.Graph}
         <Button
             text="Graph data"
@@ -74,6 +78,7 @@
             color="blue"
         />
         {/if}
+        
         {#if view_type != ViewType.GraphView}
         <Button
             text="Graph view"
@@ -85,6 +90,8 @@
             color="blue"
         />
         {:else}
+        -->
+        {#if view_type == ViewType.GraphView}
         <Button
             text={graph_view_edit_mode ? "End edit mode" : "Start edit mode"}
             click={ 
@@ -92,10 +99,11 @@
                 graph_view_edit_mode = ! graph_view_edit_mode;
                 }
             }
-            color={graph_view_edit_mode ? "red" : "light"}
+            color={graph_view_edit_mode ? "red" : "indigo"}
         />
         {/if}
 
+        <!--
         {#if view_type == ViewType.Graph || view_type == ViewType.GraphView}
         <Button
             text="Add node"
@@ -123,6 +131,53 @@
             }
             color="purple"
         />
+        -->
+
+        <Dropdown label="Options">
+            {#if view_type != ViewType.Graph}
+            <DropwdownItem
+                label="Graph data"
+                click={ 
+                    () => {
+                        change_view( ViewType.Graph );
+                    }
+                }
+            />
+            {/if}
+            {#if view_type != ViewType.GraphView}
+            <DropwdownItem
+                label="Graph view"
+                click={ 
+                    () => {
+                        change_view( ViewType.GraphView );
+                    }
+                }
+            />
+            {/if}
+            {#if view_type == ViewType.Graph || view_type == ViewType.GraphView}
+            <DropwdownItem
+                label="Add node"
+                click={ 
+                    () => {
+                        add_node();
+                    }
+                }
+            />
+            {/if}
+            <DropwdownItem
+                label="Load JSON"
+                click={load_json}
+                is_file={true}
+            />
+            <DropwdownItem 
+                label="Save JSON"
+                click={ 
+                    () => {
+                        save_graph_to_file( $graph );
+                    }
+                }
+            />
+        </Dropdown>
     </div>
 
     

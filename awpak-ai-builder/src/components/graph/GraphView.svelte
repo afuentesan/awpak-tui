@@ -234,9 +234,9 @@
                         selector : 'edge', 
                         style : { 
                             'width': 2,
-                            'line-color': '#ffffff',
+                            'line-color': '#6875F5',
                             'target-arrow-shape': 'triangle',
-                            'target-arrow-color': '#ffffff',
+                            'target-arrow-color': '#6875F5',
                             'curve-style': 'bezier' 
                         } 
                     },
