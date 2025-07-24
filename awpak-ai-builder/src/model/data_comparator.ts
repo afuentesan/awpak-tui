@@ -7,7 +7,11 @@ export type DataComparator = DataComparatorEq |
                              DataComparatorRegex |
                              DataComparatorAnd |
                              DataComparatorOr |
+                             DataComparatorXor |
+                             DataComparatorNand |
                              DataComparatorNot |
+                             DataComparatorEmpty |
+                             DataComparatorNotEmpty |
                              DataComparatorTrue |
                              DataComparatorFalse;
 
@@ -20,7 +24,11 @@ export enum DataComparatorVariant
     Regex = "Regex",
     And = "And",
     Or = "Or",
+    Xor = "Xor",
+    Nand = "Nand",
     Not = "Not",
+    Empty = "Empty",
+    NotEmpty = "NotEmpty",
     True = "True",
     False = "False"
 }
@@ -123,6 +131,34 @@ export class DataComparatorOr
     }
 }
 
+export class DataComparatorXor
+{
+    readonly _variant = DataComparatorVariant.Xor;
+
+    comp_1 : DataComparator | undefined;
+    comp_2 : DataComparator | undefined;
+
+    constructor()
+    {
+        this.comp_1 = new DataComparatorEq();
+        this.comp_2 = new DataComparatorEq();
+    }
+}
+
+export class DataComparatorNand
+{
+    readonly _variant = DataComparatorVariant.Nand;
+
+    comp_1 : DataComparator | undefined;
+    comp_2 : DataComparator | undefined;
+
+    constructor()
+    {
+        this.comp_1 = new DataComparatorEq();
+        this.comp_2 = new DataComparatorEq();
+    }
+}
+
 export class DataComparatorNot
 {
     readonly _variant = DataComparatorVariant.Not;
@@ -133,6 +169,20 @@ export class DataComparatorNot
     {
         this.value = new DataComparatorEq();
     }
+}
+
+export class DataComparatorEmpty
+{
+    readonly _variant = DataComparatorVariant.Empty;
+
+    value : DataFrom = new FromContext();
+}
+
+export class DataComparatorNotEmpty
+{
+    readonly _variant = DataComparatorVariant.NotEmpty;
+
+    value : DataFrom = new FromContext();
 }
 
 export class DataComparatorTrue

@@ -1,6 +1,6 @@
 import { DataToAgentHistoryReplace, DataToAgentHistoryReplaceFirst, DataToAgentHistoryReplaceItem, DataToAgentHistoryReplaceLast, DataToAgentHistoryStringToFirst, DataToAgentHistoryStringToItem, DataToAgentHistoryStringToLast, DataToAgentHistoryVariant, type DataToAgentHistory } from "../model/agent_history_mut";
 import { DataFromVariant, DataOperationAdd, DataOperationLen, DataOperationStringSplit, DataOperationSubstract, DataOperationVariant, FromAgentHistory, FromAgentHistoryContentFirst, FromAgentHistoryContentFirstMessage, FromAgentHistoryContentFull, FromAgentHistoryContentFullMessages, FromAgentHistoryContentItem, FromAgentHistoryContentItemMessage, FromAgentHistoryContentLast, FromAgentHistoryContentLastMessage, FromAgentHistoryContentRange, FromAgentHistoryContentRangeMessages, FromAgentHistoryContentVariant, FromConcat, FromContext, FromInput, FromNull, FromOperation, FromParsedInput, FromStatic, type DataFrom, type DataOperation, type FromAgentHistoryContent } from "../model/data";
-import { DataComparatorAnd, DataComparatorEq, DataComparatorFalse, DataComparatorGt, DataComparatorLt, DataComparatorNot, DataComparatorNotEq, DataComparatorOr, DataComparatorRegex, DataComparatorTrue, DataComparatorVariant, type DataComparator } from "../model/data_comparator";
+import { DataComparatorAnd, DataComparatorEmpty, DataComparatorEq, DataComparatorFalse, DataComparatorGt, DataComparatorLt, DataComparatorNand, DataComparatorNot, DataComparatorNotEmpty, DataComparatorNotEq, DataComparatorOr, DataComparatorRegex, DataComparatorTrue, DataComparatorVariant, DataComparatorXor, type DataComparator } from "../model/data_comparator";
 import { WebClientBodyForm, WebClientBodyJson, WebClientBodyVariant, type WebClientBody } from "../model/web_client";
 import { is_type_in_enum } from "./form_utils";
 
@@ -84,9 +84,25 @@ export function new_data_comparator_variant( old : DataComparator, new_variant :
     {
         return new DataComparatorOr();
     }
+    else if( new_variant == DataComparatorVariant.Xor )
+    {
+        return new DataComparatorXor();
+    }
+    else if( new_variant == DataComparatorVariant.Nand )
+    {
+        return new DataComparatorNand();
+    }
     else if( new_variant == DataComparatorVariant.Not )
     {
         return new DataComparatorNot();
+    }
+    else if( new_variant == DataComparatorVariant.Empty )
+    {
+        return new DataComparatorEmpty();
+    }
+    else if( new_variant == DataComparatorVariant.NotEmpty )
+    {
+        return new DataComparatorNotEmpty();
     }
     else if( new_variant == DataComparatorVariant.True )
     {

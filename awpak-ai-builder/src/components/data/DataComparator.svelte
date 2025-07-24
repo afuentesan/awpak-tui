@@ -70,7 +70,9 @@
 
     {#if 
         comparator._variant == DataComparatorVariant.And ||
-        comparator._variant == DataComparatorVariant.Or
+        comparator._variant == DataComparatorVariant.Or ||
+        comparator._variant == DataComparatorVariant.Xor ||
+        comparator._variant == DataComparatorVariant.Nand
     }
         {#if comparator.comp_1}
         <Self comparator={comparator.comp_1} base_path={base_path+".comp_1"} />
@@ -85,6 +87,13 @@
         comparator.value
     }
         <Self comparator={comparator.value} base_path={base_path+".value"} />
+    {/if}
+
+    {#if 
+        comparator._variant == DataComparatorVariant.Empty ||
+        comparator._variant == DataComparatorVariant.NotEmpty
+    }
+        <DataFrom from={comparator.value} base_path={base_path+".value"} label={comparator._variant + " from"} />
     {/if}
 
     {#if comparator._variant == DataComparatorVariant.True}

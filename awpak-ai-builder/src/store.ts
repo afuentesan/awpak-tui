@@ -21,7 +21,7 @@ let g = new Graph();
 g.context = new Map();
 g.preserve_context = false;
 
-g.first = new Node( "first_node" );
+g.first = new Node( "Entry node" );
 
 export const graph = atom( g );
 

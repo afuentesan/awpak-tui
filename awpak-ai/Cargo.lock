@@ -1077,9 +1077,9 @@ dependencies = [
 
 [[package]]
 name = "rig-core"
-version = "0.15.0"
+version = "0.15.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "969de7ef951d6fa1c5dfae35702ddcf5ed95eea2db0648b9a87849b92b86bfbc"
+checksum = "2639aa0d3ace85757f9a6be0209a41b8e5ade7d3e323d3511969d60f6afd481c"
 dependencies = [
  "as-any",
  "async-stream",
@@ -1271,9 +1271,9 @@ dependencies = [
 
 [[package]]
 name = "serde_json"
-version = "1.0.140"
+version = "1.0.141"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "20068b6e96dc6c9bd23e01df8827e6c7e1f2fddd43c21810382803c136b99373"
+checksum = "30b9eff21ebe718216c6ec64e1d9ac57087aad11efc64e32002bce4a0d4c03d3"
 dependencies = [
  "itoa",
  "memchr",

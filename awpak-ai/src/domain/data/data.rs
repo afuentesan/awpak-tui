@@ -121,7 +121,12 @@ pub enum DataComparator
 
     And { comp_1 : Box<DataComparator>, comp_2 : Box<DataComparator> },
     Or { comp_1 : Box<DataComparator>, comp_2 : Box<DataComparator> },
+    Xor { comp_1 : Box<DataComparator>, comp_2 : Box<DataComparator> },
+    Nand { comp_1 : Box<DataComparator>, comp_2 : Box<DataComparator> },
     Not( Box<DataComparator> ),
+
+    Empty( DataFrom ),
+    NotEmpty( DataFrom ),
 
     True,
     False

@@ -666,7 +666,9 @@ function json_data_comparator( data_comparator : DataComparator | undefined ) : 
     }
     else if( 
         data_comparator._variant == DataComparatorVariant.And ||
-        data_comparator._variant == DataComparatorVariant.Or
+        data_comparator._variant == DataComparatorVariant.Or ||
+        data_comparator._variant == DataComparatorVariant.Xor ||
+        data_comparator._variant == DataComparatorVariant.Nand
     )
     {
         return {
@@ -680,6 +682,15 @@ function json_data_comparator( data_comparator : DataComparator | undefined ) : 
     {
         return {
             [data_comparator._variant] : data_comparator.value ? json_data_comparator( data_comparator.value ) : undefined
+        }
+    }
+    else if( 
+        data_comparator._variant == DataComparatorVariant.Empty || 
+        data_comparator._variant == DataComparatorVariant.NotEmpty
+    )
+    {
+        return {
+            [data_comparator._variant] : data_comparator.value ? json_data_from( data_comparator.value ) : undefined
         }
     }
     else if( 

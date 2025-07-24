@@ -4,6 +4,33 @@ use serde_json::{Map, Number, Value};
 
 use crate::domain::{data::{data::DataType, data_operations::f64_from_value}, error::Error, path::expand_path::expand_path};
 
+pub fn is_value_empty( value : &Value ) -> Result<bool, Error>
+{
+    Ok(
+        match value
+        {
+            Value::Null => true,
+            Value::String( s ) => s == "",
+            Value::Array( a ) => a.len() == 0,
+            Value::Object( o ) => o.is_empty(),
+            Value::Number( n ) => match n.as_f64()
+            {
+                Some( v ) => v == 0.0,
+                None => match n.as_i128()
+                {
+                    Some( v ) => v == 0,
+                    None => match n.as_u128()
+                    {
+                        Some( v ) => v == 0,
+                        None => return Err( Error::ParseData( format!( "{:?} is not a number", n ) ) )
+                    }    
+                }
+            },
+            Value::Bool( b ) => *b
+        }
+    )
+}
+
 pub fn values_are_equals( val_1 : &Value, val_2 : &Value ) -> bool
 {
     let n1 = f64_from_value( val_1.clone() );

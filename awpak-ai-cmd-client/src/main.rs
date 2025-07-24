@@ -113,7 +113,7 @@ fn subscribe_tracing( trace : Option<&String> )
 
     let options = trace_options( trace, tx, tx_stream );
 
-    options.iter().for_each( | o | println!( "Option: {:?}", o.0 ) );
+    // options.iter().for_each( | o | println!( "Option: {:?}", o.0 ) );
 
     let layer = AwpakAIFilterLayer 
     {

@@ -3,7 +3,7 @@ import { DataToAgentHistoryReplace, DataToAgentHistoryReplaceFirst, DataToAgentH
 import { Command, CommandOutputCode, CommandOutputErr, CommandOutputObject, CommandOutputOut, CommandOutputSuccess, type CommandOutput } from "../model/command";
 import type { ContextMut } from "../model/context_mut";
 import { DataMerge, DataOperationAdd, DataOperationLen, DataOperationStringSplit, DataOperationSubstract, DataToContext, DataToString, DataType, FromAgentHistory, FromAgentHistoryContentFirst, FromAgentHistoryContentFirstMessage, FromAgentHistoryContentFull, FromAgentHistoryContentFullMessages, FromAgentHistoryContentItem, FromAgentHistoryContentItemMessage, FromAgentHistoryContentLast, FromAgentHistoryContentLastMessage, FromAgentHistoryContentRange, FromAgentHistoryContentRangeMessages, FromConcat, FromContext, FromInput, FromNull, FromOperation, FromParsedInput, FromStatic, type DataFrom, type FromAgentHistoryContent } from "../model/data";
-import { DataComparatorAnd, DataComparatorEq, DataComparatorFalse, DataComparatorGt, DataComparatorLt, DataComparatorNot, DataComparatorNotEq, DataComparatorOr, DataComparatorRegex, DataComparatorTrue, type DataComparator } from "../model/data_comparator";
+import { DataComparatorAnd, DataComparatorEmpty, DataComparatorEq, DataComparatorFalse, DataComparatorGt, DataComparatorLt, DataComparatorNand, DataComparatorNot, DataComparatorNotEmpty, DataComparatorNotEq, DataComparatorOr, DataComparatorRegex, DataComparatorTrue, DataComparatorXor, type DataComparator } from "../model/data_comparator";
 import { Graph } from "../model/graph";
 import { GraphNode, GraphNodeOutputErr, GraphNodeOutputObject, GraphNodeOutputOut, GraphNodeOutputSuccess, Node, NodeDestination, NodeNextExitErr, NodeNextExitOk, NodeNextNode, type GraphNodeOutput, type NodeNext, type NodeType } from "../model/node";
 import { NodeExecutorAgent, NodeExecutorAgentHistoryMut, NodeExecutorCommand, NodeExecutorContextMut, NodeExecutorParallel, NodeExecutorWebClient, type NodeExecutor } from "../model/node_executor";
@@ -638,9 +638,25 @@ function load_data_comparator( data : any ) : DataComparator
     {
         return load_data_comparator_comp_1_comp_2( data[ "Or" ], new DataComparatorOr() );
     }
+    else if( data?.[ "Xor" ] )
+    {
+        return load_data_comparator_comp_1_comp_2( data[ "Xor" ], new DataComparatorXor() );
+    }
+    else if( data?.[ "Nand" ] )
+    {
+        return load_data_comparator_comp_1_comp_2( data[ "Nand" ], new DataComparatorNand() );
+    }
     else if( data?.[ "Not" ] )
     {
         return load_data_comparator_value( data[ "Not" ], new DataComparatorNot() );
+    }
+    else if( data?.[ "Empty" ] )
+    {
+        return load_data_comparator_data_from( data[ "Empty" ], new DataComparatorEmpty() );
+    }
+    else if( data?.[ "NotEmpty" ] )
+    {
+        return load_data_comparator_data_from( data[ "NotEmpty" ], new DataComparatorNotEmpty() );
     }
     else if( data?.[ "True" ] || ( typeof( data ) === "string" && data == "True" ) )
     {
@@ -665,6 +681,15 @@ function load_data_comparator_value( data : any, src : DataComparatorNot ) : Dat
     return src;
 }
 
+type DataComparatorDataFrom = DataComparatorEmpty | DataComparatorNotEmpty;
+
+function load_data_comparator_data_from( data : any, src : DataComparatorDataFrom ) : DataComparatorDataFrom
+{
+    src.value = load_data_from( data );
+
+    return src;
+}
+
 function load_data_comparator_regex( data : any ) : DataComparatorRegex
 {
     let ret = new DataComparatorRegex();
@@ -675,10 +700,12 @@ function load_data_comparator_regex( data : any ) : DataComparatorRegex
     return ret;
 }
 
+type DataComparatorComp1Comp2 = DataComparatorAnd | DataComparatorOr | DataComparatorAnd | DataComparatorXor | DataComparatorAnd | DataComparatorNand;
+
 function load_data_comparator_comp_1_comp_2(
     data : any,
-    src : DataComparatorAnd | DataComparatorOr
-) : DataComparatorAnd | DataComparatorOr
+    src : DataComparatorComp1Comp2
+) : DataComparatorComp1Comp2
 {
     src.comp_1 = load_data_comparator( data.comp_1 );
     src.comp_2 = load_data_comparator( data.comp_2 );

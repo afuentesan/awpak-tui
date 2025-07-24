@@ -1,7 +1,7 @@
 use regex::Regex;
 use serde_json::{Number, Value};
 
-use crate::domain::{data::{data::DataComparator, data_selection::data_selection, data_utils::{value_to_string, values_are_equals}}, error::Error, graph::graph::Graph};
+use crate::domain::{data::{data::DataComparator, data_selection::data_selection, data_utils::{is_value_empty, value_to_string, values_are_equals}}, error::Error, graph::graph::Graph};
 
 
 pub fn compare_data(
@@ -59,7 +59,19 @@ pub fn compare_data(
                 },
                 Err( e ) => Err( Error::ParseData( format!( "Invalid regex: {}. Error: {:?}", regex, e ) ) )    
             }
-        }
+        },
+        DataComparator::Empty( from ) =>
+        {
+            let value = data_selection( graph, from )?;
+
+            is_value_empty( &value )
+        },
+        DataComparator::NotEmpty( from ) =>
+        {
+            let value = data_selection( graph, from )?;
+
+            Ok( ! is_value_empty( &value )? )
+        },
         DataComparator::And { comp_1, comp_2 } =>
         {
             Ok(
@@ -74,6 +86,24 @@ pub fn compare_data(
                 compare_data( graph, comp_1 )?
                 ||
                 compare_data( graph, comp_2 )?
+            )
+        },
+        DataComparator::Xor { comp_1, comp_2 } =>
+        {
+            let r1 = compare_data( graph, comp_1 )?;
+            let r2 = compare_data( graph, comp_2 )?;
+
+            Ok(
+                ( r1 && ! r2 ) || ( ! r1 && r2 )
+            )
+        },
+        DataComparator::Nand { comp_1, comp_2 } =>
+        {
+            let r1 = compare_data( graph, comp_1 )?;
+            let r2 = compare_data( graph, comp_2 )?;
+
+            Ok(
+                ! r1 && ! r2
             )
         },
         DataComparator::Not( c ) =>

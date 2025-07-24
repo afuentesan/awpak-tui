@@ -211,11 +211,20 @@ function update_ids_in_data_comparator( data_comparator : DataComparator | undef
     }
     else if(
         data_comparator._variant == DataComparatorVariant.And ||
-        data_comparator._variant == DataComparatorVariant.Or
+        data_comparator._variant == DataComparatorVariant.Or ||
+        data_comparator._variant == DataComparatorVariant.Xor ||
+        data_comparator._variant == DataComparatorVariant.Nand
     )
     {
         update_ids_in_data_comparator( data_comparator.comp_1, id, new_id );
         update_ids_in_data_comparator( data_comparator.comp_2, id, new_id );
+    }
+    else if(
+        data_comparator._variant == DataComparatorVariant.Empty ||
+        data_comparator._variant == DataComparatorVariant.NotEmpty
+    )
+    {
+        update_ids_in_data_from( data_comparator.value, id, new_id );
     }
 }
 
