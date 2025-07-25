@@ -1,0 +1,9 @@
+---
+const { items } = Astro.props;
+---
+
+<ul class="pl-4 pb-2 pt-1">
+    {
+        items.map( ( i : any ) => <li class="font-bold">{i}</li> )
+    }
+</ul>

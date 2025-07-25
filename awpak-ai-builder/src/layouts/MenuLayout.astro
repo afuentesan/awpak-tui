@@ -2,8 +2,11 @@
 const { menu } = Astro.props;
 ---
 
-<div class="grid grid-cols-1 md:grid-cols-4 lg:grid-cols-9 xl:grid-cols-12">
+<div class="grid grid-cols-1 md:grid-cols-4 lg:grid-cols-9 xl:grid-cols-12 p-4">
     <nav class="hidden md:block lg:col-span-2 lg:col-start-2 xl:col-start-3 p-2">
+        <ul class="font-bold text-xl pb-4">
+            <li><a href="/" title="AwpakAI home">AwpakAI</a></li>
+        </ul>
         <h3 class="text-xl">Docs</h3>
         <ul class="list-disc">
             <li class={

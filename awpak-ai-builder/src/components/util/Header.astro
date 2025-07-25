@@ -1,0 +1,14 @@
+---
+let { ty } = Astro.props;
+
+if( ! ty?.trim() ) ty = "h2";
+
+---
+
+{ 
+    ( ty == "h2" )
+    ?
+    <h2 class="pb-2 text-2xl"><slot /></h2>
+    :
+    <h3 class="pt-4 pb-2 text-xl"><slot /></h3>
+}
