@@ -2,3 +2,11 @@
 
 /* @import "flowbite/src/themes/default";
 @plugin "flowbite/plugin"; */
+
+:root {
+  color-scheme: light dark;
+}
+
+b {
+    color : light-dark(#861043, #fff085);
+}
