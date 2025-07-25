@@ -8,7 +8,7 @@ readme = "README.md"
 repository = "https://github.com/afuentesan/awpak-tui/tree/main/awpak-ai"
 homepage = "https://www.awpak.com/"
 documentation = "https://docs.rs/awpak-ai"
-keywords = ["ai", "agents", "ai-agent", "graph", "workflow", "llm"]
+keywords = ["ai", "agents", "graph", "workflow", "llm"]
 categories = ["science"]
 authors = ["Ángel Fuente <awpakj@gmail.com>"]
 
