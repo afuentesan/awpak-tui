@@ -16,7 +16,7 @@ This tool allows anyone, even without programming experience, to create and run 
 
 ## Installation
 
-You can install it from source using [Cargo](https://doc.rust-lang.org/cargo/):
+You can install it from source using [Cargo](https://doc.rust-lang.org/cargo/getting-started/installation.html):
 
 ```bash
 cargo install awpak-ai-cmd-client
