@@ -163,6 +163,8 @@ dependencies = [
 [[package]]
 name = "awpak-utils"
 version = "0.1.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "5c372c656559dbe846e7c931998dc8d04e49f5bad5c7d8bdbdb594295e3deba1"
 dependencies = [
  "unicode-segmentation",
 ]

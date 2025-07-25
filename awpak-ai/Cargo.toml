@@ -17,8 +17,8 @@ serde = { version = "1.0", features = ["derive"] }
 serde_json = { version = "1.0.141" }
 tokio = { version = "1.46.1", features = ["full"] }
 tokio-stream = "0.1.17"
-awpak-utils = { version = "0.1.0", path = "../awpak-utils" }
-awpak-web-client = { version = "0.1.0", path = "../awpak-web-client" }
+awpak-utils = { version = "0.1.0" }
+awpak-web-client = { version = "0.1.0" }
 regex = "1.11.1"
 async-recursion = "1.1.1"
 rig-core = { version = "0.15.1", features = [ "mcp" ] }
