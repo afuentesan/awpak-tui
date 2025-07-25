@@ -8,7 +8,7 @@ readme = "README.md"
 repository = "https://github.com/afuentesan/awpak-tui/tree/main/awpak-web-client"
 homepage = "https://www.awpak.com/"
 documentation = "https://docs.rs/awpak-web-client"
-keywords = ["web client"]
+keywords = ["web", "http"]
 categories = [ "network-programming" ]
 authors = ["Ángel Fuente <awpakj@gmail.com>"]
 
