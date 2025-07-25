@@ -172,6 +172,8 @@ dependencies = [
 [[package]]
 name = "awpak-web-client"
 version = "0.1.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "fb77dfb5d36a284d49a0744989c569be045b61228ed283859805815ab9330271"
 dependencies = [
  "reqwest",
  "serde",
