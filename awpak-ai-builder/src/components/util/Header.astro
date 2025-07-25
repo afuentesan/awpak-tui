@@ -3,12 +3,19 @@ let { ty } = Astro.props;
 
 if( ! ty?.trim() ) ty = "h2";
 
+const common_classes = "dark:text-purple-300 text-purple-950 font-bold";
 ---
 
 { 
-    ( ty == "h2" )
+    ( ty == "h1" )
     ?
-    <h2 class="pb-2 text-2xl"><slot /></h2>
+    <h1 class={"text-3xl "+common_classes}><slot /></h1>
     :
-    <h3 class="pt-4 pb-2 text-xl"><slot /></h3>
+    (
+        ( ty == "h2" )
+        ?
+        <h2 class={"pb-2 text-2xl "+common_classes}><slot /></h2>
+        :
+        <h3 class={"pt-4 pb-2 text-xl "+common_classes}><slot /></h3>
+    )
 }
