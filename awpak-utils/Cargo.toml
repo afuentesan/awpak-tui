@@ -2,6 +2,15 @@
 name = "awpak-utils"
 version = "0.1.0"
 edition = "2024"
+license = "MIT"
+description = "Utils for awpak projects."
+readme = "README.md"
+repository = "https://github.com/afuentesan/awpak-tui/tree/main/awpak-utils"
+homepage = "https://www.awpak.com/"
+documentation = "https://docs.rs/awpak-utils"
+keywords = ["utils"]
+categories = [ "filesystem" ]
+authors = ["Ángel Fuente <awpakj@gmail.com>"]
 
 [dependencies]
 unicode-segmentation = "1.12.0"

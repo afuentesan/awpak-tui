@@ -2,6 +2,15 @@
 name = "awpak-ai"
 version = "0.1.0"
 edition = "2024"
+license = "MIT"
+description = "A Rust library to orchestrate AI agents, commands, and URL calls using an execution graph."
+readme = "README.md"
+repository = "https://github.com/afuentesan/awpak-tui/tree/main/awpak-ai"
+homepage = "https://www.awpak.com/"
+documentation = "https://docs.rs/awpak-ai"
+keywords = ["ai", "agents", "graph", "workflow", "llm"]
+categories = ["science"]
+authors = ["Ángel Fuente <awpakj@gmail.com>"]
 
 [dependencies]
 serde = { version = "1.0", features = ["derive"] }
