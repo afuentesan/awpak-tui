@@ -1,5 +1,5 @@
 ---
-const { href, title } = Astro.props;
+const { href, title, target } = Astro.props;
 ---
 
-<a href={href} title={title} class="dark:text-yellow-500 text-yellow-700"><slot /></a>
+<a href={href} title={title} target={target} class="dark:text-yellow-500 text-yellow-700 font-bold"><slot /></a>

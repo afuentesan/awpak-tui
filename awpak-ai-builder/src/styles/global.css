@@ -10,3 +10,12 @@
 b {
     color : light-dark(#861043, #fff085);
 }
+
+.box .box
+{
+  margin-top : calc(var(--spacing) * 2);
+}
+
+p {
+  text-wrap: pretty;
+}

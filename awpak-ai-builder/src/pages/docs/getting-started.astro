@@ -6,6 +6,7 @@ import List from '../../components/util/List.astro';
 import Section from '../../components/util/Section.astro';
 import Header from '../../components/util/Header.astro';
 import Link from '../../components/util/Link.astro';
+import Img from '../../components/util/Img.astro';
 ---
 
 <MainLayout>
@@ -13,8 +14,8 @@ import Link from '../../components/util/Link.astro';
         <article class="p-2">
             <header><Header ty="h1">Getting started with AwpakAI</Header></header>
             <section class="pt-2">
-                <p>In this first example, we are going to create a simple <b>chat workflow</b> to interact with an LLM (Large Language Model). We will use the <Link href="/builder" target="_blank" title="Open graph Builder" class="font-bold">web-based graph builder</Link> to define the workflow visually and export it as JSON for execution.</p>
-                <p class="p-2"><Link href="/builder" target="_blank" title="Open graph Builder" class="font-bold">Click to open the graph builder in new tab</Link></p>
+                <p>In this first example, we are going to create a simple <b>chat workflow</b> to interact with an LLM (Large Language Model). We will use the <Link href="/builder" target="_blank" title="Open graph Builder">web-based graph builder</Link> to define the workflow visually and export it as JSON for execution.</p>
+                <p class="p-2"><Link href="/builder" target="_blank" title="Open graph Builder">Click to open the graph builder in new tab</Link></p>
             </section>
             <Section>
                 <Header>Default Graph Layout</Header>
@@ -26,7 +27,7 @@ import Link from '../../components/util/Link.astro';
                 </ul>
 
                 <div class="mt-2">
-                    <img class="h-60 border" src="/img/docs/initial_graph.png" alt="Initial graph" />
+                    <Img height="h-60" src="/img/docs/initial_graph.png" alt="Initial graph" />
                 </div>
 
                 <Header ty="h3">About Exit Nodes</Header>
@@ -48,6 +49,9 @@ import Link from '../../components/util/Link.astro';
                 <Header>Configuring the Node to Call an LLM</Header>
                 <p>When you click on the <b>Entry Node</b>, a configuration form will appear.</p>
                 <p>One of the most important sections in this form is <b>Node executor</b>, which contains a dropdown labeled <b>Executor type</b>.</p>
+                <div class="mt-2">
+                    <Img height="h-30" src="/img/docs/executor_type.png" alt="Executor type" />
+                </div>
                 <Header ty="h3">Selecting the Executor Type</Header>
                 <p>By default, the executor type is set to <b>Command</b>.</p>
                 <p>For our chat example, change it to <b>Agent</b>.</p>
@@ -59,6 +63,11 @@ import Link from '../../components/util/Link.astro';
                 <List items={["Ollama", "OpenAI", "DeepSeek", "Gemini"]} />
                 
                 <p>For this example, we will use <b>Ollama</b> because it does not require an API key.</p>
+
+                <div class="mt-2 mb-2">
+                    <Img height="h-30" src="/img/docs/provider_selector.png" alt="Provider selector" />
+                </div>
+
                 <p>If you choose any of the other providers, an additional field labeled <b>Api key</b> will appear.</p>
 
                 <Blockquote>
@@ -71,6 +80,10 @@ import Link from '../../components/util/Link.astro';
                 <p>This section has two fields:</p>
 
                 <List items={["1. A dropdown labeled from", "2. A text field"]} />
+
+                <div class="mt-2 mb-2">
+                    <Img height="h-40" src="/img/docs/data_from.png" alt="DataFrom" />
+                </div>
 
                 <p class="pb-2">This structure, titled <b>DataFrom</b>, is used in many other parts of the form.</p>
                 <p>The <b>From</b> dropdown lets you choose where the value comes from:</p>
@@ -94,6 +107,10 @@ import Link from '../../components/util/Link.astro';
 
                 <p>For this example, we only need the <b>Prompt</b> section.</p>
 
+                <div class="mt-2 mb-2">
+                    <Img height="h-25" src="/img/docs/prompt.png" alt="Prompt" />
+                </div>
+
                 <p class="pt-2">1. Click the <b>New prompt part</b> button.</p>
                 <p>2. A new prompt section appears with:</p>
                 
@@ -102,6 +119,10 @@ import Link from '../../components/util/Link.astro';
                     "A DataFrom selector in the middle",
                     "A text field labeled Suffix"
                 ]} />
+
+                <div class="mt-2 mb-2">
+                    <Img height="h-96" src="/img/docs/prompt_part.png" alt="Prompt part" />
+                </div>
 
                 <p class="pb-1">For our chat workflow:</p>
                 <p>- Set <b>DataFrom</b> to <b>Input</b> (we want the user input as the prompt).</p>
@@ -118,16 +139,25 @@ import Link from '../../components/util/Link.astro';
                     "Save history → keeps the conversation history across graph executions.",
                     "Streaming response → enables streaming responses from the LLM."
                 ]} />
+
+                <div class="mt-2 mb-2">
+                    <Img height="h-12" src="/img/docs/streaming_and_save_history.png" alt="Streaming response and save history" />
+                </div>
+
                 <p>For a chat use case <b>enable both options</b></p>
                 <p class="pt-2">With these settings, our entry node is now configured to act as a chat agent connected to an LLM.</p>
                 <p>Next, we will connect the nodes to complete the workflow.</p>
             </Section>
             <Section>
                 <Header>Connecting the Nodes</Header>
-                <p>Now that the entry node is configured, let’s return to the graph view to connect the nodes.</p>
+                <p>Now that the entry node is configured, let's return to the graph view to connect the nodes.</p>
                 <Header ty="h3">Switching to Graph View</Header>
                 <p>At the top of the page, you will see a dropdown labeled <b>Options</b>.</p>
                 <p>Open it and select <b>Graph view</b>.</p>
+
+                <div class="mt-2 mb-2">
+                    <Img height="h-40" src="/img/docs/options_menu.png" alt="Options dropdown" />
+                </div>
 
                 <p>This brings us back to the default view, where we still see the three disconnected nodes:</p>
 
@@ -140,6 +170,14 @@ import Link from '../../components/util/Link.astro';
                     "2. Once activated, the label changes to End edit mode."
                 ]} />
 
+                <div class="mt-2 mb-2">
+                    <Img height="h-12" src="/img/docs/start_edit_mode.png" alt="Start edit mode" />
+                </div>
+                
+                <div class="mt-2 mb-2">
+                    <Img height="h-12" src="/img/docs/end_edit_mode.png" alt="End edit mode" />
+                </div>
+
                 <Header ty="h3">Creating a Connection</Header>
 
                 <p>In our simple chat example, we only need to connect the <b>Entry Node</b> to <b>Exit Ok</b>:</p>
@@ -151,6 +189,10 @@ import Link from '../../components/util/Link.astro';
                 ]} />
 
                 <p>Once connected, click <b>End edit mode</b> to prevent accidental changes.</p>
+                
+                <div class="mt-2 mb-2">
+                    <Img height="h-30" src="/img/docs/connected_graph.png" alt="Connect entry node with Exit Ok" />
+                </div>
 
                 <Header ty="h3">Saving the Graph as JSON</Header>
 
@@ -169,13 +211,15 @@ import Link from '../../components/util/Link.astro';
                 <p>While you can run graphs directly using the Rust library <b>awpak-ai</b>, there is also a <b>command-line application</b> available that allows <b>anyone—even non-programmers—to execute graphs</b>.</p>
 
                 <p>The CLI application is called <b>awpak-ai-cmd-client</b>.</p>
-                <p>You can find instructions to install it in its <Link class="font-bold" href="https://github.com/afuentesan/awpak-tui/tree/main/awpak-ai-cmd-client" title="awpak-ai-cmd-client Github repository">GitHub repository</Link>.</p>
+                <p>You can find instructions to install it in its <Link href="https://github.com/afuentesan/awpak-tui/tree/main/awpak-ai-cmd-client" title="awpak-ai-cmd-client Github repository" target="_blank">GitHub repository</Link>.</p>
 
                 <Header ty="h3">Running the Example</Header>
 
-                <p>For our simple chat workflow, run the following command:</p>
+                <p class="pb-2">For our simple chat workflow, run the following command:</p>
 
-                <code>awpak-ai-cmd-client --path="/path_to_graph.json" --trace="agent_stream" --chat</code>
+                <p class="border p-2 bg-gray-50 rounded-lg dark:bg-gray-700 text-sm text-gray-500 dark:text-gray-400">
+                    <code class="font-bold">awpak-ai-cmd-client --path="/path_to_graph.json" --trace="agent_stream" --chat</code>
+                </p>
 
                 <Header ty="h3">Parameters:</Header>
 
@@ -186,6 +230,10 @@ import Link from '../../components/util/Link.astro';
                 ]} />
                 
                 <p>This will run the workflow we created, using the LLM agent, and display streaming responses directly in your terminal.</p>
+
+                <div class="mt-2 mb-4">
+                    <Img height="h-10" src="/img/docs/final_ollama_chat.png" alt="Ollama chat execution" />
+                </div>
             </Section>
         </article>
     </MenuLayout>

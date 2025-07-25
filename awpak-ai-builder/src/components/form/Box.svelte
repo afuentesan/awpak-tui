@@ -20,7 +20,7 @@
 
 </script>
 
-<div class="p-4 bg-white border border-gray-200 rounded-lg shadow-sm dark:bg-gray-800 dark:border-gray-700">
+<div class="p-4 bg-white border border-gray-200 rounded-lg shadow-sm dark:bg-gray-800 dark:border-gray-700 box">
     <Header text={title} />
     {#if ! is_grid}
         <Checkbox 
