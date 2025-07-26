@@ -1,20 +1,53 @@
 ---
 const { menu } = Astro.props;
+
+const cls_selected_menu = "font-bold dark:text-yellow-500 text-yellow-700 cursor-default";
+
+const cls_links = "hover:font-bold hover:dark:text-yellow-500 hover:text-yellow-700";
+
+function cls_menu( item? : string )
+{
+    let ret = "";
+
+    if( item && menu && item == menu )
+    {
+        ret += " " + cls_selected_menu;   
+    }
+
+    return ret;
+}
+
+const cls_borders = "border border-gray-200 shadow-sm dark:border-gray-700";
+
+const cls_menu_lists = "ps-5 list-disc pt-1";
+
+const cls_hr = "border-gray-200 shadow-sm dark:border-gray-700 mt-3 mb-3";
+
 ---
 
 <div class="grid grid-cols-1 md:grid-cols-4 lg:grid-cols-9 xl:grid-cols-12 p-4">
-    <nav class="hidden md:block lg:col-span-2 lg:col-start-2 xl:col-start-3 p-2">
-        <ul class="font-bold text-xl pb-4">
-            <li><a href="/" title="AwpakAI home">AwpakAI</a></li>
+    <nav class={"hidden md:block lg:col-span-2 lg:col-start-2 xl:col-start-3 p-4 rounded-tl-lg "+cls_borders}>
+        <h3 class="text-xl font-bold dark:text-purple-300 text-purple-950 text-balance">
+            <a class={cls_links} href="/" title="AwpakAI home">AwpakAI</a>
+        </h3>
+        <ul class={cls_menu_lists}>
+            <li class={cls_menu( "home" )}>
+                <a class={cls_links} href="/" title="AwpakAI home">Home</a>
+            </li>
+            <li class={cls_menu( "builder" )}>
+                <a class={cls_links} href="/builder" title="Go to Graph Builder">Graph builder</a>
+            </li>
         </ul>
-        <h3 class="text-xl">Docs</h3>
-        <ul class="list-disc">
-            <li class={
-                ( menu == "getting-started" ) ? "font-bold" : ""
-            }><a href="/docs/getting-started" title="Getting Started with Graph Builder">Getting started</a></li>
+        <hr class={cls_hr} />
+        <h3 class="text-xl font-bold dark:text-purple-300 text-purple-950 text-balance">Docs</h3>
+        <ul class={cls_menu_lists}>
+            <li class={cls_menu( "getting-started" )}>
+                <a class={cls_links} href="/docs/getting-started" title="Getting Started with Graph Builder">Getting started</a>
+            </li>
         </ul>
+        <hr class={cls_hr} />
     </nav>
-    <div class="md:col-span-3 lg:col-span-5 lg:col-start-4 xl:col-start-5 xl:col-span-6">
+    <div class={"md:col-span-3 lg:col-span-5 lg:col-start-4 xl:col-start-5 xl:col-span-6 border rounded-tr-lg p-4 "+cls_borders}>
         <slot />
     </div>
 </div>

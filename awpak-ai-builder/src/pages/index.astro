@@ -2,35 +2,45 @@
 import Link from '../components/util/Link.astro';
 import Header from '../components/util/Header.astro';
 import MainLayout from '../layouts/MainLayout.astro';
+import MenuLayout from '../layouts/MenuLayout.astro';
+import Section from '../components/util/Section.astro';
+
+import { Content as IndexMD } from '../markdown/index.md';
+
 ---
 
 <MainLayout>
-    <article class="grid grid-cols-1 md:grid-cols-6 lg:grid-cols-5 xl:grid-cols-4 gap-2 justify-center p-4">
-        <header class="md:col-start-2 md:col-span-4 lg:col-start-2 lg:col-span-3 xl:col-start-2 xl:col-span-2"><Header ty="h1">AwpakAI</Header></header>
-        <section class="md:col-start-2 md:col-span-4 lg:col-start-2 lg:col-span-3 xl:col-start-2 xl:col-span-2">
-            <p><b>AwpakAI</b> is a Rust library for orchestrating the execution of <b>artificial intelligence agents</b>, <b>system commands</b>, and <b>HTTP requests</b>, modeled as a <b>directed graph</b>.</p>
-            <p>Each node in the graph can perform one of the following actions:</p>
-            <ul class="ps-5 mt-2 mb-2 space-y-1 list-disc list-inside">
-                <li>Execute a <b>system command</b>.</li>
-                <li>Make an <b>HTTP request</b> (e.g., to a REST API).</li>
-                <li>Invoke an <b>AI agent</b> (such as a language model or custom logic).</li>
-            </ul>
+    <MenuLayout menu="home">
+        <article class="mdo p-2">
+            <header class="pb-1"><Header ty="h1">What is AwpakAI?</Header></header>
+            <IndexMD />
+            <!--
+            <section class="pt-2">
+                <p><b>AwpakAI</b> is a Rust library for orchestrating the execution of <b>artificial intelligence agents</b>, <b>system commands</b>, and <b>HTTP requests</b>, modeled as a <b>directed graph</b>.</p>
+                <p>Each node in the graph can perform one of the following actions:</p>
+                <ul class="ps-5 mt-2 mb-2 space-y-1 list-disc list-inside">
+                    <li>Execute a <b>system command</b>.</li>
+                    <li>Make an <b>HTTP request</b> (e.g., to a REST API).</li>
+                    <li>Invoke an <b>AI agent</b> (such as a language model or custom logic).</li>
+                </ul>
 
-            <p>This structure enables the creation of flexible and powerful pipelines. Each graph has an internal <b>context</b>, where the output of every executed node is stored. Subsequent nodes can access the outputs of one or more previously executed nodes from this context, enabling flexible and dynamic data flow throughout the execution.</p>
-        </section>
-        <section class="md:col-start-2 md:col-span-4 lg:col-start-2 lg:col-span-3 xl:col-start-2 xl:col-span-2">
-            <Header>Use Cases</Header>
-            <p>AwpakAI is ideal for:</p>
-            <ul class="ps-5 mt-2 mb-2 space-y-1 list-disc list-inside">
-                <li>Coordinating language models (LLMs) or AI agents in complex workflows.</li>
-                <li>Automating pipelines that combine AI, web services, and shell commands.</li>
-                <li>Defining flexible, declarative flows in JSON for easy maintenance and dynamic reconfiguration.</li>
-            </ul>
-        </section>
-        <section class="md:col-start-2 md:col-span-4 lg:col-start-2 lg:col-span-3 xl:col-start-2 xl:col-span-2">
-            <Header>Creating the JSON Definition</Header>
-            <p>Manually writing a JSON graph definition can be complex because of the number of available options. To simplify this process, we provide a <Link href="/builder" title="Graph builder" target="_blank">web-based editor</Link> that helps you build graphs interactively and export them as JSON.</p>
-            <p>The <Link href="/docs/getting-started" title="Getting Started with Graph Builder">Getting Started</Link> guide will walk you through how to generate and customize a graph using the web editor and how to integrate it into your Rust project.</p>
-        </section>
-    </article>
+                <p>This structure enables the creation of flexible and powerful pipelines. Each graph has an internal <b>context</b>, where the output of every executed node is stored. Subsequent nodes can access the outputs of one or more previously executed nodes from this context, enabling flexible and dynamic data flow throughout the execution.</p>
+            </section>
+            <Section>
+                <Header>Use Cases</Header>
+                <p>AwpakAI is ideal for:</p>
+                <ul class="ps-5 mt-2 mb-2 space-y-1 list-disc list-inside">
+                    <li>Coordinating language models (LLMs) or AI agents in complex workflows.</li>
+                    <li>Automating pipelines that combine AI, web services, and shell commands.</li>
+                    <li>Defining flexible, declarative flows in JSON for easy maintenance and dynamic reconfiguration.</li>
+                </ul>
+            </Section>
+            <Section>
+                <Header>Creating the JSON Definition</Header>
+                <p>Manually writing a JSON graph definition can be complex because of the number of available options. To simplify this process, we provide a <Link href="/builder" title="Graph builder" target="_blank">web-based editor</Link> that helps you build graphs interactively and export them as JSON.</p>
+                <p>The <Link href="/docs/getting-started" title="Getting Started with Graph Builder">Getting Started</Link> guide will walk you through how to generate and customize a graph using the web editor and how to integrate it into your Rust project.</p>
+            </Section>
+             -->
+        </article>
+    </MenuLayout>
 </MainLayout>

@@ -1,9 +1,31 @@
 ---
-const { items } = Astro.props;
+let { items, list_type } = Astro.props;
+
+if( ! list_type?.trim() )
+{
+    list_type = "ul";
+}
+
 ---
 
-<ul class="pl-4 pb-2 pt-1">
-    {
-        items.map( ( i : any ) => <li class="font-bold text-pink-900 dark:text-yellow-200">{i}</li> )
-    }
-</ul>
+{
+    ( list_type == "ol" )
+    ?
+    (
+        <ol class="ps-9 pb-2 pt-1 list-decimal">
+            {
+                items.map( ( i : any ) => <li>{i}</li> )
+            }
+            <slot />
+        </ol>
+    )
+    :
+    (
+        <ul class="ps-5 pb-2 pt-1 list-disc">
+            {
+                items.map( ( i : any ) => <li>{i}</li> )
+            }
+            <slot />
+        </ul>
+    )
+}

@@ -20,11 +20,11 @@ import Img from '../../components/util/Img.astro';
             <Section>
                 <Header>Default Graph Layout</Header>
                 <p class="pb-2">When you open the graph builder, you will see <b>three disconnected nodes</b>:</p>
-                <ul>
+                <List items={[]}>
                     <li><b>Entry Node</b> - This is the starting point of the graph and will be executed first.</li>
                     <li><b>Exit Ok</b> - A terminal node indicating that the workflow has completed successfully.</li>
                     <li><b>Exit Err</b> - A terminal node indicating that the workflow has ended with an error.</li>
-                </ul>
+                </List>
 
                 <div class="mt-2">
                     <Img height="h-60" src="/img/docs/initial_graph.png" alt="Initial graph" />
@@ -79,7 +79,7 @@ import Img from '../../components/util/Img.astro';
                 <p>After selecting <b>Ollama</b> as the provider, a new section appears for selecting the model.</p>
                 <p>This section has two fields:</p>
 
-                <List items={["1. A dropdown labeled from", "2. A text field"]} />
+                <List items={["A dropdown labeled from", "A text field"]} />
 
                 <div class="mt-2 mb-2">
                     <Img height="h-40" src="/img/docs/data_from.png" alt="DataFrom" />
@@ -89,17 +89,17 @@ import Img from '../../components/util/Img.astro';
                 <p>The <b>From</b> dropdown lets you choose where the value comes from:</p>
 
                 <List
-                    items={
-                        [
-                            "Context → use a value stored in the graph context",
-                            "Input → use the graph input",
-                            "Static → specify a fixed value manually",
-                            "*(we will cover other options later)*"
-                        ]
-                    }
-                />
-                <p>For our example, choose <b>Static</b> and enter the model name:</p>
-                <p class="italic">llama3.1</p>
+                    items={[]}
+                >
+                    <li><b>Context</b>: use a value stored in the graph context</li>
+                    <li><b>Input</b>: use the graph input</li>
+                    <li><b>Static</b>: specify a fixed value manually</li>
+                    <li>*(we will cover other options later)*</li>
+                </List>
+
+                <p>For our example, choose Static and enter the model name: <span class="italic">llama3.1</span>.</p>
+                <p>You can replace llama3.1 with any model you have installed locally.</p>
+                <p>Since this example uses <b>Ollama</b> as the provider, make sure that Ollama is running on your local machine before executing the graph.</p>
 
                 <Header ty="h3">Configuring the Prompt</Header>
                 <p>Below the model configuration, you will see three sections:</p>
@@ -166,9 +166,9 @@ import Img from '../../components/util/Img.astro';
                 <Header ty="h3">Entering Edit Mode</Header>
                 <p>To create connections between nodes, we first need to enable <b>Edit Mode</b>:</p>
                 <List items={[
-                    "1. Click the button at the top of the screen labeled Start edit mode",
-                    "2. Once activated, the label changes to End edit mode."
-                ]} />
+                    "Click the button at the top of the screen labeled Start edit mode",
+                    "Once activated, the label changes to End edit mode."
+                ]} list_type="ol" />
 
                 <div class="mt-2 mb-2">
                     <Img height="h-12" src="/img/docs/start_edit_mode.png" alt="Start edit mode" />
@@ -183,10 +183,10 @@ import Img from '../../components/util/Img.astro';
                 <p>In our simple chat example, we only need to connect the <b>Entry Node</b> to <b>Exit Ok</b>:</p>
                 
                 <List items={[
-                    "1. Click on the Entry Node and, while holding the click, drag towards the Exit Ok node.",
-                    "2. When your cursor hovers over Exit Ok, release the mouse.",
-                    "3. A connection arrow will appear between the nodes."
-                ]} />
+                    "Click on the Entry Node and, while holding the click, drag towards the Exit Ok node.",
+                    "When your cursor hovers over Exit Ok, release the mouse.",
+                    "A connection arrow will appear between the nodes."
+                ]} list_type="ol" />
 
                 <p>Once connected, click <b>End edit mode</b> to prevent accidental changes.</p>
                 
@@ -199,9 +199,9 @@ import Img from '../../components/util/Img.astro';
                 <p>With the nodes connected, the last step is to export the graph:</p>
                 
                 <List items={[
-                    "1. Open the Options dropdown again.",
-                    "2. Select Save JSON."
-                ]} />
+                    "Open the Options dropdown again.",
+                    "Select Save JSON."
+                ]} list_type="ol" />
 
                 <p>This will download a JSON file representing the workflow we have just built.</p>
             </Section>
@@ -217,17 +217,17 @@ import Img from '../../components/util/Img.astro';
 
                 <p class="pb-2">For our simple chat workflow, run the following command:</p>
 
-                <p class="border p-2 bg-gray-50 rounded-lg dark:bg-gray-700 text-sm text-gray-500 dark:text-gray-400">
-                    <code class="font-bold">awpak-ai-cmd-client --path="/path_to_graph.json" --trace="agent_stream" --chat</code>
+                <p class="border border-gray-200 shadow-sm dark:border-gray-500 p-1 bg-gray-100 rounded-lg dark:bg-gray-700 text-sm text-gray-700 dark:text-gray-200">
+                    <code>awpak-ai-cmd-client --path="/path_to_graph.json" --trace="agent_stream" --chat</code>
                 </p>
 
                 <Header ty="h3">Parameters:</Header>
 
-                <List items={[
-                    "`--path` → Path to the JSON file representing your graph.",
-                    "`--trace` → Set to `agent_stream` to enable streaming output from the agent (this works because we enabled Streaming response in the graph configuration).",
-                    "`--chat` → Starts an interactive console prompt. Type your messages and press Enter to send them to the graph input."
-                ]} />
+                <List items={[]}>
+                    <li><b>--path</b>: Path to the JSON file representing your graph.</li>
+                    <li><b>--trace</b>: Set to `agent_stream` to enable streaming output from the agent (this works because we enabled Streaming response in the graph configuration).</li>
+                    <li><b>--chat</b>: Starts an interactive console prompt. Type your messages and press Enter to send them to the graph input.</li>
+                </List>
                 
                 <p>This will run the workflow we created, using the LLM agent, and display streaming responses directly in your terminal.</p>
 

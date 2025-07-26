@@ -72,7 +72,7 @@
 
 <div class="h-screen grid grid-rows-[auto_1fr]">
     <div class="w-full text-center h-14 border-b border-gray-200 dark:border-gray-700">
-        <h1 class="inline"><a href="/" title="AwpakAI home">AwpakAI</a></h1>
+        <h1 class="text-xl inline dark:text-purple-300 text-purple-950 font-bold hover:dark:text-yellow-500 hover:text-yellow-700"><a href="/" title="AwpakAI home">AwpakAI</a></h1>
         
         {#if view_type == ViewType.GraphView}
         <Button
