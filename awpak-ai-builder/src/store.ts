@@ -16,14 +16,70 @@ import { AwpakMethod, WebClientBodyVariant, WebClientOutputVariant } from './mod
 import type { DataToAgentHistoryVariant } from './model/agent_history_mut';
 import type { ParallelExecutorVariant } from './model/parallel';
 
-let g = new Graph();
+const KEY_LOCAL_STORAGE : string = "AWPAK_GRAPH";
 
-g.context = new Map();
-g.preserve_context = false;
+export const graph = atom( from_local_or_new() );
 
-g.first = new Node( "Entry node" );
+function from_local_or_new() : Graph
+{
+    try
+    {
+        let json_graph = localStorage.getItem( KEY_LOCAL_STORAGE );
 
-export const graph = atom( g );
+        if( ! json_graph?.trim() ) return default_new_graph();
+
+        let graph : Graph = JSON.parse( json_graph );
+
+        return graph;
+    }
+    catch( _e )
+    {
+        return default_new_graph();
+    }
+}
+
+function default_new_graph() : Graph
+{
+    let g = new Graph();
+
+    g.context = new Map();
+    g.preserve_context = false;
+
+    g.first = new Node( "Entry node" );
+
+    return g;
+}
+
+function change_graph_and_local_save( new_graph : Graph )
+{
+    try
+    {
+        graph_local_save( new_graph );
+    }
+    catch( e )
+    {
+        console.warn( e );
+    }
+
+    graph.set( new_graph );
+}
+
+function graph_local_save( new_graph : Graph )
+{
+    localStorage.setItem( KEY_LOCAL_STORAGE, JSON.stringify( new_graph ) );
+}
+
+export function clear_graph()
+{
+    if( ! confirm( "This operation cannot be undone" ) )
+    {
+        return;
+    }
+
+    let new_graph = default_new_graph();
+
+    graph.set( new_graph );
+}
 
 export function load_new_graph( json_str : string )
 {
@@ -39,7 +95,7 @@ export function load_new_graph( json_str : string )
 
         if( ! new_graph ) return;
 
-        graph.set( new_graph );
+        change_graph_and_local_save( new_graph );
     }
     catch( e )
     {
@@ -81,7 +137,7 @@ export function clone_and_append_to_array( array_path : string, object : any )
 
     ( result[ 0 ].parent[ result[ 0 ].parentProperty ] as Array<any> ).push( cloned );
 
-    graph.set( new_graph );
+    change_graph_and_local_save( new_graph );
 }
 
 export function add_node()
@@ -94,7 +150,7 @@ export function add_node()
 
     new_graph.nodes = [ ...new_graph.nodes ];
 
-    graph.set( new_graph );
+    change_graph_and_local_save( new_graph );
 }
 
 export function change_node_id( id : string, new_id : string )
@@ -111,7 +167,7 @@ export function change_node_id( id : string, new_id : string )
 
         update_graph_node_ids( new_graph, id, new_id );
 
-        graph.set( new_graph );
+        change_graph_and_local_save( new_graph );
 
         return;
     }
@@ -131,31 +187,7 @@ export function change_node_id( id : string, new_id : string )
 
     update_graph_node_ids( new_graph, id, new_id );
 
-    graph.set( new_graph );
-}
-
-export function remove_node( idx : number )
-{
-    if( idx < 0 ) { return; }
-
-    if( ! confirm( "This operation cannot be undone" ) )
-    {
-        return;
-    }
-
-    let new_graph = Object.assign( {}, graph.get() );
-
-    if( ! new_graph?.nodes?.length || idx >= new_graph?.nodes?.length ) return;
-
-    let id = new_graph.nodes[ idx ].id;
-
-    new_graph.nodes.splice( idx, 1 );
-
-    new_graph.nodes = [...new_graph.nodes ];
-
-    clean_graph_node_ids( new_graph, id as string );
-
-    graph.set( new_graph );
+    change_graph_and_local_save( new_graph );
 }
 
 export function make_node_first( base_path : string )
@@ -173,7 +205,7 @@ export function make_node_first( base_path : string )
 
     result[ 0 ].parent[ result[ 0 ].parentProperty ] = first;
 
-    graph.set( new_graph );
+    change_graph_and_local_save( new_graph );
 }
 
 export function swap_array_items( base_path : string, from : number, to : number )
@@ -196,7 +228,7 @@ export function swap_array_items( base_path : string, from : number, to : number
 
     // result[ 0 ].parent[ result[ 0 ].parentProperty ] = [ ...result[ 0 ].parent[ result[ 0 ].parentProperty ] ];
     
-    graph.set( new_graph );
+    change_graph_and_local_save( new_graph );
 }
 
 export function remove_from_array( base_path : string, idx : number )
@@ -222,7 +254,7 @@ export function remove_from_array( base_path : string, idx : number )
 
     console.log( "New graph: ", new_graph );
 
-    graph.set( new_graph );
+    change_graph_and_local_save( new_graph );
 }
 
 export function append_to_array( base_path : string, new_elem : any )
@@ -239,7 +271,7 @@ export function append_to_array( base_path : string, new_elem : any )
 
     console.log( "New graph: ", new_graph );
 
-    graph.set( new_graph );
+    change_graph_and_local_save( new_graph );
 }
 
 export function change_map_value( base_path : string, next : string )
@@ -265,7 +297,7 @@ export function change_map_value( base_path : string, next : string )
 
     result[ 0 ].parent[ result[ 0 ].parentProperty ] = new_next;
 
-    graph.set( new_graph );
+    change_graph_and_local_save( new_graph );
 }
 
 export function change_request_method( base_path : string, next : string | undefined )
@@ -282,7 +314,7 @@ export function change_request_method( base_path : string, next : string | undef
 
     result[ 0 ].parent[ result[ 0 ].parentProperty ] = new_method;
 
-    graph.set( new_graph );
+    change_graph_and_local_save( new_graph );
 }
 
 export function change_data_merge( base_path : string, next : string | undefined )
@@ -299,7 +331,7 @@ export function change_data_merge( base_path : string, next : string | undefined
 
     result[ 0 ].parent[ result[ 0 ].parentProperty ] = new_merge;
 
-    graph.set( new_graph );
+    change_graph_and_local_save( new_graph );
 }
 
 export function change_data_type( base_path : string, next : string | undefined )
@@ -316,7 +348,7 @@ export function change_data_type( base_path : string, next : string | undefined 
 
     result[ 0 ].parent[ result[ 0 ].parentProperty ] = new_type;
 
-    graph.set( new_graph );
+    change_graph_and_local_save( new_graph );
 }
 
 export function change_boolean( base_path : string, next : boolean )
@@ -331,7 +363,7 @@ export function change_boolean( base_path : string, next : boolean )
 
     result[ 0 ].parent[ result[ 0 ].parentProperty ] = next;
 
-    graph.set( new_graph );
+    change_graph_and_local_save( new_graph );
 }
 
 export function change_option_number( base_path : string, next : number | undefined )
@@ -357,7 +389,7 @@ export function change_option_number( base_path : string, next : number | undefi
 
     result[ 0 ].parent[ result[ 0 ].parentProperty ] = next;
 
-    graph.set( new_graph );
+    change_graph_and_local_save( new_graph );
 }
 
 export function change_option_string( base_path : string, next : string )
@@ -372,7 +404,7 @@ export function change_option_string( base_path : string, next : string )
 
     result[ 0 ].parent[ result[ 0 ].parentProperty ] = next;
 
-    graph.set( new_graph );
+    change_graph_and_local_save( new_graph );
 }
 
 export function change_variant( 
@@ -395,7 +427,7 @@ export function change_variant(
 
     result[ 0 ].parent[ result[ 0 ].parentProperty ] = new_obj;
 
-    graph.set( new_graph );
+    change_graph_and_local_save( new_graph );
 }
 
 export function change_provider_variant( base_path : string, next_variant : AIAgentProviderConfigVariant )
@@ -450,7 +482,7 @@ export function chage_data_body_variant( base_path : string, next_variant : WebC
 
         result[ 0 ].parent[ result[ 0 ].parentProperty ] = undefined;
 
-        graph.set( new_graph );
+        change_graph_and_local_save( new_graph );
 
         return; 
     }
@@ -505,7 +537,7 @@ export function change_node_output_path( id : string, path : string )
 
         replace_node_in_graph( new_graph, node );
 
-        graph.set( new_graph );
+        change_graph_and_local_save( new_graph );
 
         return;
     }
@@ -516,7 +548,7 @@ export function change_node_output_path( id : string, path : string )
 
         replace_node_in_graph( new_graph, node );
 
-        graph.set( new_graph );
+        change_graph_and_local_save( new_graph );
 
         return;
     }
@@ -528,7 +560,7 @@ export function change_node_output_path( id : string, path : string )
 
     replace_node_in_graph( new_graph, node );
 
-    graph.set( new_graph );
+    change_graph_and_local_save( new_graph );
 }
 
 export function add_node_exit_text( idx : number, id : string )
@@ -551,7 +583,7 @@ export function add_node_exit_text( idx : number, id : string )
 
     replace_node_in_graph( new_graph, node );
 
-    graph.set( new_graph );
+    change_graph_and_local_save( new_graph );
 }
 
 export function change_preserve_context( preserve : boolean )
@@ -560,7 +592,7 @@ export function change_preserve_context( preserve : boolean )
 
     new_graph.preserve_context = preserve;
     
-    graph.set( new_graph );
+    change_graph_and_local_save( new_graph );
 }
 
 export function change_input_data_type( input_data_type : DataType | undefined )
@@ -569,7 +601,7 @@ export function change_input_data_type( input_data_type : DataType | undefined )
 
     new_graph.input_type = input_data_type;
 
-    graph.set( new_graph );
+    change_graph_and_local_save( new_graph );
 }
 
 export function add_node_destination( id : string, dest_node? : string )
@@ -626,7 +658,7 @@ export function add_node_destination( id : string, dest_node? : string )
 
     replace_node_in_graph( new_graph, node );
 
-    graph.set( new_graph );
+    change_graph_and_local_save( new_graph );
 }
 
 function replace_node_in_graph( graph : Graph, node : NodeType )

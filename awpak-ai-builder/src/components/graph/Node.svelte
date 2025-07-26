@@ -14,17 +14,18 @@
     import NodeDestination from "../node/NodeDestination.svelte";
     import NodeExecutor from "../node/NodeExecutor.svelte";
     import { NodeExecutorVariant } from "../../model/node_executor";
-    import { DataType } from "../../model/data";
+    import { is_empty } from "../../functions/data_functions";
+    import { ViewType } from "../../model/view_type";
 
     interface InputProps
     {
         node : NodeType, 
         base_path : string, 
-        remove_from_loop? : () => void | undefined,
-        is_grid? : boolean
+        is_grid? : boolean,
+        change_view? : ( view : ViewType, data? : any ) => void
     }
 
-    let { node, base_path, remove_from_loop, is_grid } : InputProps = $props();
+    let { node, base_path, is_grid, change_view } : InputProps = $props();
 
     // const node_type_options = select_options_from_enum(
     //     NodeTypeVariant,
@@ -75,17 +76,51 @@
         append_to_array( path, new_output );
     }
 
-    // $effect(() => {
-        
-    //     if( ! node?.id ) return;
+    function node_idx() : number | undefined
+    {
+        if( ! base_path?.startsWith( "$.nodes[" ) ) return undefined;
 
-    //     let new_node = element_from_path( $graph, base_path );
+        let str_idx = base_path.replace( /^\$.nodes\[/, "" ).replace( /\].*$/, "" );
 
-    //     if( ! new_node ) return;
-    //     // let new_node = node_by_id( $graph, node.id );
+        if( is_empty( str_idx?.trim() ) || str_idx.trim() === "" ) return;
 
-    //     node = Object.assign( {}, new_node );
-    // });
+        try
+        {
+            let idx = Number( str_idx.trim() );
+
+            if( is_empty( idx ) || isNaN( idx ) ) return undefined;
+
+            return idx;
+        }
+        catch( _e )
+        {
+            return undefined;
+        }
+    }
+
+    function remove_node()
+    {
+        let idx = node_idx();
+
+        if( is_empty( idx ) ) return;
+
+        if( change_view && typeof( change_view ) === "function" )
+        {
+            change_view( ViewType.GraphView );
+        }
+
+        remove_from_array( "$.nodes", idx as number );
+    }
+
+    function execute_node_first()
+    {
+        if( change_view && typeof( change_view ) === "function" )
+        {
+            change_view( ViewType.GraphView );
+        }
+
+        make_node_first( base_path );
+    }
 
 </script>
 
@@ -109,6 +144,13 @@
 
         {#if node._variant == NodeTypeVariant.GraphNode}
             <Input label="Path" value={node.path} change_value={change_option_string} base_path={base_path+".path"} />
+        {/if}
+
+        {#if base_path != "$.first"}
+            <div class="text-center">
+                <Button text="Execute first" click={() => execute_node_first()} color="blue" />
+                <Button text="Remove Node" click={() => remove_node()} color="red" />
+            </div>
         {/if}
     </div>
 
@@ -204,15 +246,5 @@
 
     <div class="text-center">
         <Button text="Add node destination" click={send_add_node_destination} />
-        
-        {#if typeof( remove_from_loop ) == "function"}
-        <hr class="h-px my-2 bg-gray-200 border-0 dark:bg-gray-700">
-        <div class="text-center">
-            <Button text="Remove Node" click={remove_from_loop} color="red" />
-            {#if base_path != "$.first"}
-            <Button text="Execute first" click={() => make_node_first( base_path )} color="blue" />
-            {/if}
-        </div>
-        {/if}
     </div>
 </Box>

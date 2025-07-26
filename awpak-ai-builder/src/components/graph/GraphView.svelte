@@ -289,7 +289,9 @@
         }
 
         cy.nodes().on( "click", click_on_node );
+        cy.nodes().on( "tap", click_on_node );
         cy.edges().on( "click", click_on_edge );
+        cy.edges().on( "tap", click_on_edge );
 
         return () => 
         {

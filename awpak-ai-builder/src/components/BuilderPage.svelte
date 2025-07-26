@@ -5,7 +5,7 @@
     import Graph from "./graph/Graph.svelte";
     import GraphView from "./graph/GraphView.svelte";
     import Node from "./graph/Node.svelte";
-    import { add_node, add_node_exit_text, graph, load_new_graph } from '../store';
+    import { add_node, add_node_exit_text, clear_graph, graph, load_new_graph, remove_from_array } from '../store';
     import { type NodeType } from "../model/node";
     import NodeDestination from "./node/NodeDestination.svelte";
     import InputFile from "./form/InputFile.svelte";
@@ -61,36 +61,19 @@
         }
     }
 
+    function reset_graph()
+    {
+        change_view( ViewType.GraphView );
+
+        clear_graph();
+    }
+
 </script>
 
 <div class="h-screen grid grid-rows-[auto_1fr]">
     <div class="w-full text-center h-14 border-b border-gray-200 dark:border-gray-700">
         <h1 class="inline"><a href="/" title="AwpakAI home">AwpakAI</a></h1>
-        <!--
-        {#if view_type != ViewType.Graph}
-        <Button
-            text="Graph data"
-            click={ 
-                () => {
-                change_view( ViewType.Graph );
-                }
-            }
-            color="blue"
-        />
-        {/if}
         
-        {#if view_type != ViewType.GraphView}
-        <Button
-            text="Graph view"
-            click={ 
-                () => {
-                change_view( ViewType.GraphView );
-                }
-            }
-            color="blue"
-        />
-        {:else}
-        -->
         {#if view_type == ViewType.GraphView}
         <Button
             text={graph_view_edit_mode ? "End edit mode" : "Start edit mode"}
@@ -103,37 +86,15 @@
         />
         {/if}
 
-        <!--
-        {#if view_type == ViewType.Graph || view_type == ViewType.GraphView}
-        <Button
-            text="Add node"
-            click={ 
-                () => {
-                add_node();
-                }
-            }
-            color="green"
-        />
-        {/if}
-
-        <InputFile
-            id="load_json_file"
-            text="Load JSON"
-            change={load_json}
-            color="purple"
-        />
-        <Button
-            text="Save JSON"
-            click={ 
-                () => {
-                save_graph_to_file( $graph );
-                }
-            }
-            color="purple"
-        />
-        -->
-
         <Dropdown label="Options">
+            <DropwdownItem
+                label="New graph"
+                click={ 
+                    () => {
+                        reset_graph();
+                    }
+                }
+            />
             {#if view_type != ViewType.Graph}
             <DropwdownItem
                 label="Graph data"
@@ -206,6 +167,7 @@
                 ) as NodeType
             }
             is_grid={true}
+            change_view={change_view}
         />
         {/key}
         </div>
@@ -228,6 +190,19 @@
             from={partial_view_data.source_id}
             add_exit_text={send_add_node_exit_text( partial_view_data.source_id, partial_view_data.destination_idx )}
             is_grid={true}
+            remove_from_loop={
+                () => {
+                    let bp = partial_view_data.base_path?.trim().replace( /\[[0-9]+\]$/, "" );
+
+                    if( ! bp?.trim() ) return;
+
+                    let d_idx = partial_view_data.destination_idx;
+
+                    change_view( ViewType.GraphView );
+
+                    remove_from_array( bp, d_idx );
+                }
+            }
         />
         {/key}
         </div>

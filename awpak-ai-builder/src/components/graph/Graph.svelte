@@ -1,7 +1,7 @@
 
 <script lang="ts">
     import type { NodeType } from "../../model/node";
-    import { graph, remove_from_array } from "../../store";
+    import { graph } from "../../store";
     import Card from "../util/Card.svelte";
     import GraphConfig from "./GraphConfig.svelte";
     import Node from "./Node.svelte";
@@ -20,10 +20,7 @@
         <div>
             <Node 
                 node={$graph.nodes[i]} 
-                base_path={"$.nodes["+i+"]"} 
-                remove_from_loop={
-                    () => remove_from_array( "$.nodes", i )
-                }
+                base_path={"$.nodes["+i+"]"}
             />
         </div>
     {/each}
