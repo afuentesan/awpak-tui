@@ -1,6 +1,6 @@
 [package]
 name = "awpak-ai-cmd-client"
-version = "0.1.0"
+version = "0.1.1"
 edition = "2024"
 description = "A command-line client for executing AI workflow graphs using the awpak-ai library."
 license = "MIT"
