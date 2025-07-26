@@ -119,6 +119,8 @@ fn init_arg_matches() -> ArgMatches
         .arg(
             Arg::new("chat")
                 .long("chat")
+                .required(false)
+                .action(clap::ArgAction::SetTrue)
                 .help("Start interactive chat mode. Input is read from a prompt instead of --input."),
         )
         .get_matches()

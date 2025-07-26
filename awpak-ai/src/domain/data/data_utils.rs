@@ -26,7 +26,7 @@ pub fn is_value_empty( value : &Value ) -> Result<bool, Error>
                     }    
                 }
             },
-            Value::Bool( b ) => *b
+            Value::Bool( b ) => ! *b
         }
     )
 }
