@@ -1,0 +1,140 @@
+{
+  "context": {},
+  "preserve_context": false,
+  "first": {
+    "Node": {
+      "id": "list json files",
+      "executor": {
+        "Command": {
+          "command": {
+            "Static": "bash"
+          },
+          "args": [
+            {
+              "Static": "-c"
+            },
+            {
+              "Concat": [
+                {
+                  "Static": "ls -1 "
+                },
+                {
+                  "Input": {
+                    "required": false
+                  }
+                },
+                {
+                  "Static": "/*.json"
+                }
+              ]
+            }
+          ],
+          "output": [
+            {
+              "Object": {}
+            }
+          ]
+        }
+      },
+      "output": {
+        "path": "ls_result",
+        "ty": "Object",
+        "merge": "Insert",
+        "optional": false
+      },
+      "destination": [
+        {
+          "next": {
+            "ExitErr": [
+              {
+                "from": {
+                  "Context": {
+                    "path": "ls_result",
+                    "required": false
+                  }
+                }
+              }
+            ]
+          },
+          "condition": {
+            "Empty": {
+              "Context": {
+                "path": "ls_result/success",
+                "required": false
+              }
+            }
+          }
+        },
+        {
+          "next": {
+            "Node": "save as array"
+          },
+          "condition": "True"
+        }
+      ]
+    }
+  },
+  "nodes": [
+    {
+      "Node": {
+        "id": "save as array",
+        "executor": {
+          "ContextMut": [
+            {
+              "from": {
+                "Operation": {
+                  "StringSplit": {
+                    "from": {
+                      "Context": {
+                        "path": "ls_result/out",
+                        "required": false
+                      }
+                    },
+                    "sep": "\n"
+                  }
+                }
+              },
+              "to": {
+                "path": "json_files",
+                "ty": "Array",
+                "merge": "Insert",
+                "optional": false
+              },
+              "condition": "True"
+            }
+          ]
+        },
+        "destination": [
+          {
+            "next": {
+              "ExitErr": []
+            },
+            "condition": {
+              "Empty": {
+                "Context": {
+                  "path": "json_files",
+                  "required": false
+                }
+              }
+            }
+          },
+          {
+            "next": {
+              "ExitOk": [
+                {
+                  "from": {
+                    "Context": {
+                      "path": "json_files",
+                      "required": false
+                    }
+                  }
+                }
+              ]
+            },
+            "condition": "True"
+          }
+        ]
+      }
+    }
+  ]
+}

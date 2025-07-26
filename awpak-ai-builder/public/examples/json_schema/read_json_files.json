@@ -1,0 +1,199 @@
+{
+  "context": {
+    "count": -1,
+    "out": []
+  },
+  "input_type": "Array",
+  "preserve_context": false,
+  "first": {
+    "Node": {
+      "id": "iterator",
+      "executor": {
+        "ContextMut": [
+          {
+            "from": {
+              "Operation": {
+                "Add": {
+                  "num_1": {
+                    "Context": {
+                      "path": "count"
+                    }
+                  },
+                  "num_2": {
+                    "Static": 1
+                  }
+                }
+              }
+            },
+            "to": {
+              "path": "count",
+              "ty": "Number",
+              "merge": "Insert",
+              "optional": false
+            },
+            "condition": "True"
+          },
+          {
+            "from": {
+              "ParsedInput": {
+                "path": "{count}"
+              }
+            },
+            "to": {
+              "path": "file",
+              "merge": "Insert",
+              "optional": false
+            },
+            "condition": {
+              "Gt": {
+                "from_1": {
+                  "Operation": {
+                    "Len": {
+                      "ParsedInput": {
+                        "path": "/"
+                      }
+                    }
+                  }
+                },
+                "from_2": {
+                  "Context": {
+                    "path": "count"
+                  }
+                }
+              }
+            }
+          }
+        ]
+      },
+      "destination": [
+        {
+          "next": {
+            "ExitOk": [
+              {
+                "from": {
+                  "Context": {
+                    "path": "out"
+                  }
+                }
+              }
+            ]
+          },
+          "condition": {
+            "Empty": {
+              "ParsedInput": {
+                "path": "{count}"
+              }
+            }
+          }
+        },
+        {
+          "next": {
+            "Node": "read file"
+          },
+          "condition": "True"
+        }
+      ]
+    }
+  },
+  "nodes": [
+    {
+      "Node": {
+        "id": "read file",
+        "executor": {
+          "Command": {
+            "command": {
+              "Static": "cat"
+            },
+            "args": [
+              {
+                "Context": {
+                  "path": "file"
+                }
+              }
+            ],
+            "output": [
+              {
+                "Object": {}
+              }
+            ]
+          }
+        },
+        "output": {
+          "path": "read_out",
+          "ty": "Object",
+          "merge": "Insert",
+          "optional": false
+        },
+        "destination": [
+          {
+            "next": {
+              "ExitErr": [
+                {
+                  "from": {
+                    "Context": {
+                      "path": "read_out"
+                    }
+                  }
+                }
+              ]
+            },
+            "condition": {
+              "Or": {
+                "comp_1": {
+                  "Empty": {
+                    "Context": {
+                      "path": "read_out/success"
+                    }
+                  }
+                },
+                "comp_2": {
+                  "Empty": {
+                    "Context": {
+                      "path": "read_out/out"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          {
+            "next": {
+              "Node": "append to out"
+            },
+            "condition": "True"
+          }
+        ]
+      }
+    },
+    {
+      "Node": {
+        "id": "append to out",
+        "executor": {
+          "ContextMut": [
+            {
+              "from": {
+                "Context": {
+                  "path": "read_out/out"
+                }
+              },
+              "to": {
+                "path": "out",
+                "merge": "AppendToArray",
+                "optional": false
+              },
+              "condition": "True"
+            }
+          ]
+        },
+        "destination": [
+          {
+            "next": {
+              "Node": "iterator"
+            },
+            "condition": "True"
+          }
+        ]
+      }
+    }
+  ]
+}

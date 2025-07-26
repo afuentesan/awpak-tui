@@ -2,7 +2,7 @@
     import cytoscape from 'cytoscape';
     import edgehandles from 'cytoscape-edgehandles';
     import klay from 'cytoscape-klay';
-    import { onMount, tick } from 'svelte';
+    import { onMount } from 'svelte';
     import { add_node_destination, element_from_path, graph } from '../../store';
     import { change_graph_positions, graph_positions } from '../../positions_store';
     import { graph_to_cytoscape, ID_EXIT_ERR, ID_EXIT_OK } from '../../functions/graph_to_cytoscape';
