@@ -92,6 +92,6 @@ b, strong {
   margin-top : calc(var(--spacing) * 2);
 }
 
-p {
+p, li {
   text-wrap: pretty;
 }
