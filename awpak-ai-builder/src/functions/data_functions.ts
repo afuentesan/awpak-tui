@@ -4,6 +4,11 @@ import { DataComparatorAnd, DataComparatorEmpty, DataComparatorEq, DataComparato
 import { WebClientBodyForm, WebClientBodyJson, WebClientBodyVariant, type WebClientBody } from "../model/web_client";
 import { is_type_in_enum } from "./form_utils";
 
+export function json_stringify( obj : any ) : string
+{
+    return JSON.stringify( obj, (_, v) => v === undefined ? null : v );
+}
+
 export function is_empty( data : any ) : boolean
 {
     return typeof( data ) === "undefined" || data === null;

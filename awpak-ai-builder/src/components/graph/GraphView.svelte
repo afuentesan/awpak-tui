@@ -23,6 +23,8 @@
 
     const click_on_edge = ( event : cytoscape.EventObject ) =>
     {
+        clean_tooltips();
+
         let id = event?.target?.id();
         let source_id = event?.target?.source()?.id();
 
@@ -69,6 +71,8 @@
 
     const click_on_node = ( event : cytoscape.EventObject ) =>
     {
+        clean_tooltips();
+
         if( typeof( event.target.id ) !== "function" ) return;
 
         event.preventDefault();
@@ -87,6 +91,142 @@
         };
 
         change_view( ViewType.NodeView, data );
+    };
+
+    const mouseover_elem = ( event : cytoscape.EventObject ) =>
+    {
+        if( typeof( event.target.id ) !== "function" || ! event?.target?.attr( "info" )?.trim() ) return;
+
+        event.preventDefault();
+        event.stopPropagation();
+
+        const inner_html = event.target.attr( "info" ).trim();
+
+        show_tooltip( event.target.id(), inner_html, event.originalEvent.clientX, event.originalEvent.clientY );
+    };
+
+    const mouseout_elem = ( event : cytoscape.EventObject ) =>
+    {
+        if( typeof( event.target.id ) !== "function" ) return;
+
+        hide_tooltip( event.target.id() );
+    };
+
+    const fix_tooltip_position = ( tooltip : HTMLElement | null ) =>
+    {
+        if( ! tooltip ) return;
+
+        // Obtener posición actual y tamaño del tooltip
+        const rect = tooltip.getBoundingClientRect();
+
+        // Valores ajustados (copiamos para modificar)
+        let newLeft = rect.left;
+        let newTop = rect.top;
+
+        const margin = 4; // margen mínimo para no tocar el borde
+
+        // Verificamos límites horizontales
+        if (rect.right > window.innerWidth) {
+            newLeft = window.innerWidth - rect.width - margin;
+        } else if (rect.left < 0) {
+            newLeft = margin;
+        }
+
+        // Verificamos límites verticales
+        if (rect.bottom > window.innerHeight) {
+            newTop = window.innerHeight - rect.height - margin;
+        } else if (rect.top < 0) {
+            newTop = margin;
+        }
+
+        tooltip.style.left = `${newLeft}px`;
+        tooltip.style.top = `${newTop}px`;
+    };
+
+    const fix_tooltips_position = () =>
+    {
+        let tooltips = document.getElementsByClassName( "tooltip" );
+
+        if( ! tooltips?.length ) return;
+
+        for( let i = 0 ; i < tooltips.length ; i++ )
+        {
+            fix_tooltip_position( tooltips.item( i ) as HTMLElement | null );   
+        }
+    };
+
+    const clean_tooltips = () =>
+    {
+        try
+        {
+            let tooltips = document.getElementsByClassName( "tooltip" );
+
+            if( ! tooltips?.length ) return;
+
+            for( let i = ( tooltips.length - 1 ) ; i >= 0 ; i-- )
+            {
+                tooltips.item( i )?.remove();
+            }
+        }
+        catch( e )
+        {
+            console.log( e );
+        }
+    };
+
+    const tooltip_id = ( id_elem : string ) =>
+    {
+        return "tooltip_" + id_elem;
+    };
+
+    const hide_tooltip = ( id : string ) =>
+    {
+        let current = document.getElementById( tooltip_id( id ) );
+
+        if( current ) current.remove();
+    };
+
+    const show_tooltip = ( id : string, inner_html : string, x : number, y : number ) =>
+    {
+        let current = document.getElementById( tooltip_id( id ) );
+
+        if( current )
+        {
+            current.style.top = y + "px";
+            current.style.left = x + "px";
+
+            fix_tooltips_position();
+
+            return;
+        }
+
+        clean_tooltips();
+
+        let div = document.createElement( 'div' );
+
+        div.classList.add( 
+            "absolute", 
+            "p-2", 
+            "border", 
+            "rounded-md", 
+            "tooltip", 
+            "bg-white", 
+            "dark:bg-gray-700",
+            "border-gray-200",
+            "shadow-sm",
+            "dark:border-gray-500"
+        );
+
+        div.id = tooltip_id( id );
+
+        div.innerHTML = inner_html;
+
+        div.style.top = y + "px";
+        div.style.left = x + "px";
+
+        document.body.appendChild( div );
+
+        fix_tooltips_position();
     };
 
     const nodes_and_layout = ( g : Graph ) : [ Array<any>, string ] =>
@@ -125,6 +265,12 @@
 
                 cy.nodes().on( "tap", click_on_node );
                 cy.edges().on( "tap", click_on_edge );
+
+                cy.nodes().on( "mouseover", mouseover_elem );
+                cy.nodes().on( "mouseout", mouseout_elem );
+
+                cy.edges().on( "mouseover", mouseover_elem );
+                cy.edges().on( "mouseout", mouseout_elem );
             }
         } 
     );
@@ -233,6 +379,13 @@
                         'background-color': '#B91C1C'
                         }
                     },
+                    {
+                        selector: `node[first="first"]`,
+                        style: {
+                        'border-width' : '2px',
+                        'border-color' : '#008236'
+                        }
+                    },
                     { 
                         selector : 'edge', 
                         style : { 
@@ -242,6 +395,16 @@
                             'target-arrow-color': '#6875F5',
                             'curve-style': 'bezier' 
                         } 
+                    },
+                    {
+                        selector : "edge:before",
+                        style : {
+                            'content' : "data(idx)",
+                            'font-size' : "6px",
+                            'font-weight' : "bolder",
+                            'color' : '#a65f00',
+                            'text-margin-y' : -3
+                        }
                     },
                     {
                         selector: 'edge[source = target]',
@@ -296,14 +459,31 @@
         // cy.edges().on( "click", click_on_edge );
         cy.edges().on( "tap", click_on_edge );
 
+        cy.nodes().on( "mouseover", mouseover_elem );
+        cy.nodes().on( "mouseout", mouseout_elem );
+
+        cy.edges().on( "mouseover", mouseover_elem );
+        cy.edges().on( "mouseout", mouseout_elem );
+
+        const hideTooltipsOnClick = ( _event : any ) =>
+        {
+            clean_tooltips();
+        };
+
+        document.addEventListener( 'click', hideTooltipsOnClick, false );
+
         return () => 
         {
+            clean_tooltips();
+
             change_graph_positions( cy );
 
             unsubscribe();
 
             eh.destroy();
             cy.destroy();
+
+            document.removeEventListener( 'click', hideTooltipsOnClick, false );
         };
     });
 </script>

@@ -4,6 +4,7 @@
     import Checkbox from "../form/Checkbox.svelte";
     import DataType from "../data/DataType.svelte";
     import TextArea from "../form/TextArea.svelte";
+    import { json_stringify } from "../../functions/data_functions";
 
     function send_change_preserve_context( event : any )
     {
@@ -23,5 +24,5 @@
 
 
 <DataType label="Input data type" value={$graph.input_type} change_value={send_change_input_data_type} base_path={undefined} />
-<TextArea label="Initial context" value={JSON.stringify( $graph.context )} change_value={change_map_value} base_path="$.context" />
+<TextArea label="Initial context" value={json_stringify( $graph.context)} change_value={change_map_value} base_path="$.context" />
 <Checkbox label="Preserve context" value="true" checked={$graph.preserve_context} change_value={send_change_preserve_context} base_path={undefined} />

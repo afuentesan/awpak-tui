@@ -9,7 +9,7 @@
         label : string,
         value : any,
         change_value : any,
-        base_path : string,
+        base_path : string | undefined,
         allowed_types? : Array<DataType>
     }
 

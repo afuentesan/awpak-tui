@@ -9,7 +9,7 @@ import { GraphNode, GraphNodeOutputErr, GraphNodeOutputObject, GraphNodeOutputOu
 import { NodeExecutorAgent, NodeExecutorAgentHistoryMut, NodeExecutorCommand, NodeExecutorContextMut, NodeExecutorParallel, NodeExecutorWebClient, type NodeExecutor } from "../model/node_executor";
 import { Parallel, ParallelExecutorCommand, ParallelExecutorWebClient, type ParallelExecutor } from "../model/parallel";
 import { AwpakMethod, WebClient, WebClientBodyForm, WebClientBodyJson, WebClientNameValue, WebClientOutputBody, WebClientOutputHeader, WebClientOutputObject, WebClientOutputStatus, WebClientOutputVersion, type WebClientBody, type WebClientOutput } from "../model/web_client";
-import { is_empty, not_empty_or_string_eq, number_from_any } from "./data_functions";
+import { is_empty, json_stringify, not_empty_or_string_eq, number_from_any } from "./data_functions";
 import { is_type_in_enum } from "./form_utils";
 
 export function load_graph_from_json( json : any ) : Graph
@@ -892,7 +892,7 @@ function load_from_static( data : any ) : FromStatic
 
     if( typeof( data ) == "object" )
     {
-        data = JSON.stringify( data );
+        data = json_stringify( data );
     }
 
     ret.value = data;

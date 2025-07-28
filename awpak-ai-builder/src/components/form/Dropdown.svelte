@@ -4,22 +4,23 @@
 
     interface InputProps
     {
-        label : string
+        label : string,
+        children : any
     }
 
-    let { label } : InputProps = $props();
+    let { label, children } : InputProps = $props();
 
     let show = $state( false );
-    let menu = null;
+    let menu : any = null;
 
     onMount(() => {
-        const handleOutsideClick = (event) => {
+        const handleOutsideClick = (event : any) => {
             if (show && !menu.contains(event.target)) {
                 show = false;
             }
         };
 
-        const handleEscape = (event) => {
+        const handleEscape = (event : any) => {
             if (show && event.key === 'Escape') {
                 show = false;
             }
@@ -54,13 +55,11 @@
 
     <!-- Dropdown menu -->
     <div 
-        in:scale={{ duration: 100, start: 0.95 }}
-        out:scale={{ duration: 75, start: 0.95 }}
         id="dropdown" 
         class="origin-top-right absolute right-0 z-10 {show?'':'hidden'} bg-white divide-y divide-gray-100 rounded-lg shadow-sm w-44 dark:bg-gray-700"
     >
         <ul class="py-2 text-sm text-gray-700 dark:text-gray-200" aria-labelledby="dropdownDefaultButton">
-        <slot />
+        {@render children?.()}
         </ul>
     </div>
 </div>

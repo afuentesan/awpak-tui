@@ -78,7 +78,7 @@ export class FromStatic
 {
     readonly _variant = DataFromVariant.Static;
 
-    value : any
+    value : any = ""
 }
 
 export class FromInput
