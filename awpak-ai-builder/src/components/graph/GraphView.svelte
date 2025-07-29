@@ -188,6 +188,13 @@
 
     const show_tooltip = ( id : string, inner_html : string, x : number, y : number ) =>
     {
+        if( edit_mode )
+        {
+            clean_tooltips();
+            
+            return;
+        }
+
         let current = document.getElementById( tooltip_id( id ) );
 
         if( current )
