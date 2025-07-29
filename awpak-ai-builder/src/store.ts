@@ -71,10 +71,14 @@ function graph_local_save( new_graph : Graph )
 
 export function clear_graph()
 {
+    if( ! check_time() ) return;
+
     if( ! confirm( "This operation cannot be undone" ) )
     {
         return;
     }
+
+    LAST_TIME = ( new Date() ).getTime();
 
     let new_graph = default_new_graph();
 
@@ -140,6 +144,8 @@ export function clone_and_append_to_array( array_path : string, object : any )
 
 export function add_node()
 {
+    if( ! check_time() ) return;
+
     let new_graph = Object.assign( {}, graph.get() );
 
     let id = next_node_id( new_graph );
@@ -229,15 +235,37 @@ export function swap_array_items( base_path : string, from : number, to : number
     change_graph_and_local_save( new_graph );
 }
 
+let LAST_TIME : number | undefined = undefined;
+
+function check_time() : boolean
+{
+    if( is_empty( LAST_TIME ) )
+    {
+        LAST_TIME = ( new Date() ).getTime();
+
+        return true;
+    }
+
+    let now = ( new Date() ).getTime();
+
+    if( ( now - ( LAST_TIME as number ) ) < 1000 ) { console.log( "Last time false" ); return false; };
+
+    LAST_TIME = now;
+
+    return true;
+}
+
 export function remove_from_array( base_path : string, idx : number )
 {
-    if( idx < 0 ) { return; }
+    if( idx < 0 || ! check_time() ) { return; }
 
     if( ! confirm( "This operation cannot be undone" ) )
     {
         return;
     }
     
+    LAST_TIME = ( new Date() ).getTime();
+
     let new_graph = Object.assign( {}, graph.get() );
 
     const result = JSONPath( { path : base_path, json : new_graph, resultType : "all" } );
@@ -255,6 +283,8 @@ export function remove_from_array( base_path : string, idx : number )
 
 export function append_to_array( base_path : string, new_elem : any )
 {
+    if( ! check_time() ) return;
+
     let new_graph = Object.assign( {}, graph.get() );
 
     const result = JSONPath( { path : base_path, json : new_graph, resultType : "all" } );
