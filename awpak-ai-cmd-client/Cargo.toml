@@ -1,6 +1,6 @@
 [package]
 name = "awpak-ai-cmd-client"
-version = "0.1.1"
+version = "0.1.2"
 edition = "2024"
 description = "A command-line client for executing AI workflow graphs using the awpak-ai library."
 license = "MIT"
@@ -10,15 +10,15 @@ keywords = ["ai", "workflow", "graph", "llm"]
 categories = ["command-line-utilities"]
 
 [dependencies]
-tokio = { version = "1.47.0", features = ["full"] }
+tokio = { version = "1.47.1", features = ["full"] }
 tokio-stream = "0.1.17"
-awpak-ai = { version = "0.1.0", path = "../awpak-ai"}
-# awpak-ai = { version = "0.1.1" }
+# awpak-ai = { version = "0.1.0", path = "../awpak-ai"}
+awpak-ai = { version = "0.1.2" }
 text_io = "0.1.13"
 tracing = "0.1.41"
 # tracing-subscriber = { version = "0.3.19", features = [ "env-filter" ] }
 tracing-subscriber = { version = "0.3.19" }
-clap = "4.5.41"
+clap = "4.5.42"
 
 [[bin]]
 name = "awpak-ai-cmd-client"
