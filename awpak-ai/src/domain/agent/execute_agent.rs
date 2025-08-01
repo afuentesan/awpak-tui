@@ -27,11 +27,11 @@ pub async fn execute_agent(
 
     match provider
     {
-        AIAgentProvider::Ollama( p ) => run_agent( id, prompt, p, agent ).await,
-        AIAgentProvider::OpenAI( p ) => run_agent( id, prompt, p, agent ).await,
-        AIAgentProvider::Gemini( p ) => run_agent( id, prompt, p, agent ).await,
-        AIAgentProvider::Anthropic( p ) => run_agent( id, prompt, p, agent ).await,
-        AIAgentProvider::DeepSeek( p ) => run_agent( id, prompt, p, agent ).await
+        AIAgentProvider::Ollama( p, _ ) => run_agent( id, prompt, p, agent ).await,
+        AIAgentProvider::OpenAI( p, _ ) => run_agent( id, prompt, p, agent ).await,
+        AIAgentProvider::Gemini( p, _ ) => run_agent( id, prompt, p, agent ).await,
+        AIAgentProvider::Anthropic( p, _ ) => run_agent( id, prompt, p, agent ).await,
+        AIAgentProvider::DeepSeek( p, _ ) => run_agent( id, prompt, p, agent ).await
     }
 }
 

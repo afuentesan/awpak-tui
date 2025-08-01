@@ -10,15 +10,6 @@ use tracing_subscriber::{layer::SubscriberExt, util::SubscriberInitExt};
 #[tokio::main]
 async fn main() -> Result<(), ()>
 {
-    // let matches = Command::new("Awpak AI SHELL")
-    //     .version("0.1.0")
-    //     .about("Client for Awpak AI")
-    //     .arg(arg!(--path <VALUE>).required(true))
-    //     .arg(arg!(--input <VALUE>))
-    //     .arg(arg!(--trace <VALUE>))
-    //     .arg(arg!(--chat))
-    //     .get_matches();
-
     let matches = init_arg_matches();
     
     let path = matches.get_one::<String>( "path" ).ok_or( Error::Ignore ).map_err( | _ | () )?;
@@ -49,7 +40,7 @@ async fn main() -> Result<(), ()>
 
             if input.trim() == "" { continue; }
 
-            if input.trim() == "exit" { break; }
+            if input.trim() == "/exit" { break; }
 
             graph = execute_graph( graph, input ).await;
         }
@@ -174,6 +165,8 @@ fn trace_options(
 
 fn subscribe_tracing( trace : Option<&String> )
 {
+    // tracing_subscriber::fmt::init();
+
     let ( tx, rx ) = mpsc::channel::<AwpakTracingMessage>();
     let ( tx_stream, rx_stream ) = mpsc::channel::<AwpakTracingMessage>();
 
@@ -244,7 +237,6 @@ async fn execute_graph( graph : Graph, input : String ) -> Graph
     {
         ( g, None ) => 
         {
-            // show_graph_result( &g );
             println!( "\n\n" );
             let _ = std::io::stdout().flush();
 
@@ -259,28 +251,3 @@ async fn execute_graph( graph : Graph, input : String ) -> Graph
         }
     }
 }
-
-// fn show_graph_result( graph : &Graph )
-// {
-//     match &graph.final_output
-//     {
-//         Some( o ) => match o
-//         {
-//             Ok( m ) => 
-//             {
-//                 println!( "\n- ExitOk:\n\n {}\n\n", m );
-//                 let _ = std::io::stdout().flush();
-//             },
-//             Err( e ) => 
-//             {
-//                 println!( "\n- ExitErr:\n\n {}\n\n", e );
-//                 let _ = std::io::stdout().flush();
-//             }
-//         },
-//         None => 
-//         {
-//             println!( "\n- End graph execution without output\n\n" );
-//             let _ = std::io::stdout().flush();
-//         }
-//     }
-// }

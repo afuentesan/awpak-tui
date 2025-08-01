@@ -34,7 +34,7 @@ async fn gemini_agent_provider(
 
     let agent = client.agent( &model );
 
-    let mut agent = add_mcp_clients_to_agent( graph, agent, &ai_agent.servers ).await?;
+    let ( mut agent, clients ) = add_mcp_clients_to_agent( graph, agent, &ai_agent.servers ).await?;
 
     let system_prompt = data_to_string( graph, ai_agent.system_prompt.clone() );
 
@@ -45,7 +45,7 @@ async fn gemini_agent_provider(
     
     let agent = agent.build();
 
-    Ok( AIAgentProvider::Gemini( agent ) )
+    Ok( AIAgentProvider::Gemini( agent, clients ) )
 }
 
 async fn deepseek_agent_provider( 
@@ -67,7 +67,7 @@ async fn deepseek_agent_provider(
         agent = agent.max_tokens( m );
     }
 
-    let mut agent = add_mcp_clients_to_agent( graph, agent, &ai_agent.servers ).await?;
+    let ( mut agent, clients ) = add_mcp_clients_to_agent( graph, agent, &ai_agent.servers ).await?;
 
     let system_prompt = data_to_string( graph, ai_agent.system_prompt.clone() );
 
@@ -78,7 +78,7 @@ async fn deepseek_agent_provider(
     
     let agent = agent.build();
 
-    Ok( AIAgentProvider::DeepSeek( agent ) )
+    Ok( AIAgentProvider::DeepSeek( agent, clients ) )
 }
 
 async fn ollama_agent_provider( 
@@ -93,7 +93,7 @@ async fn ollama_agent_provider(
 
     let agent = client.agent( &model );
 
-    let mut agent = add_mcp_clients_to_agent( graph, agent, &ai_agent.servers ).await?;
+    let ( mut agent, clients ) = add_mcp_clients_to_agent( graph, agent, &ai_agent.servers ).await?;
 
     let system_prompt = data_to_string( graph, ai_agent.system_prompt.clone() );
 
@@ -102,7 +102,7 @@ async fn ollama_agent_provider(
         agent = agent.preamble( system_prompt.as_str() );
     }
 
-    Ok( AIAgentProvider::Ollama( agent.build() ) )
+    Ok( AIAgentProvider::Ollama( agent.build(), clients ) )
 }
 
 async fn openai_agent_provider( 
@@ -119,7 +119,7 @@ async fn openai_agent_provider(
 
     let agent = client.agent( &model );
 
-    let mut agent = add_mcp_clients_to_agent( graph, agent, &ai_agent.servers ).await?;
+    let ( mut agent, clients ) = add_mcp_clients_to_agent( graph, agent, &ai_agent.servers ).await?;
 
     let system_prompt = data_to_string( graph, ai_agent.system_prompt.clone() );
 
@@ -144,7 +144,7 @@ async fn openai_agent_provider(
         tools: agent.tools,
     };
 
-    Ok( AIAgentProvider::OpenAI( agent ) )
+    Ok( AIAgentProvider::OpenAI( agent, clients ) )
 }
 
 async fn anthropic_agent_provider( 
@@ -155,7 +155,7 @@ async fn anthropic_agent_provider(
 {
     let api_key = std::env::var( &config.api_key ).map_err( | e | Error::Agent( e.to_string() ) )?;
 
-    let client = rig::providers::anthropic::ClientBuilder::new( &api_key ).build();
+    let client = rig::providers::anthropic::ClientBuilder::new( &api_key ).build().map_err( | e | Error::Agent( e.to_string() ) )?;
 
     // let client = rig::providers::anthropic::Client::from_env()
 
@@ -163,7 +163,7 @@ async fn anthropic_agent_provider(
 
     let agent = client.agent( &model ).max_tokens( config.max_tokens );
 
-    let mut agent = add_mcp_clients_to_agent( graph, agent, &ai_agent.servers ).await?;
+    let ( mut agent, clients ) = add_mcp_clients_to_agent( graph, agent, &ai_agent.servers ).await?;
 
     let system_prompt = data_to_string( graph, ai_agent.system_prompt.clone() );
 
@@ -174,7 +174,7 @@ async fn anthropic_agent_provider(
     
     let agent = agent.build();
 
-    Ok( AIAgentProvider::Anthropic( agent ) )
+    Ok( AIAgentProvider::Anthropic( agent, clients ) )
 }
 
 // END CREATE AGENT PROVIDER

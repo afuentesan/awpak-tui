@@ -190,7 +190,8 @@ fn text_from_assistant_content( content : &AssistantContent ) -> Result<&String,
     match content
     {
         AssistantContent::Text( t ) => Ok( &t.text ),
-        AssistantContent::ToolCall( t ) => Ok( &t.function.name )
+        AssistantContent::ToolCall( t ) => Ok( &t.function.name ),
+        AssistantContent::Reasoning( r ) => Ok( &r.reasoning )
     }
 }
 
