@@ -1,6 +1,6 @@
 [package]
 name = "awpak-ai"
-version = "0.1.1"
+version = "0.1.2"
 edition = "2024"
 license = "MIT"
 description = "A Rust library to orchestrate AI agents, commands, and URL calls using an execution graph."
@@ -14,8 +14,8 @@ authors = ["Ángel Fuente <awpakj@gmail.com>"]
 
 [dependencies]
 serde = { version = "1.0", features = ["derive"] }
-serde_json = { version = "1.0.141" }
-tokio = { version = "1.47.0", features = ["full"] }
+serde_json = { version = "1.0.142" }
+tokio = { version = "1.47.1", features = ["full"] }
 tokio-stream = "0.1.17"
 awpak-utils = { version = "0.1.0" }
 awpak-web-client = { version = "0.1.0" }
