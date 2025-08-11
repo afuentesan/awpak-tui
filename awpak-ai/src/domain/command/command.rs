@@ -3,7 +3,7 @@ use serde::{Deserialize, Serialize};
 use crate::domain::data::data::DataFrom;
 
 
-#[derive(Serialize, Deserialize, Clone)]
+#[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct Command
 {
     pub command : DataFrom,
@@ -15,7 +15,7 @@ pub struct Command
     pub timeout : Option<u64>
 }
 
-#[derive(Serialize, Deserialize, Clone)]
+#[derive(Debug, Serialize, Deserialize, Clone)]
 pub enum CommandOutput
 {
     Out { #[serde(default)] prefix : Option<String>, #[serde(default)] suffix : Option<String> },

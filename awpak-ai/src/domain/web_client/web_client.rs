@@ -3,7 +3,7 @@ use serde::{Deserialize, Serialize};
 
 use crate::domain::data::data::DataFrom;
 
-#[derive(Serialize, Deserialize, Clone)]
+#[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct WebClient
 {
     pub url : DataFrom,
@@ -20,7 +20,7 @@ pub struct WebClient
     pub timeout : Option<u64>
 }
 
-#[derive(Serialize, Deserialize, Clone)]
+#[derive(Debug, Serialize, Deserialize, Clone)]
 pub enum WebClientOutput
 {
     Version { #[serde(default)] prefix : Option<String>, #[serde(default)] suffix : Option<String> },
@@ -35,14 +35,14 @@ pub enum WebClientOutput
     Object { #[serde(default)] prefix : Option<String>, #[serde(default)] suffix : Option<String> },
 }
 
-#[derive(Serialize, Deserialize, Clone)]
+#[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct WebClientNameValue
 {
     pub name : DataFrom,
     pub value : DataFrom
 }
 
-#[derive(Serialize, Deserialize, Clone)]
+#[derive(Debug, Serialize, Deserialize, Clone)]
 pub enum WebClientBody
 {
     Json( DataFrom ),

@@ -11,7 +11,7 @@ pub async fn execute_graph(
 {
     let graph = graph_node.graph;
 
-    let input = data_to_string( parent_graph, graph_node.input.clone() );
+    let input = data_to_string( parent_graph, graph_node.input.clone() ).await;
 
     match run_graph( input, graph ).await.collect()
     {

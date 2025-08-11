@@ -21,7 +21,7 @@ async fn main() -> Result<(), ()>
 
     // let path = std::env::args().nth( 1 ).ok_or( Error::Ignore ).map_err( | _ | () )?;
 
-    let mut graph = match graph_from_json_file_path( path )
+    let mut graph = match graph_from_json_file_path( path ).await
     {
         Ok( g ) => g,
         Err( e ) =>
@@ -85,6 +85,7 @@ fn init_arg_matches() -> ArgMatches
                      graph_output_ok          -> Prints the graph output if execution succeeds\n\
                      graph_output_err         -> Prints the graph output if execution fails\n\
                      \n\
+                     agent_system_prompt      -> Prints the system prompt for Agent nodes\n\
                      agent_prompt             -> Prints the prompt for Agent nodes\n\
                      agent_stream             -> Shows streaming output from Agent nodes (if enabled)\n\
                      agent_sync               -> Shows synchronous output from Agent nodes\n\

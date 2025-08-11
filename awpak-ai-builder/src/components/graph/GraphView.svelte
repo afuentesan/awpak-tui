@@ -6,7 +6,6 @@
     import { add_node_destination, element_from_path, graph } from '../../store';
     import { change_graph_positions, graph_positions } from '../../positions_store';
     import { graph_to_cytoscape, ID_EXIT_ERR, ID_EXIT_OK } from '../../functions/graph_to_cytoscape';
-    import { NodeTypeVariant } from '../../model/node';
     import { ViewType } from '../../model/view_type';
     import { node_and_base_path_from_id } from '../../functions/node_functions';
     import type { Graph } from '../../model/graph';
@@ -49,7 +48,7 @@
 
         if( ! node ) return;
 
-        let base_path = node.base_path + "." + ( node.node._variant == NodeTypeVariant.Node ? "destination" : "node_destination" ) + "[" + idx + "]";
+        let base_path = node.base_path + ".destination[" + idx + "]";
 
         let destination = element_from_path( $graph, base_path );
 
@@ -60,7 +59,7 @@
             base_path : base_path,
             idx : node.idx,
             is_first : node.is_first,
-            destination_name : ( node.node._variant == NodeTypeVariant.Node ? "destination" : "node_destination" ),
+            destination_name : "destination",
             destination_idx : Number( idx ),
             source_id : source_id,
             target_id : event?.target?.target()?.id()
@@ -85,7 +84,7 @@
         let data = {
             node : node.node,
             base_path : node.base_path,
-            label : node.node._variant + " " + node.node.id,
+            label : "Node " + node.node.id,
             idx : node.idx,
             is_first : node.is_first
         };
@@ -327,21 +326,15 @@
                         } 
                     },
                     {
-                        selector: `node[ty = "${NodeTypeVariant.Node}"]`,
-                        style: {
-                        'background-color': '#1D4ED8'
-                        }
-                    },
-                    {
-                        selector: `node[ty = "${NodeTypeVariant.GraphNode}"]`,
-                        style: {
-                        'background-color': '#6D28D9'
-                        }
-                    },
-                    {
                         selector: `node[ty = "${NodeExecutorVariant.Command}"]`,
                         style: {
                         'background-color': '#1D4ED8'
+                        }
+                    },
+                    {
+                        selector: `node[ty = "${NodeExecutorVariant.Graph}"]`,
+                        style: {
+                        'background-color': '#6D28D9'
                         }
                     },
                     {

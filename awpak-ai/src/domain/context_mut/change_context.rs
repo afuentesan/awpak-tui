@@ -14,7 +14,7 @@ pub async fn change_context(
         match compare_data( 
             &graph,
             &c.condition 
-        )
+        ).await
         {
             Ok( r ) if r =>
             {
@@ -34,7 +34,7 @@ pub async fn change_context(
 
 pub async fn change_item_context( context_mut : &ContextMut, mut graph : Graph ) -> AwpakResult<Graph, Error>
 {
-    let data = match data_selection( &graph, &context_mut.from )
+    let data = match data_selection( &graph, &context_mut.from ).await
     {
         Ok( d ) => d,
         Err( e ) => return AwpakResult::new_err( graph, e )

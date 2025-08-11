@@ -5,8 +5,9 @@ import type { ContextMut } from "../model/context_mut";
 import { DataFromVariant, DataOperationVariant, type DataFrom } from "../model/data";
 import { DataComparatorVariant, type DataComparator } from "../model/data_comparator";
 import type { Graph } from "../model/graph";
-import { GraphNode, GraphNodeOutputErr, GraphNodeOutputObject, GraphNodeOutputOut, GraphNodeOutputSuccess, GraphNodeOutputVariant, Node, NodeDestination, NodeNextExitErr, NodeNextExitOk, NodeNextNode, NodeNextVariant, NodeTypeVariant, type GraphNodeOutput, type NodeNext, type NodeType } from "../model/node";
-import { NodeExecutorAgent, NodeExecutorAgentHistoryMut, NodeExecutorCommand, NodeExecutorContextMut, NodeExecutorParallel, NodeExecutorVariant, NodeExecutorWebClient, type NodeExecutor } from "../model/node_executor";
+import { GraphNodeOutputErr, GraphNodeOutputObject, GraphNodeOutputOut, GraphNodeOutputSuccess, GraphNodeOutputVariant, type GraphNodeOutput } from "../model/graph_executor";
+import { NodeConfig, NodeDestination, NodeNextExitErr, NodeNextExitOk, NodeNextNode, NodeNextVariant, type NodeNext } from "../model/node";
+import { NodeExecutorAgent, NodeExecutorAgentHistoryMut, NodeExecutorCommand, NodeExecutorContextMut, NodeExecutorGraph, NodeExecutorParallel, NodeExecutorVariant, NodeExecutorWebClient, type NodeExecutor } from "../model/node_executor";
 import { ParallelExecutorCommand, ParallelExecutorVariant, ParallelExecutorWebClient, type Parallel, type ParallelExecutor } from "../model/parallel";
 import { WebClient, WebClientBodyVariant, WebClientOutputBody, WebClientOutputHeader, WebClientOutputObject, WebClientOutputStatus, WebClientOutputVariant, WebClientOutputVersion, type WebClientOutput } from "../model/web_client";
 import { is_type_in_enum } from "./form_utils";
@@ -23,40 +24,100 @@ export function update_graph_node_ids( graph : Graph, id : string, new_id : stri
     graph.nodes.forEach( ( n ) => update_ids_in_node( n, id, new_id ) );
 }
 
-function update_ids_in_node( node : NodeType | undefined, id : string, new_id : string | undefined )
+export function update_graph_store_ids( graph : Graph, id : string, new_id : string | undefined )
+{
+    update_data_froms(
+        graph,
+        ( d : DataFrom ) =>
+        {
+            if( d._variant == DataFromVariant.Store )
+            {
+                if( d.id == id )
+                {
+                    d.id = new_id || "";
+                }
+            }
+        }
+    )
+}
+
+function update_data_froms( graph : Graph, fnc : ( d : DataFrom ) => void )
+{
+    update_data_froms_in_node( graph.first, fnc );
+
+    graph.nodes.forEach( ( n ) => update_data_froms_in_node( n, fnc ) );
+}
+
+function update_data_froms_in_node( node : any, fnc : ( d : DataFrom ) => void )
 {
     if( ! node ) return;
 
-    if( node._variant == NodeTypeVariant.Node )
+    for( let key in node ) 
     {
-        if( node.executor?._variant == NodeExecutorVariant.AgentHistoryMut )
+        if( ! node.hasOwnProperty( key ) ) continue;
+
+        if( ! node[ key ] ) continue;
+        
+        if( typeof node[ key ] === 'object' )
         {
-            update_agent_history_ids_in_agent_historys_mut( node.executor.value, id, new_id );
-        }
-        else if( node.executor?._variant == NodeExecutorVariant.ContextMut )
-        {
-            update_ids_in_contexts_mut( node.executor.value, id, new_id );
-        }
-        else if( node.executor?._variant == NodeExecutorVariant.Command )
-        {
-            update_ids_in_command( node.executor.value, id, new_id );
-        }
-        else if( node.executor?._variant == NodeExecutorVariant.Agent )
-        {
-            update_ids_in_ai_agent( node.executor.value, id, new_id );
-        }
-        else if( node.executor?._variant == NodeExecutorVariant.WebClient )
-        {
-            update_ids_in_web_client( node.executor.value, id, new_id );
-        }
-        else if( node.executor?._variant == NodeExecutorVariant.Parallel )
-        {
-            update_ids_in_parallel( node.executor.value, id, new_id );
+            if( Array.isArray( node[ key ] ) )
+            {
+                for( let i = 0 ; i < node[ key ].length ; i++ )
+                {
+                    update_data_froms_in_node( node[ key ][ i ], fnc );
+                }
+            } 
+            else
+            {
+                if( is_data_from_object( node[ key ] ) )
+                {
+                    fnc( node[ key ] );
+                }
+                
+                update_data_froms_in_node( node[ key ], fnc );
+            }
         }
     }
-    else if( node._variant == NodeTypeVariant.GraphNode )
+}
+
+function is_data_from_object( o : any ) : boolean
+{
+    return (
+        o._variant?.trim() && is_type_in_enum( DataFromVariant, o._variant )
+    )
+}
+
+function update_ids_in_node( node : NodeConfig | undefined, id : string, new_id : string | undefined )
+{
+    if( ! node ) return;
+
+    if( node.executor?._variant == NodeExecutorVariant.AgentHistoryMut )
     {
-        node.input.forEach( ( i ) => update_ids_in_data_from( i.from, id, new_id ) );
+        update_agent_history_ids_in_agent_historys_mut( node.executor.value, id, new_id );
+    }
+    else if( node.executor?._variant == NodeExecutorVariant.ContextMut )
+    {
+        update_ids_in_contexts_mut( node.executor.value, id, new_id );
+    }
+    else if( node.executor?._variant == NodeExecutorVariant.Command )
+    {
+        update_ids_in_command( node.executor.value, id, new_id );
+    }
+    else if( node.executor?._variant == NodeExecutorVariant.Agent )
+    {
+        update_ids_in_ai_agent( node.executor.value, id, new_id );
+    }
+    else if( node.executor?._variant == NodeExecutorVariant.WebClient )
+    {
+        update_ids_in_web_client( node.executor.value, id, new_id );
+    }
+    else if( node.executor?._variant == NodeExecutorVariant.Parallel )
+    {
+        update_ids_in_parallel( node.executor.value, id, new_id );
+    }
+    else if( node.executor?._variant == NodeExecutorVariant.Graph )
+    {
+        node.executor.value.input.forEach( ( i ) => update_ids_in_data_from( i.from, id, new_id ) );
     }
 
     update_node_destinations_id( node, id, new_id );
@@ -155,13 +216,11 @@ function update_agent_history_ids_in_agent_history_mut( agent_history : AgentHis
     }
 }
 
-function update_node_destinations_id( node : NodeType | undefined, id : string, new_id : string | undefined )
+function update_node_destinations_id( node : NodeConfig | undefined, id : string, new_id : string | undefined )
 {
     if( ! node ) return;
 
-    let destinations = ( node._variant == NodeTypeVariant.Node ) ? node.destination : node.node_destination;
-
-    destinations.forEach( 
+    node.destination.forEach( 
         ( d : NodeDestination ) => 
         {
             if( d.next?._variant == NodeNextVariant.Node )
@@ -281,9 +340,14 @@ export function node_ids( graph : Graph ) : Array<string>
 {
     let ids : Array<string> = [ graph.first?.id as string ];
 
-    graph.nodes.forEach( ( v : NodeType ) => ids.push( v.id as string ) );
+    graph.nodes.forEach( ( v : NodeConfig ) => ids.push( v.id as string ) );
 
     return ids;
+}
+
+export function store_ids( graph : Graph ) : Array<string>
+{
+    return graph.stores.map( ( s ) => s.id );
 }
 
 export function agent_ids( graph : Graph ) : Array<string>
@@ -301,9 +365,9 @@ export function agent_ids( graph : Graph ) : Array<string>
     return ids;
 }
 
-function node_is_agent( node : NodeType | undefined ) : boolean
+function node_is_agent( node : NodeConfig | undefined ) : boolean
 {
-    if( ! node || node._variant != NodeTypeVariant.Node ) return false;
+    if( ! node?.executor?._variant ) return false;
 
     if( node.executor?._variant == NodeExecutorVariant.Agent ) return true;
 
@@ -328,7 +392,7 @@ export function next_node_id( graph : Graph ) : string
     return id;
 }
 
-export function node_by_id( graph : Graph, id : string ) : NodeType | undefined
+export function node_by_id( graph : Graph, id : string ) : NodeConfig | undefined
 {
     if( ! id?.trim() ) { return undefined };
 
@@ -337,13 +401,13 @@ export function node_by_id( graph : Graph, id : string ) : NodeType | undefined
         return graph.first;
     }
 
-    return graph.nodes.find( ( n : NodeType ) => n.id == id );
+    return graph.nodes.find( ( n : NodeConfig ) => n.id == id );
 }
 
 export function node_and_base_path_from_id( 
     graph : Graph, 
     id : string 
-) : { node : NodeType, base_path : string, idx : number | undefined, is_first : boolean } | undefined
+) : { node : NodeConfig, base_path : string, idx : number | undefined, is_first : boolean } | undefined
 {
     if( ! id?.trim() ) return undefined;
 
@@ -478,6 +542,10 @@ export function new_node_executor_variant( old : NodeExecutor, new_variant : str
     else if( new_variant == NodeExecutorVariant.Parallel )
     {
         return new NodeExecutorParallel();
+    }
+    else if( new_variant == NodeExecutorVariant.Graph )
+    {
+        return new NodeExecutorGraph();
     }
 }
 
@@ -628,55 +696,4 @@ export function change_node_next_variant( node_next : NodeNext, new_variant : st
 
         return new_node_next;
     }
-}
-
-export function is_node_variant( node : any ) : boolean
-{
-    if( ! node._variant?.trim() ) { return false; }
-
-    if( ! node_variants().includes( node._variant ) ) { return false; }
-
-    return true;
-}
-
-export function change_node_variant( node : NodeType, new_variant : string ) : NodeType | undefined
-{
-    if( ! is_node_variant( node ) ) { return undefined; }
-
-    if( ! new_variant?.trim() || new_variant == node._variant ) { return undefined; }
-
-    if( new_variant == "Node" )
-    {
-        return node_variant( node, new_variant );
-    }
-    else if( new_variant == "GraphNode" )
-    {
-        return graph_node_variant( node, new_variant );
-    }
-}
-
-function node_variant( from : NodeType, new_variant : string ) : NodeType
-{
-    let node = new Node( from.id as string );
-
-    if( new_variant == "GraphNode" )
-    {
-        node.output = ( from as GraphNode ).node_output;
-        node.destination = ( from as GraphNode ).node_destination;
-    }
-
-    return node;
-}
-
-function graph_node_variant( from : NodeType, new_variant : string ) : NodeType
-{
-    let node = new GraphNode( from.id as string );
-
-    if( new_variant == "Node" )
-    {
-        node.node_output = ( from as Node ).output;
-        node.node_destination = ( from as Node ).destination;
-    }
-
-    return node;
 }

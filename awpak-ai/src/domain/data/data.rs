@@ -13,7 +13,7 @@ pub enum DataType
     Object
 }
 
-#[derive(Serialize, Deserialize, Clone)]
+#[derive(Debug, Serialize, Deserialize, Clone)]
 pub enum DataFrom
 {
     Context( FromContext ),
@@ -23,10 +23,11 @@ pub enum DataFrom
     Concat( Vec<DataFrom> ),
     Operation( Box<DataOperation> ),
     AgentHistory( FromAgentHistory ),
+    Store( Box<FromStore> ),
     Null
 }
 
-#[derive(Serialize, Deserialize, Clone)]
+#[derive(Debug, Serialize, Deserialize, Clone)]
 pub enum DataOperation
 {
     Len( DataFrom ),
@@ -35,7 +36,7 @@ pub enum DataOperation
     StringSplit { from : DataFrom, sep : String }
 }
 
-#[derive(Serialize, Deserialize, Clone)]
+#[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct FromContext
 {
     pub path : String,
@@ -43,7 +44,15 @@ pub struct FromContext
     pub required : bool
 }
 
-#[derive(Serialize, Deserialize, Clone)]
+#[derive(Debug, Serialize, Deserialize, Clone)]
+pub struct FromStore
+{
+    pub id : String,
+    pub query : DataFrom,
+    pub samples : u64
+}
+
+#[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct FromParsedInput
 {
     #[serde(default)]
@@ -52,14 +61,14 @@ pub struct FromParsedInput
     pub required : bool
 }
 
-#[derive(Serialize, Deserialize, Clone)]
+#[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct FromAgentHistory
 {
     pub id : String,
     pub content : FromAgentHistoryContent
 }
 
-#[derive(Serialize, Deserialize, Clone)]
+#[derive(Debug, Serialize, Deserialize, Clone)]
 pub enum FromAgentHistoryContent
 {
     Full,
@@ -78,7 +87,7 @@ pub enum FromAgentHistoryContent
     ItemMessage( usize )
 }
 
-#[derive(Serialize, Deserialize, Clone)]
+#[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct DataToString
 {
     pub from : DataFrom,
@@ -109,7 +118,7 @@ pub enum DataMerge
     AppendToArray
 }
 
-#[derive(Serialize, Deserialize, Clone)]
+#[derive(Debug, Serialize, Deserialize, Clone)]
 pub enum DataComparator
 {
     Eq { from_1 : DataFrom, from_2 : DataFrom },

@@ -1,15 +1,18 @@
 import type { DataType } from "./data";
-import { type NodeType } from "./node";
+import { NodeConfig } from "./node";
+import type { StoreConfig } from "./store";
 
 export class Graph
 {
+    stores : Array<StoreConfig> = [];
+
     context : Map<string, any> | undefined;
     preserve_context : boolean | undefined;
 
     input_type : DataType | undefined;
 
-    first : NodeType | undefined;
+    first : NodeConfig | undefined;
 
-    nodes : Array<NodeType> = [];
+    nodes : Array<NodeConfig> = [];
 }
 

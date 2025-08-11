@@ -6,12 +6,11 @@
     import GraphView from "./graph/GraphView.svelte";
     import Node from "./graph/Node.svelte";
     import { add_node, add_node_exit_text, clear_graph, graph, load_new_graph, remove_from_array } from '../store';
-    import { type NodeType } from "../model/node";
     import NodeDestination from "./node/NodeDestination.svelte";
-    import InputFile from "./form/InputFile.svelte";
     import { save_graph_to_file } from "../functions/save_to_file";
     import Dropdown from "./form/Dropdown.svelte";
     import DropwdownItem from "./form/DropwdownItem.svelte";
+    import { NodeConfig } from "../model/node";
 
 
     let view_type = $state( ViewType.GraphView );
@@ -166,7 +165,7 @@
                     $graph.first 
                     : 
                     $graph.nodes[ partial_view_data.idx as number ] 
-                ) as NodeType
+                ) as NodeConfig
             }
             is_grid={true}
             change_view={change_view}

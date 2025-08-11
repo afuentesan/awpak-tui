@@ -6,7 +6,7 @@
     import Text from "../form/Text.svelte";
     import { select_options_from_enum } from "../../functions/form_utils";
     import Select from "../form/Select.svelte";
-    import { chage_data_comparator, change_option_string, element_from_path, graph } from "../../store";
+    import { chage_data_comparator, change_option_string } from "../../store";
     import Input from "../form/Input.svelte";
     import Box from "../form/Box.svelte";
 
@@ -19,23 +19,6 @@
 
     let { comparator, base_path, is_grid } : InputProps = $props();
 
-    // let data_type_options = select_options_from_enum(
-    //     DataComparatorVariant,
-    //     comparator._variant,
-    //     false
-    // );
-
-    // $effect(() => {
-        
-    //     if( ! comparator?._variant ) return;
-
-    //     let new_comp = element_from_path( $graph, base_path );
-
-    //     if( ! new_comp ) return;
-    //     // let new_node = node_by_id( $graph, node.id );
-
-    //     comparator = Object.assign( {}, new_comp );
-    // });
 </script>
 
 <Box title={"Comparator "+comparator._variant} is_grid={is_grid} base_path={base_path}>

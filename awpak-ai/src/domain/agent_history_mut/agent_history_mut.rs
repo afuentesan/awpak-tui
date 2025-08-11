@@ -3,7 +3,7 @@ use serde::{Deserialize, Serialize};
 use crate::domain::data::data::{DataComparator, DataFrom};
 
 
-#[derive(Serialize, Deserialize, Clone)]
+#[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct AgentHistoryMut
 {
     pub id : String,
@@ -14,7 +14,7 @@ pub struct AgentHistoryMut
     pub condition : DataComparator
 }
 
-#[derive(Serialize, Deserialize, Clone)]
+#[derive(Debug, Serialize, Deserialize, Clone)]
 pub enum DataToAgentHistory
 {
     Replace,

@@ -14,6 +14,7 @@ pub const GRAPH_OUTPUT_OK : &'static str = "graph_output_ok";
 pub const GRAPH_OUTPUT_ERR : &'static str = "graph_output_err";
 
 pub const AGENT_PROMPT : &'static str = "agent_prompt";
+pub const AGENT_SYSTEM_PROMPT : &'static str = "agent_system_prompt";
 pub const AGENT_STREAM : &'static str = "agent_stream";
 pub const AGENT_SYNC : &'static str = "agent_sync";
 pub const AGENT_TOOL_CALL : &'static str = "agent_tool_call";
@@ -40,6 +41,7 @@ pub enum AwpakAITarget
     GraphInput,
     GraphOutputOk,
     GraphOutputErr,
+    AgentSystemPrompt,
     AgentPrompt,
     AgentStream,
     AgentSync,
@@ -68,6 +70,7 @@ impl AwpakAITarget
             AwpakAITarget::GraphInput => GRAPH_INPUT,
             AwpakAITarget::GraphOutputOk => GRAPH_OUTPUT_OK,
             AwpakAITarget::GraphOutputErr => GRAPH_OUTPUT_ERR,
+            AwpakAITarget::AgentSystemPrompt => AGENT_SYSTEM_PROMPT,
             AwpakAITarget::AgentPrompt => AGENT_PROMPT,
             AwpakAITarget::AgentStream => AGENT_STREAM,
             AwpakAITarget::AgentSync => AGENT_SYNC,
@@ -96,6 +99,7 @@ impl AwpakAITarget
                 GRAPH_INPUT => AwpakAITarget::GraphInput,
                 GRAPH_OUTPUT_OK => AwpakAITarget::GraphOutputOk,
                 GRAPH_OUTPUT_ERR => AwpakAITarget::GraphOutputErr,
+                AGENT_SYSTEM_PROMPT => AwpakAITarget::AgentSystemPrompt,
                 AGENT_PROMPT => AwpakAITarget::AgentPrompt,
                 AGENT_STREAM => AwpakAITarget::AgentStream,
                 AGENT_SYNC => AwpakAITarget::AgentSync,

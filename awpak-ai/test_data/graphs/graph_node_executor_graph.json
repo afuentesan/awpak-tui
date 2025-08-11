@@ -1,43 +1,46 @@
 {
     "first" : {
-        "Graph" : {
-            "id" : "node_1",
-            "path" : "test_data/graphs/echo_graph.json",
+        "id" : "node_1",
+        "executor": {
+            "Graph": {
+                "path" : "test_data/graphs/echo_graph.json",
 
-            "input" : [
-                {
-                    "from" : {
-                        "Input" : {
-                            "required" : true
+                "input" : [
+                    {
+                        "from" : {
+                            "Input" : {
+                                "required" : true
+                            }
                         }
                     }
-                }
-            ],
+                ],
 
-            "output" : [
-                {
-                    "Out" : {}
-                }
-            ],
-            "node_output" : {
-                "path" : "output"
-            },
-            "node_destination" : [
-                {
-                    "next" : {
-                        "ExitOk" : [
-                            {
-                                "from" : {
-                                    "Context" : {
-                                        "path" : "output"
-                                    }
+                "output" : [
+                    {
+                        "Out" : {}
+                    }
+                ]
+            }
+        },
+        
+        "output" : {
+            "path" : "output"
+        },
+        "destination" : [
+            {
+                "next" : {
+                    "ExitOk" : [
+                        {
+                            "from" : {
+                                "Context" : {
+                                    "path" : "output"
                                 }
                             }
-                        ]
-                    },
-                    "condition" : "True"
-                }
-            ]
-        }
+                        }
+                    ]
+                },
+                "condition" : "True"
+            }
+        ]
     }
 }

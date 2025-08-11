@@ -1,10 +1,11 @@
+use async_recursion::async_recursion;
 use regex::Regex;
 use serde_json::{Number, Value};
 
 use crate::domain::{data::{data::DataComparator, data_selection::data_selection, data_utils::{is_value_empty, value_to_string, values_are_equals}}, error::Error, graph::graph::Graph};
 
-
-pub fn compare_data(
+#[async_recursion]
+pub async fn compare_data(
     graph : &Graph,
     comparator : &DataComparator
 ) -> Result<bool, Error>
@@ -13,22 +14,22 @@ pub fn compare_data(
     {
         DataComparator::Eq { from_1, from_2 } =>
         {
-            let a = data_selection( graph, from_1 )?;
-            let b = data_selection( graph, from_2 )?;
+            let a = data_selection( graph, from_1 ).await?;
+            let b = data_selection( graph, from_2 ).await?;
 
             Ok( values_are_equals( &a, &b ) )
         },
         DataComparator::NotEq { from_1, from_2 } =>
         {
-            let a = data_selection( graph, from_1 )?;
-            let b = data_selection( graph, from_2 )?;
+            let a = data_selection( graph, from_1 ).await?;
+            let b = data_selection( graph, from_2 ).await?;
 
             Ok( ! values_are_equals( &a, &b ) )
         },
         DataComparator::Gt { from_1, from_2 } =>
         {
-            let a = number_from_value( data_selection( graph, from_1 )? )?;
-            let b = number_from_value( data_selection( graph, from_2 )? )?;
+            let a = number_from_value( data_selection( graph, from_1 ).await? )?;
+            let b = number_from_value( data_selection( graph, from_2 ).await? )?;
 
             Ok( 
                 a.as_f64().ok_or( Error::ParseData( format!( "{} could not be converted to f64", a ) ) )? 
@@ -38,8 +39,8 @@ pub fn compare_data(
         },
         DataComparator::Lt { from_1, from_2 } =>
         {
-            let a = number_from_value( data_selection( graph, from_1 )? )?;
-            let b = number_from_value( data_selection( graph, from_2 )? )?;
+            let a = number_from_value( data_selection( graph, from_1 ).await? )?;
+            let b = number_from_value( data_selection( graph, from_2 ).await? )?;
 
             Ok( 
                 a.as_f64().ok_or( Error::ParseData( format!( "{} could not be converted to f64", a ) ) )? 
@@ -49,7 +50,7 @@ pub fn compare_data(
         },
         DataComparator::Regex { regex, from} =>
         {
-            let str = value_to_string( &data_selection( graph, from )? );
+            let str = value_to_string( &data_selection( graph, from ).await? );
 
             match Regex::new( regex )
             {
@@ -62,36 +63,36 @@ pub fn compare_data(
         },
         DataComparator::Empty( from ) =>
         {
-            let value = data_selection( graph, from )?;
+            let value = data_selection( graph, from ).await?;
 
             is_value_empty( &value )
         },
         DataComparator::NotEmpty( from ) =>
         {
-            let value = data_selection( graph, from )?;
+            let value = data_selection( graph, from ).await?;
 
             Ok( ! is_value_empty( &value )? )
         },
         DataComparator::And { comp_1, comp_2 } =>
         {
             Ok(
-                compare_data( graph, comp_1 )?
+                compare_data( graph, comp_1 ).await?
                 &&
-                compare_data( graph, comp_2 )?
+                compare_data( graph, comp_2 ).await?
             )
         },
         DataComparator::Or { comp_1, comp_2 } =>
         {
             Ok(
-                compare_data( graph, comp_1 )?
+                compare_data( graph, comp_1 ).await?
                 ||
-                compare_data( graph, comp_2 )?
+                compare_data( graph, comp_2 ).await?
             )
         },
         DataComparator::Xor { comp_1, comp_2 } =>
         {
-            let r1 = compare_data( graph, comp_1 )?;
-            let r2 = compare_data( graph, comp_2 )?;
+            let r1 = compare_data( graph, comp_1 ).await?;
+            let r2 = compare_data( graph, comp_2 ).await?;
 
             Ok(
                 ( r1 && ! r2 ) || ( ! r1 && r2 )
@@ -99,8 +100,8 @@ pub fn compare_data(
         },
         DataComparator::Nand { comp_1, comp_2 } =>
         {
-            let r1 = compare_data( graph, comp_1 )?;
-            let r2 = compare_data( graph, comp_2 )?;
+            let r1 = compare_data( graph, comp_1 ).await?;
+            let r2 = compare_data( graph, comp_2 ).await?;
 
             Ok(
                 ! r1 && ! r2
@@ -109,7 +110,7 @@ pub fn compare_data(
         DataComparator::Not( c ) =>
         {
             Ok(
-                ! compare_data( graph, c )?
+                ! compare_data( graph, c ).await?
             )
         },
         DataComparator::True => Ok( true ),

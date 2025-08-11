@@ -1,7 +1,7 @@
 
 <script lang="ts">
     import { select_options_from_enum } from "../../functions/form_utils";
-    import { GraphNodeOutputVariant, type GraphNodeOutput } from "../../model/node"
+    import { GraphNodeOutputVariant, type GraphNodeOutput } from "../../model/graph_executor"
     import { change_graph_node_output, change_option_string } from "../../store";
     import Box from "../form/Box.svelte";
     import Button from "../form/Button.svelte";

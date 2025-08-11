@@ -1,6 +1,7 @@
 import { DataToAgentHistoryReplace, DataToAgentHistoryReplaceFirst, DataToAgentHistoryReplaceItem, DataToAgentHistoryReplaceLast, DataToAgentHistoryStringToFirst, DataToAgentHistoryStringToItem, DataToAgentHistoryStringToLast, DataToAgentHistoryVariant, type DataToAgentHistory } from "../model/agent_history_mut";
-import { DataFromVariant, DataOperationAdd, DataOperationLen, DataOperationStringSplit, DataOperationSubstract, DataOperationVariant, FromAgentHistory, FromAgentHistoryContentFirst, FromAgentHistoryContentFirstMessage, FromAgentHistoryContentFull, FromAgentHistoryContentFullMessages, FromAgentHistoryContentItem, FromAgentHistoryContentItemMessage, FromAgentHistoryContentLast, FromAgentHistoryContentLastMessage, FromAgentHistoryContentRange, FromAgentHistoryContentRangeMessages, FromAgentHistoryContentVariant, FromConcat, FromContext, FromInput, FromNull, FromOperation, FromParsedInput, FromStatic, type DataFrom, type DataOperation, type FromAgentHistoryContent } from "../model/data";
+import { DataFromVariant, DataOperationAdd, DataOperationLen, DataOperationStringSplit, DataOperationSubstract, DataOperationVariant, FromAgentHistory, FromAgentHistoryContentFirst, FromAgentHistoryContentFirstMessage, FromAgentHistoryContentFull, FromAgentHistoryContentFullMessages, FromAgentHistoryContentItem, FromAgentHistoryContentItemMessage, FromAgentHistoryContentLast, FromAgentHistoryContentLastMessage, FromAgentHistoryContentRange, FromAgentHistoryContentRangeMessages, FromAgentHistoryContentVariant, FromConcat, FromContext, FromInput, FromNull, FromOperation, FromParsedInput, FromStatic, FromStore, type DataFrom, type DataOperation, type FromAgentHistoryContent } from "../model/data";
 import { DataComparatorAnd, DataComparatorEmpty, DataComparatorEq, DataComparatorFalse, DataComparatorGt, DataComparatorLt, DataComparatorNand, DataComparatorNot, DataComparatorNotEmpty, DataComparatorNotEq, DataComparatorOr, DataComparatorRegex, DataComparatorTrue, DataComparatorVariant, DataComparatorXor, type DataComparator } from "../model/data_comparator";
+import { GeminiStoreModel, OllamaStoreModel, OpenAIStoreModel, StoreDocumentPdf, StoreDocumentSizerChars, StoreDocumentSizerMarkdown, StoreDocumentSizerNone, StoreDocumentSizerVariant, StoreDocumentText, StoreDocumentVariant, StoreModelVariant, StoreProvider, type StoreDocument, type StoreDocumentSizer, type StoreModel } from "../model/store";
 import { WebClientBodyForm, WebClientBodyJson, WebClientBodyVariant, type WebClientBody } from "../model/web_client";
 import { is_type_in_enum } from "./form_utils";
 
@@ -51,6 +52,123 @@ export function new_data_operation_variant( old : DataOperation, new_variant : s
     }
 
     return undefined;
+}
+
+export function new_store_provider_variant( old : StoreProvider, new_variant : string ) : StoreProvider | undefined
+{
+    if( ! is_type_in_enum( StoreProvider, new_variant ) ) { return undefined; }
+
+    new_variant = new_variant as StoreProvider;
+
+    if( old == new_variant ) { return old; }
+
+    return new_variant as StoreProvider;
+}
+
+export function new_store_document_variant( old : StoreDocument, new_variant : string ) : StoreDocument | undefined
+{
+    if( ! is_type_in_enum( StoreDocumentVariant, new_variant ) ) { return undefined; }
+
+    new_variant = new_variant as StoreDocumentVariant;
+
+    if( old._variant == new_variant ) { return old; }
+
+    if( new_variant == StoreDocumentVariant.Text )
+    {
+        let ret = new StoreDocumentText();
+
+        ret.path = old.path;
+        ret.sizer = old.sizer;
+
+        return ret;
+    }
+    else if( new_variant == StoreDocumentVariant.Pdf )
+    {
+        let ret = new StoreDocumentPdf();
+
+        ret.path = old.path;
+        ret.sizer = old.sizer;
+
+        return ret;
+    }
+}
+
+export function new_store_document_sizer_variant( old : StoreDocumentSizer, new_variant : string ) : StoreDocumentSizer | undefined
+{
+    if( ! is_type_in_enum( StoreDocumentSizerVariant, new_variant ) ) { return undefined; }
+
+    new_variant = new_variant as StoreDocumentSizerVariant;
+
+    if( old._variant == new_variant ) { return old; }
+
+    if( new_variant == StoreDocumentSizerVariant.Chars )
+    {
+        let ret = new StoreDocumentSizerChars();
+
+        if( old._variant == StoreDocumentSizerVariant.Markdown )
+        {
+            ret.desired = old.desired;
+            ret.max = old.max;
+        }
+
+        return ret;
+    }
+    else if( new_variant == StoreDocumentSizerVariant.Markdown )
+    {
+        let ret = new StoreDocumentSizerMarkdown();
+
+        if( old._variant == StoreDocumentSizerVariant.Chars )
+        {
+            ret.desired = old.desired;
+            ret.max = old.max;
+        }
+
+        return ret;
+    }
+    else if( new_variant == StoreDocumentSizerVariant.None )
+    {
+        return new StoreDocumentSizerNone();
+    }
+}
+
+export function new_store_model_variant( old : StoreModel, new_variant : string ) : StoreModel | undefined
+{
+    if( ! is_type_in_enum( StoreModelVariant, new_variant ) ) { return undefined; }
+
+    new_variant = new_variant as StoreModelVariant;
+
+    if( old._variant == new_variant ) { return old; }
+
+    let api_key = ( old._variant == StoreModelVariant.OpenAI || old._variant == StoreModelVariant.Gemini ) ? old.api_key : "";
+
+    if( new_variant == StoreModelVariant.OpenAI )
+    {
+        let ret = new OpenAIStoreModel();
+
+        ret.model = old.model;
+
+        ret.api_key = api_key;
+
+        return ret;
+    }
+    else if( new_variant == StoreModelVariant.Gemini )
+    {
+        let ret = new GeminiStoreModel();
+
+        ret.model = old.model;
+
+        ret.api_key = api_key;
+        
+        return ret;
+    }
+    else if( new_variant == StoreModelVariant.Ollama )
+    {
+        let ret = new OllamaStoreModel();
+
+        ret.model = old.model;
+        
+        return ret;
+    }
 }
 
 export function new_data_comparator_variant( old : DataComparator, new_variant : string ) : DataComparator | undefined
@@ -312,6 +430,10 @@ export function new_data_from_variant( old : DataFrom, new_variant : string ) : 
     else if( new_variant == DataFromVariant.AgentHistory )
     {
         return new FromAgentHistory();
+    }
+    else if( new_variant == DataFromVariant.Store )
+    {
+        return new FromStore();
     }
     else
     {

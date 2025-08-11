@@ -1,7 +1,6 @@
 import type cytoscape from "cytoscape";
 import type { Graph } from "../model/graph";
-import { NodeNextVariant, NodeTypeVariant, type NodeDestination, type NodeNext, type NodeType } from "../model/node";
-import { random_id } from "./form_utils";
+import { NodeConfig, NodeNextVariant, type NodeDestination } from "../model/node";
 import { DataComparatorVariant, type DataComparator } from "../model/data_comparator";
 import { DataFromVariant, type DataFrom } from "../model/data";
 import { NodeExecutorVariant, type NodeExecutor } from "../model/node_executor";
@@ -81,7 +80,7 @@ function clone_position( position : cytoscape.Position | undefined )
     }
 }
 
-function graph_node( node : NodeType, position? : cytoscape.Position | undefined, is_first? : boolean ) : any
+function graph_node( node : NodeConfig, position? : cytoscape.Position | undefined, is_first? : boolean ) : any
 {
     return { 
         data : { 
@@ -95,22 +94,13 @@ function graph_node( node : NodeType, position? : cytoscape.Position | undefined
     }
 }
 
-function graph_node_info( node : NodeType ) : string | undefined
+function graph_node_info( node : NodeConfig ) : string | undefined
 {
-    if( node._variant == NodeTypeVariant.Node )
-    {
-        if( ! node.executor ) return undefined;
+    if( ! node.executor ) return undefined;
 
-        return `<h4 class="font-bold text-center mb-2 bg-gray-200 dark:bg-indigo-700 pb-1 pt-1 pl-2 pr-2">${node.executor?._variant}</h4>
-        ${node_executor_info( node.executor )}
-        `;
-    }
-    else if( node._variant == NodeTypeVariant.GraphNode )
-    {
-        return `<h4 class="font-bold text-center mb-2 bg-gray-200 dark:bg-indigo-700 pb-1 pt-1 pl-2 pr-2">${node._variant}</h4>
-        <p>Path: ${node.path}</p>
-        `;
-    }
+    return `<h4 class="font-bold text-center mb-2 bg-gray-200 dark:bg-indigo-700 pb-1 pt-1 pl-2 pr-2">${node.executor?._variant}</h4>
+    ${node_executor_info( node.executor )}
+`;
 }
 
 function node_executor_info( executor : NodeExecutor ) : string
@@ -134,30 +124,16 @@ function node_executor_info( executor : NodeExecutor ) : string
     return "";
 }
 
-function graph_node_ty( node : NodeType ) : string
+function graph_node_ty( node : NodeConfig ) : string
 {
-    if( node._variant == NodeTypeVariant.GraphNode ) return node._variant;
-
     if( node.executor ) return node.executor._variant;
 
-    return node._variant;
+    return "Node";
 }
 
-function label_node( node : NodeType ) : string
+function label_node( node : NodeConfig ) : string
 {
-    return node.id || node._variant;
-
-    // if( node._variant == NodeTypeVariant.GraphNode )
-    // {
-    //     return "Graph " + node.id;
-    // }
-
-    // if( ! node.executor )
-    // {
-    //     return node.id + "";
-    // }
-
-    // return node.executor._variant + " " + node.id;
+    return node.id || "Node";
 }
 
 function graph_edges( graph : Graph ) : Array<any>
@@ -173,20 +149,18 @@ function graph_edges( graph : Graph ) : Array<any>
     return ret;
 }
 
-function node_edges( node : NodeType ) : Array<any>
+function node_edges( node : NodeConfig ) : Array<any>
 {
-    let destinations = ( node._variant == NodeTypeVariant.Node ) ? node.destination : node.node_destination;
-
     let ret : Array<any> = [];
 
-    destinations.forEach(
+    node.destination.forEach(
         ( d, idx ) => ret.push( node_edge( node, d, idx ) )
     );
 
     return ret;
 }
 
-function node_edge( node : NodeType, destination : NodeDestination, idx : number ) : any
+function node_edge( node : NodeConfig, destination : NodeDestination, idx : number ) : any
 {
     let target = target_destination( destination );
 

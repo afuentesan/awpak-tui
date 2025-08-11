@@ -2,6 +2,7 @@ import { AIAgent } from "./agent";
 import type { AgentHistoryMut } from "./agent_history_mut";
 import { Command } from "./command";
 import type { ContextMut } from "./context_mut";
+import { GraphExecutor } from "./graph_executor";
 import { Parallel } from "./parallel";
 import { WebClient } from "./web_client";
 
@@ -10,7 +11,8 @@ export type NodeExecutor = NodeExecutorCommand |
                            NodeExecutorAgent | 
                            NodeExecutorWebClient |
                            NodeExecutorAgentHistoryMut |
-                           NodeExecutorParallel;
+                           NodeExecutorParallel |
+                           NodeExecutorGraph;
 
 export enum NodeExecutorVariant
 {
@@ -19,7 +21,8 @@ export enum NodeExecutorVariant
     Agent = "Agent",
     WebClient = "WebClient",
     AgentHistoryMut = "AgentHistoryMut",
-    Parallel = "Parallel"
+    Parallel = "Parallel",
+    Graph = "Graph"
 }
 
 export class NodeExecutorAgent
@@ -77,4 +80,11 @@ export class NodeExecutorParallel
     readonly _variant = NodeExecutorVariant.Parallel;
 
     value : Parallel = new Parallel();
+}
+
+export class NodeExecutorGraph
+{
+    readonly _variant = NodeExecutorVariant.Graph;
+
+    value : GraphExecutor = new GraphExecutor();
 }

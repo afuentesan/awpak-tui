@@ -13,12 +13,12 @@ pub async fn execute_command(
     let id = graph.id.as_ref();
 
     let command_str = value_to_string( 
-        &data_selection( graph, &command.command ).prepend_err( "Command.\n" )? 
+        &data_selection( graph, &command.command ).await.prepend_err( "Command.\n" )? 
     );
     
     if command_str.trim() == "" { return Err( Error::Command( "Empty command".to_string() ) ) }
 
-    let args = command_args( graph, &command.args ).prepend_err( "Command args.\n" )?;
+    let args = command_args( graph, &command.args ).await.prepend_err( "Command args.\n" )?;
 
     trace_command_and_args( id, &command_str, &args );
 

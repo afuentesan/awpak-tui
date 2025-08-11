@@ -5,7 +5,7 @@ use serde_json::Value;
 use crate::domain::{data::data::{DataFrom, DataToString}, mcp::mcp::NodeMCPServer};
 
 
-#[derive(Serialize, Deserialize, Clone)]
+#[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct AIAgent
 {
     pub provider : AIAgentProviderConfig,
@@ -28,7 +28,15 @@ pub struct AIAgent
     pub is_stream : bool,
 
     #[serde(default)]
-    pub turns : Option<usize>
+    pub turns : Option<usize>,
+
+    #[serde(default = "agent_default_id")]
+    pub __id : String
+}
+
+fn agent_default_id() -> String
+{
+    uuid::Uuid::new_v4().to_string()
 }
 
 impl Default for AIAgent
@@ -44,12 +52,14 @@ impl Default for AIAgent
             prompt : vec![], 
             history: vec![],
             is_stream : false,
-            turns : None
+            turns : None,
+            // embeddings : vec![],
+            __id : "".into()
         }
     }
 }
 
-#[derive(Serialize, Deserialize, Clone)]
+#[derive(Debug, Serialize, Deserialize, Clone)]
 pub enum AIAgentProviderConfig
 {
     Ollama( OllamaConfig ),
@@ -59,20 +69,20 @@ pub enum AIAgentProviderConfig
     Gemini( GeminiConfig )
 }
 
-#[derive(Serialize, Deserialize, Clone)]
+#[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct OllamaConfig
 {
     pub model : DataFrom
 }
 
-#[derive(Serialize, Deserialize, Clone)]
+#[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct OpenAIConfig
 {
     pub api_key : String,
     pub model : DataFrom
 }
 
-#[derive(Serialize, Deserialize, Clone)]
+#[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct AnthropicConfig
 {
     pub api_key : String,
@@ -80,7 +90,7 @@ pub struct AnthropicConfig
     pub max_tokens : u64
 }
 
-#[derive(Serialize, Deserialize, Clone)]
+#[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct DeepSeekConfig
 {
     pub api_key : String,
@@ -89,7 +99,7 @@ pub struct DeepSeekConfig
     pub max_tokens : Option<u64>
 }
 
-#[derive(Serialize, Deserialize, Clone)]
+#[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct GeminiConfig
 {
     pub api_key : String,

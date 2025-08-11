@@ -15,7 +15,7 @@ pub async fn change_agent_history(
         match compare_data( 
             &graph,
             &h.condition 
-        )
+        ).await
         {
             Ok( r ) if r =>
             {
@@ -35,7 +35,7 @@ pub async fn change_agent_history(
 
 async fn change_item_history( history_mut : &AgentHistoryMut, mut graph : Graph ) -> AwpakResult<Graph, Error>
 {
-    let data = match data_selection( &graph, &history_mut.from )
+    let data = match data_selection( &graph, &history_mut.from ).await
     {
         Ok( v ) => v,
         Err( e ) => return AwpakResult::new_err( graph, e )

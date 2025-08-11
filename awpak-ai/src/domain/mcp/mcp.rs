@@ -5,7 +5,7 @@ use serde::{Deserialize, Serialize};
 use crate::domain::data::data::DataFrom;
 
 
-#[derive(Serialize, Deserialize, Clone)]
+#[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct NodeMCPServer
 {
     pub command : String,

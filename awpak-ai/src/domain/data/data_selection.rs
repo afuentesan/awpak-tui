@@ -1,28 +1,38 @@
 use std::collections::HashMap;
 
+use async_recursion::async_recursion;
 use awpak_utils::string_utils::str_len;
 use serde_json::Value;
 
-use crate::domain::{data::{data::{DataFrom, DataOperation, DataToString, FromContext, FromParsedInput}, data_history::data_from_agent_history, data_insert::merge_values, data_operations::{add_values, string_split, substract_values}, data_utils::{value_from_map, value_is_null, value_to_string}}, error::Error, graph::graph::Graph, path::expand_path::expand_path};
+use crate::domain::{data::{data::{DataFrom, DataOperation, DataToString, FromContext, FromParsedInput}, data_history::data_from_agent_history, data_insert::merge_values, data_operations::{add_values, string_split, substract_values}, data_utils::{value_from_map, value_is_null, value_to_string}}, error::Error, graph::graph::Graph, path::expand_path::expand_path, store::store_query::store_query_from_graph_store};
 
-pub fn data_to_string(
+pub async fn data_to_string(
     graph : &Graph,
     data : Vec<DataToString>
 ) -> String
 {
-    data.into_iter()
-    .fold(
-        "".to_string(), 
-        | mut a, d |
-        {
-            a.push_str( &item_data_to_string( graph, d ) );
+    let mut ret = "".to_string();
 
-            a
-        }
-    )
+    for d in data
+    {
+        ret.push_str( &item_data_to_string( graph, d ).await );
+    }
+
+    ret
+
+    // data.into_iter()
+    // .fold(
+    //     "".to_string(), 
+    //     | mut a, d |
+    //     {
+    //         a.push_str( &item_data_to_string( graph, d ).await );
+
+    //         a
+    //     }
+    // )
 }
 
-fn item_data_to_string(
+async fn item_data_to_string(
     graph : &Graph,
     data : DataToString
 ) -> String
@@ -30,7 +40,7 @@ fn item_data_to_string(
     format!(
         "{}{}{}",
         data.prefix.unwrap_or( "".into() ),
-        match data_selection( graph, &data.from )
+        match data_selection( graph, &data.from ).await
         {
             Ok( v ) => value_to_string( &v ),
             Err( e ) => e.to_string()
@@ -39,7 +49,8 @@ fn item_data_to_string(
     )
 }
 
-pub fn data_selection( 
+#[async_recursion]
+pub async fn data_selection( 
     graph : &Graph,
     from : &DataFrom
 ) -> Result<Value, Error>
@@ -54,14 +65,15 @@ pub fn data_selection(
         DataFrom::ParsedInput( f ) => data_from_parsed_input( context, parsed_input, f ),
         DataFrom::Input { required } => data_from_input( input, *required ),
         DataFrom::Static( v ) => Ok( v.clone() ),
-        DataFrom::Concat( f ) => concat_data_from( graph, f ),
-        DataFrom::Operation( o ) => operation_data_from( graph, o ),
+        DataFrom::Concat( f ) => concat_data_from( graph, f ).await,
+        DataFrom::Operation( o ) => operation_data_from( graph, o ).await,
         DataFrom::AgentHistory( h ) => data_from_agent_history( graph, h ),
+        DataFrom::Store( s ) => store_query_from_graph_store( graph, s ).await,
         DataFrom::Null => Ok( Value::Null )
     }
 }
 
-fn operation_data_from(
+async fn operation_data_from(
     graph : &Graph,
     operation : &DataOperation
 ) -> Result<Value, Error>
@@ -70,7 +82,7 @@ fn operation_data_from(
     {
         DataOperation::Len( f ) =>
         {
-            let value = data_selection( graph, f )?;
+            let value = data_selection( graph, f ).await?;
 
             match value
             {
@@ -84,41 +96,52 @@ fn operation_data_from(
         },
         DataOperation::Substract { num_1, num_2 } =>
         {
-            let v1 = data_selection( graph, num_1 )?;
-            let v2 = data_selection( graph, num_2 )?;
+            let v1 = data_selection( graph, num_1 ).await?;
+            let v2 = data_selection( graph, num_2 ).await?;
 
             substract_values( v1, v2 )
         },
         DataOperation::Add { num_1, num_2 } =>
         {
-            let v1 = data_selection( graph, num_1 )?;
-            let v2 = data_selection( graph, num_2 )?;
+            let v1 = data_selection( graph, num_1 ).await?;
+            let v2 = data_selection( graph, num_2 ).await?;
 
             add_values( v1, v2 )
         },
         DataOperation::StringSplit { from, sep } =>
         {
-            let value = data_selection( graph, from )?;
+            let value = data_selection( graph, from ).await?;
 
             Ok( string_split( value, sep ) )
         }
     }
 }
 
-fn concat_data_from(
+async fn concat_data_from(
     graph : &Graph,
     from : &Vec<DataFrom>
 ) -> Result<Value, Error>
 {
-    from.iter().try_fold(
-        Value::Null, 
-        | acc, from |
-        {
-            let value = data_selection( graph, from )?;
+    let mut acc = Value::Null;
+
+    for f in from
+    {
+        let value = data_selection( graph, f ).await?;
+
+        acc = merge_values( acc, value );
+    }
+
+    Ok( acc )
+
+    // from.iter().try_fold(
+    //     Value::Null, 
+    //     | acc, from |
+    //     {
+    //         let value = data_selection( graph, from ).await?;
             
-            Ok( merge_values( acc, value ) )
-        }
-    )
+    //         Ok( merge_values( acc, value ) )
+    //     }
+    // )
 }
 
 fn data_from_context( context : &HashMap<String, Value>, from : &FromContext ) -> Result<Value, Error>

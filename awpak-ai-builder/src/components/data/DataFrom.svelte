@@ -11,7 +11,7 @@
     import Select from "../form/Select.svelte";
     import DataOperation from "./DataOperation.svelte";
     import TextArea from '../form/TextArea.svelte';
-    import { agent_ids } from '../../functions/node_functions';
+    import { agent_ids, store_ids } from '../../functions/node_functions';
 
     interface InputProps
     {
@@ -103,6 +103,30 @@
             }
                 <Input label="Index" input_type="number" value={from.content.value} change_value={change_option_number} base_path={base_path+".content.value"} />
             {/if}
+        </Box>
+    {/if}
+
+    {#if from._variant == DataFromVariant.Store}
+        <Box title="Store" base_path={base_path+".value"}>
+            <Select 
+                label="Store id" 
+                value={from.id} 
+                options={select_options_from_array( store_ids( $graph ), from.id, true )} 
+                change_value={change_option_string}
+                base_path={base_path+".id"} 
+            />
+            <Self
+                label="Query"
+                from={from.query}
+                base_path={base_path+".query"}
+            />
+            <Input 
+                label="Samples" 
+                input_type="number" 
+                value={from.samples} 
+                change_value={change_option_number} 
+                base_path={base_path+".samples"} 
+            />
         </Box>
     {/if}
 

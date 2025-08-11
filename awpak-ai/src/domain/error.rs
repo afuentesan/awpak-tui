@@ -12,6 +12,7 @@ pub enum Error
     NodeNotFound( String ),
     NodeExists( String ),
     File( String ),
+    Store( String ),
     Ignore
 }
 
@@ -29,6 +30,7 @@ impl Error
             Error::NodeNotFound( s ) => Error::NodeNotFound( format!( "{}{}", s, str.as_ref() ) ),
             Error::NodeExists( s ) => Error::NodeExists( format!( "{}{}", s, str.as_ref() ) ),
             Error::File( s ) => Error::File( format!( "{}{}", s, str.as_ref() ) ),
+            Error::Store( s ) => Error::Store( format!( "{}{}", s, str.as_ref() ) ),
             Error::Ignore => Error::Ignore
         }
     }
@@ -45,6 +47,7 @@ impl Error
             Error::NodeNotFound( s ) => Error::NodeNotFound( format!( "{}{}", str.as_ref(), s ) ),
             Error::NodeExists( s ) => Error::NodeExists( format!( "{}{}", str.as_ref(), s ) ),
             Error::File( s ) => Error::File( format!( "{}{}", str.as_ref(), s ) ),
+            Error::Store( s ) => Error::Store( format!( "{}{}", str.as_ref(), s ) ),
             Error::Ignore => Error::Ignore
         }
     }
@@ -89,6 +92,7 @@ fn error_to_string( err : &Error ) -> String
         Error::NodeNotFound( s ) => format!( "NodeNotFound: {}", s ),
         Error::NodeExists( s ) => format!( "NodeExists: {}", s ),
         Error::File( s ) => format!( "File: {}", s ),
+        Error::Store( s ) => format!( "Store: {}", s ),
         Error::Ignore => "Ignore".into()
     }
 }

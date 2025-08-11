@@ -14,7 +14,7 @@ pub async fn execute_web_client(
 {
     let id = graph.id.as_ref();
 
-    let request = request( graph, client )?;
+    let request = request( graph, client ).await?;
 
     let response = execute_send_request( id, request ).await?;
 
@@ -150,18 +150,18 @@ fn item_output(
     }
 }
 
-fn request( 
+async fn request( 
     graph : &Graph,
     client : &WebClient
 ) -> Result<AwpakRequest, Error>
 {
     let id = graph.id.as_ref();
 
-    let url = value_to_string( &data_selection( graph, &client.url )? );
+    let url = value_to_string( &data_selection( graph, &client.url ).await? );
     let method = client.method.clone();
-    let headers = request_headers( graph, &client.headers )?;
-    let query_params = request_query_params( graph, &client.query_params )?;
-    let body = body( graph, client.body.as_ref() )?;
+    let headers = request_headers( graph, &client.headers ).await?;
+    let query_params = request_query_params( graph, &client.query_params ).await?;
+    let body = body( graph, client.body.as_ref() ).await?;
 
     let request = AwpakRequest 
     { 
@@ -212,7 +212,7 @@ fn trace_request(
     );
 }
 
-fn body(
+async fn body(
     graph : &Graph,
     body : Option<&WebClientBody>
 ) -> Result<Option<AwpakBody>, Error>
@@ -228,7 +228,7 @@ fn body(
                     Ok(
                         Some(
                             AwpakBody::Json(
-                                data_selection( graph, j )?
+                                data_selection( graph, j ).await?
                             )
                         )
                     )
@@ -242,8 +242,8 @@ fn body(
                         fields.push(
                             AwpakFormField
                             {
-                                name : value_to_string( &data_selection( graph, &field.name )? ),
-                                value : value_to_string( &data_selection( graph, &field.value )? )
+                                name : value_to_string( &data_selection( graph, &field.name ).await? ),
+                                value : value_to_string( &data_selection( graph, &field.value ).await? )
                             }
                         );
                     }
@@ -260,7 +260,7 @@ fn body(
     }
 }
 
-fn request_headers(
+async fn request_headers(
     graph : &Graph,
     headers : &Vec<WebClientNameValue>
 ) -> Result<Vec<AwpakHeader>, Error>
@@ -272,8 +272,8 @@ fn request_headers(
         ret.push(
             AwpakHeader 
             { 
-                name : value_to_string( &data_selection( graph, &h.name )? ), 
-                value : value_to_string( &data_selection( graph, &h.value )? )
+                name : value_to_string( &data_selection( graph, &h.name ).await? ), 
+                value : value_to_string( &data_selection( graph, &h.value ).await? )
             }
         );
     }
@@ -281,7 +281,7 @@ fn request_headers(
     Ok( ret )
 }
 
-fn request_query_params(
+async fn request_query_params(
     graph : &Graph,
     query_params : &Vec<WebClientNameValue>
 ) -> Result<Vec<AwpakQueryParam>, Error>
@@ -293,8 +293,8 @@ fn request_query_params(
         ret.push(
             AwpakQueryParam 
             { 
-                name : value_to_string( &data_selection( graph, &q.name )? ), 
-                value : value_to_string( &data_selection( graph, &q.value )? )
+                name : value_to_string( &data_selection( graph, &q.name ).await? ), 
+                value : value_to_string( &data_selection( graph, &q.value ).await? )
             }
         );
     }

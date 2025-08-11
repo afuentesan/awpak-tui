@@ -54,7 +54,7 @@ async fn client_from_server(
     server : &NodeMCPServer 
 ) -> Result<rmcp::service::RunningService<rmcp::RoleClient, ()>, Error>
 {    
-    let arguments = command_args( graph, &server.arguments )?;
+    let arguments = command_args( graph, &server.arguments ).await?;
 
     let child_process = tokio_child_process( server, arguments )?;
 

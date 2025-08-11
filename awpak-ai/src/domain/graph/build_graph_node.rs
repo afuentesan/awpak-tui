@@ -1,26 +1,20 @@
-use crate::domain::{error::Error, graph::{build_graph::build_graph_from_path, graph_node::GraphNode, node::{GraphNodeConfig, Node, NodeExecutor}}};
+use crate::domain::{error::Error, graph::{build_graph::build_graph_from_path, graph_node::GraphNode, node::{GraphNodeConfig, NodeExecutor}}};
 
 
-pub fn graph_node_from_config( 
+pub async fn graph_node_executor_from_config( 
     config : GraphNodeConfig
-) -> Result<Node, Error>
+) -> Result<NodeExecutor, Error>
 {
-    let graph = build_graph_from_path( &config.path )?;
+    let graph = build_graph_from_path( &config.path ).await?;
 
     Ok(
-        Node 
-        { 
-            id : config.id, 
-            executor : NodeExecutor::Graph(
-                GraphNode
-                {
-                    graph,
-                    input : config.input,
-                    output : config.output
-                }
-            ), 
-            output : config.node_output, 
-            destination : config.node_destination
-        }
+        NodeExecutor::Graph(
+            GraphNode
+            {
+                graph,
+                input : config.input,
+                output : config.output
+            }
+        )
     )
 }

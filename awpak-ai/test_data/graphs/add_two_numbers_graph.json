@@ -3,63 +3,50 @@
   "input_type": "Object",
   "preserve_context": false,
   "first": {
-    "Node": {
-      "id": "node_sum",
-      "executor": {
-        "Command": {
-          "command": {
-            "Static": "expr"
+    "id": "node_sum",
+    "executor": {
+      "Command": {
+        "command": {
+          "Static": "expr"
+        },
+        "args": [
+          {
+            "ParsedInput": {
+              "path": "a",
+              "required": true
+            }
           },
-          "args": [
+          {
+            "Static": "+"
+          },
+          {
+            "ParsedInput": {
+              "path": "b",
+              "required": true
+            }
+          }
+        ],
+        "output": [
+          {
+            "Out": {}
+          }
+        ]
+      }
+    },
+    "output": {
+      "path": "result",
+      "optional": false
+    },
+    "destination": [
+      {
+        "next": {
+          "ExitOk": [
             {
-              "ParsedInput": {
-                "path": "a",
-                "required": true
+              "from": {
+                "Static": "Sum result: "
               }
             },
             {
-              "Static": "+"
-            },
-            {
-              "ParsedInput": {
-                "path": "b",
-                "required": true
-              }
-            }
-          ],
-          "output": [
-            {
-              "Out": {}
-            }
-          ]
-        }
-      },
-      "output": {
-        "path": "result",
-        "optional": false
-      },
-      "destination": [
-        {
-          "next": {
-            "ExitOk": [
-              {
-                "from": {
-                  "Static": "Sum result: "
-                }
-              },
-              {
-                "from": {
-                  "Context": {
-                    "path": "result",
-                    "required": false
-                  }
-                }
-              }
-            ]
-          },
-          "condition": {
-            "Regex": {
-              "regex": "^[0-9]+$",
               "from": {
                 "Context": {
                   "path": "result",
@@ -67,30 +54,41 @@
                 }
               }
             }
-          }
+          ]
         },
-        {
-          "next": {
-            "ExitErr": [
-              {
-                "from": {
-                  "Static": "Result is not a number: "
-                }
-              },
-              {
-                "from": {
-                  "Context": {
-                    "path": "result",
-                    "required": false
-                  }
+        "condition": {
+          "Regex": {
+            "regex": "^[0-9]+$",
+            "from": {
+              "Context": {
+                "path": "result",
+                "required": false
+              }
+            }
+          }
+        }
+      },
+      {
+        "next": {
+          "ExitErr": [
+            {
+              "from": {
+                "Static": "Result is not a number: "
+              }
+            },
+            {
+              "from": {
+                "Context": {
+                  "path": "result",
+                  "required": false
                 }
               }
-            ]
-          },
-          "condition": "True"
-        }
-      ]
-    }
+            }
+          ]
+        },
+        "condition": "True"
+      }
+    ]
   },
   "nodes": []
 }

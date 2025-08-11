@@ -5,15 +5,19 @@ import type { ContextMut } from "../model/context_mut";
 import { DataFromVariant, DataOperationVariant, FromAgentHistoryContentVariant, type DataFrom, type DataOperation, type DataToContext, type DataToString, type FromAgentHistoryContent } from "../model/data";
 import { DataComparatorVariant, type DataComparator } from "../model/data_comparator";
 import type { Graph } from "../model/graph";
-import { GraphNode, GraphNodeOutputVariant, NodeDestination, NodeNextVariant, NodeTypeVariant, type GraphNodeOutput, type Node, type NodeNext, type NodeType } from "../model/node";
+import { GraphNodeOutputVariant, type GraphExecutor, type GraphNodeOutput } from "../model/graph_executor";
+import { NodeConfig, NodeDestination, NodeNextVariant, type NodeNext } from "../model/node";
 import { NodeExecutorAgent, NodeExecutorAgentHistoryMut, NodeExecutorCommand, NodeExecutorContextMut, NodeExecutorParallel, NodeExecutorVariant, NodeExecutorWebClient, type NodeExecutor } from "../model/node_executor";
 import { ParallelExecutorVariant, type ParallelExecutor } from "../model/parallel";
+import { StoreDocumentSizerVariant, StoreModelVariant, type StoreConfig, type StoreDocument, type StoreDocumentSizer, type StoreModel } from "../model/store";
 import { WebClient, WebClientBodyVariant, WebClientOutputVariant, type WebClientBody, type WebClientNameValue, type WebClientOutput } from "../model/web_client";
 import { is_empty } from "./data_functions";
 
 export function generate_json( graph : Graph ) : string
 {
     let json : any = {};
+
+    append_stores( json, graph.stores );
 
     append_initial_context( json, graph );
     append_input_data_type( json, graph );
@@ -27,12 +31,89 @@ export function generate_json( graph : Graph ) : string
     return JSON.stringify( json, null, 2 );
 }
 
+function append_stores( json : any, stores : Array<StoreConfig> )
+{
+    json[ "stores" ] = [];
+
+    stores.forEach(
+        ( s : StoreConfig ) =>
+        {
+            let new_store = json_store( s );
+
+            if( new_store ) json[ "stores" ].push( new_store );
+        }
+    )
+}
+
+function json_store( store : StoreConfig ) : any
+{
+    return {
+        id : store.id,
+        documents : json_store_documents( store.documents ),
+        provider : store.provider,
+        model : json_store_model( store.model )
+    }
+}
+
+function json_store_model( model : StoreModel ) : any
+{
+    return {
+            [model._variant] : {
+                model : model.model,
+                api_key : ( model._variant == StoreModelVariant.Gemini || model._variant == StoreModelVariant.OpenAI ) ? model.api_key : undefined
+            }
+    };
+}
+
+function json_store_documents( documents : Array<StoreDocument> ) : Array<any>
+{
+    return documents.map( ( d ) => json_store_document( d ) );
+}
+
+function json_store_document( document : StoreDocument ) : any
+{
+    return {
+            [document._variant] : {
+                path : document.path,
+                sizer : json_store_document_sizer( document.sizer )
+            }
+    };
+}
+
+function json_store_document_sizer( sizer : StoreDocumentSizer ) : any
+{
+    if( sizer._variant == StoreDocumentSizerVariant.None )
+    {
+        return "None";
+    }
+    else if( sizer._variant == StoreDocumentSizerVariant.Chars )
+    {
+        return {
+            "Chars" : {
+                desired : sizer.desired,
+                max : sizer.max
+            }
+        }
+    }
+    else if( sizer._variant == StoreDocumentSizerVariant.Markdown )
+    {
+        return {
+            "Markdown" : {
+                desired : sizer.desired,
+                max : sizer.max
+            }
+        }
+    }
+
+    throw new Error( "StoreDocumentSizerVariant not found. ", sizer );
+}
+
 function append_nodes( json : any, graph : Graph )
 {
     json[ "nodes" ] = [];
 
     graph.nodes.forEach( 
-        ( n : NodeType ) => 
+        ( n : NodeConfig ) => 
         {
             let new_node = json_node( n );
 
@@ -57,31 +138,15 @@ function append_initial_context( json : any, graph : Graph )
     }
 }
 
-function json_node( node : NodeType | undefined ) : any
+function json_node( node : NodeConfig | undefined ) : any
 {
     if( ! node ) return undefined;
 
-    if( node._variant == NodeTypeVariant.Node )
-    {
-        return json_node_from_node( node );
-    }
-    else if( node._variant == NodeTypeVariant.GraphNode )
-    {
-        return json_node_from_graph_node( node );
-    }
-
-    return undefined;
-}
-
-function json_node_from_node( node : Node ) : any
-{
     let json : any = { 
-        "Node" : { 
-            id : node.id, 
-            executor : json_executor_from_node_executor( node.executor ),
-            output : json_data_to_context( node.output ),
-            destination : json_node_destinations( node.destination )
-        } 
+        id : node.id, 
+        executor : json_executor_from_node_executor( node.executor ),
+        output : json_data_to_context( node.output ),
+        destination : json_node_destinations( node.destination )
     };
 
     return json;
@@ -114,6 +179,10 @@ function json_executor_from_node_executor( executor : NodeExecutor | undefined )
     else if( executor._variant == NodeExecutorVariant.Parallel )
     {
         return json_parallel( executor );
+    }
+    else if( executor._variant == NodeExecutorVariant.Graph )
+    {
+        return json_executor_graph( executor.value );
     }
 }
 
@@ -219,6 +288,20 @@ function json_executor_parallel( executor : ParallelExecutor ) : any
             }
         };
     }
+}
+
+function json_executor_graph( node : GraphExecutor ) : any
+{
+    let json : any = { 
+        "Graph" : {
+            id : node.id,
+            path : node.path,
+            input : json_vec_data_to_string( node.input ),
+            output : json_vec_graph_node_output( node.output )
+        } 
+    };
+
+    return json;
 }
 
 function json_executor_command( executor : NodeExecutorCommand ) : any
@@ -495,6 +578,16 @@ function json_data_from( data_from : DataFrom ) : any
             }
         }
     }
+    else if( data_from._variant == DataFromVariant.Store )
+    {
+        return {
+            [data_from._variant] : {
+                id : data_from.id,
+                query : json_data_from( data_from.query ),
+                samples : data_from.samples
+            }
+        }
+    }
 }
 
 function json_from_agent_history_content( content : FromAgentHistoryContent ) : any
@@ -576,22 +669,6 @@ function json_number_string_or_boolean( input : any ) : number | string | boolea
     {
         return input + "";
     }
-}
-
-function json_node_from_graph_node( node : GraphNode ) : any
-{
-    let json : any = { 
-        "Graph" : {
-            id : node.id,
-            path : node.path,
-            input : json_vec_data_to_string( node.input ),
-            output : json_vec_graph_node_output( node.output ),
-            node_output : json_data_to_context( node.node_output ),
-            node_destination : json_node_destinations( node.node_destination )
-        } 
-    };
-
-    return json;
 }
 
 function json_data_to_context( data : DataToContext | undefined ) : any

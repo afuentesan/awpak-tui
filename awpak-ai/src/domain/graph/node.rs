@@ -3,51 +3,57 @@ use serde_json::Value;
 
 use crate::domain::{agent::agent::AIAgent, agent_history_mut::agent_history_mut::AgentHistoryMut, command::command::Command, context_mut::context_mut::ContextMut, data::data::{DataComparator, DataFrom, DataToContext, DataToString}, graph::graph_node::{GraphNode, GraphNodeOutput}, parallel::parallel::Parallel, web_client::web_client::WebClient};
 
-
-#[derive(Serialize, Deserialize, Clone)]
-pub enum NodeConfig
-{
-    Node( Node ),
-    Graph( GraphNodeConfig )
-}
-
-#[derive(Serialize, Deserialize, Clone)]
-pub struct GraphNodeConfig
+#[derive(Debug, Serialize, Deserialize, Clone)]
+pub struct NodeConfig
 {
     pub id : String,
-    pub path : String,
-
-    #[serde(default)]
-    pub input : Vec<DataToString>,
-    #[serde(default)]
-    pub output : Vec<GraphNodeOutput>,
-
-    #[serde(default)]
-    pub node_output : Option<DataToContext>,
-    
-    #[serde(default)]
-    pub node_destination : Vec<NodeDestination>
-}
-
-#[derive(Serialize, Deserialize, Clone)]
-pub struct Node
-{
-    pub id : String,
-    pub executor : NodeExecutor,
+    pub executor : NodeExecutorConfig,
     #[serde(default)]
     pub output : Option<DataToContext>,
     #[serde(default)]
     pub destination : Vec<NodeDestination>
 }
 
-#[derive(Serialize, Deserialize, Clone)]
+#[derive(Debug, Serialize, Deserialize, Clone)]
+pub enum NodeExecutorConfig
+{
+    Agent( AIAgent ),
+    Command( Command ),
+    Graph( GraphNodeConfig ),
+    ContextMut( Vec<ContextMut> ),
+    WebClient( WebClient ),
+    AgentHistoryMut( Vec<AgentHistoryMut> ),
+    Parallel( Parallel )
+}
+
+#[derive(Debug, Serialize, Deserialize, Clone)]
+pub struct GraphNodeConfig
+{
+    pub path : String,
+
+    #[serde(default)]
+    pub input : Vec<DataToString>,
+    #[serde(default)]
+    pub output : Vec<GraphNodeOutput>
+}
+
+#[derive(Clone)]
+pub struct Node
+{
+    pub id : String,
+    pub executor : NodeExecutor,
+    pub output : Option<DataToContext>,
+    pub destination : Vec<NodeDestination>
+}
+
+#[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct NodeDestination
 {
     pub next : NodeNext,
     pub condition : DataComparator
 }
 
-#[derive(Serialize, Deserialize, Clone)]
+#[derive(Debug, Serialize, Deserialize, Clone)]
 pub enum NodeNext
 {
     Node( String ),
@@ -55,7 +61,7 @@ pub enum NodeNext
     ExitErr( Vec<DataToString> )
 }
 
-#[derive(Serialize, Deserialize, Clone)]
+#[derive(Clone)]
 pub enum NodeExecutor
 {
     Agent( AIAgent ),

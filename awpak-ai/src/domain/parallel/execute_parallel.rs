@@ -41,7 +41,7 @@ async fn execute_item(
     match compare_data( 
             &graph,
             item.condition() 
-    )
+    ).await
     {
         Ok( r ) if r => {},
         Ok( _ ) => return ( Ok( Value::Null ), idx ),

@@ -2,7 +2,7 @@
 <script lang="ts">
     import { FromContext, type DataFrom as ExecutorDataFrom } from "../../model/data";
     import { NodeExecutorVariant, type NodeExecutor } from "../../model/node_executor";
-    import { append_to_array, change_boolean, change_data_type, change_node_executor_variant, change_option_string, change_parallel_executor_variant, change_request_method, clone_and_append_to_array, graph, remove_from_array, swap_array_items } from "../../store";
+    import { append_to_array, change_data_type, change_node_executor_variant, change_option_string, change_parallel_executor_variant, clone_and_append_to_array, graph, remove_from_array, swap_array_items } from "../../store";
     import DataFrom from "../data/DataFrom.svelte";
     import DataToContext from "../data/DataToContext.svelte";
     import { DataToContext as ContextMutDataToContext } from "../../model/data";
@@ -10,13 +10,6 @@
     import Button from "../form/Button.svelte";
     import { select_options_from_array, select_options_from_enum } from "../../functions/form_utils";
     import Select from "../form/Select.svelte";
-    import TextArea from "../form/TextArea.svelte";
-    import Checkbox from "../form/Checkbox.svelte";
-    import DataToString from "../data/DataToString.svelte";
-    import { DataToString as PromptDataToString } from "../../model/data";
-    import AIAgentProvider from "./AIAgentProvider.svelte";
-    import NodeMcpServer from "./NodeMCPServer.svelte";
-    import { NodeMCPServer } from "../../model/agent";
     import DataComparator from "../data/DataComparator.svelte";
     import { DataComparatorTrue } from "../../model/data_comparator";
     import { agent_ids } from "../../functions/node_functions";
@@ -26,6 +19,8 @@
     import DataType from "../data/DataType.svelte";
     import NodeExecutorWebClient from "./NodeExecutorWebClient.svelte";
     import NodeExecutorCommand from "./NodeExecutorCommand.svelte";
+    import NodeExecutorAgent from "./NodeExecutorAgent.svelte";
+    import NodeExecutorGraph from "./NodeExecutorGraph.svelte";
 
     interface InputProps
     {
@@ -34,18 +29,6 @@
     }
 
     let { node_executor, base_path } : InputProps = $props();
-
-    function send_add_prompt_part( key : string )
-    {
-        return () => {
-            let path = base_path + ".value." + key;
-
-            let new_input = new PromptDataToString();
-
-            append_to_array( path, new_input );
-        }
-        
-    }
 
 </script>
 
@@ -67,90 +50,11 @@
 
     {#if node_executor._variant == NodeExecutorVariant.Agent}
 
-        <AIAgentProvider
-            provider={node_executor.value.provider}
-            base_path={base_path+".value.provider"}
+        <NodeExecutorAgent
+            agent={node_executor.value}
+            base_path={base_path+".value"}
         />
-
-        <Box title="System prompt" base_path={base_path+".value.system_prompt"}>
-            {#each node_executor.value.system_prompt as _, i}
-                <DataToString 
-                    label={"System prompt part "+i} 
-                    data={node_executor.value.system_prompt[i]} 
-                    base_path={base_path+".value.system_prompt["+i+"]"} 
-                    remove_from_loop={
-                        () => remove_from_array( base_path+".value.system_prompt", i )
-                    }
-                    swap_items_in_array={
-                        ( up : boolean ) =>
-                        {
-                            swap_array_items( base_path+".value.system_prompt", i, ( up ? i - 1 : i + 1 ) );
-                        }
-                    }
-                />
-            {/each}
-            <div class="text-center">
-                <Button text="New system prompt part" click={send_add_prompt_part( "system_prompt" )} />
-            </div>
-        </Box>
-
-        <Box title="Prompt" base_path={base_path+".value.prompt"}>
-            {#each node_executor.value.prompt as _, i}
-                <DataToString 
-                    label={"Prompt part "+i} 
-                    data={node_executor.value.prompt[i]} 
-                    base_path={base_path+".value.prompt["+i+"]"} 
-                    remove_from_loop={
-                        () => remove_from_array( base_path+".value.prompt", i )
-                    }
-                    swap_items_in_array={
-                        ( up : boolean ) =>
-                        {
-                            swap_array_items( base_path+".value.prompt", i, ( up ? i - 1 : i + 1 ) );
-                        }
-                    }
-                />
-            {/each}
-            <div class="text-center">
-                <Button text="New prompt part" click={send_add_prompt_part( "prompt" )} />
-            </div>
-        </Box>
-
-        <Box title="MCP Servers" base_path={base_path+".value.servers"}>
-            {#each node_executor.value.servers as _, i}
-                <NodeMcpServer
-                    mcp_server={node_executor.value.servers[i]}
-                    base_path={base_path+".value.servers["+i+"]"}
-                    remove_from_loop={
-                        () => remove_from_array( base_path+".value.servers", i )
-                    } 
-                />
-            {/each}
-            <div class="text-center">
-                <Button
-                    text="Add MCP server"
-                    click={
-                        () => append_to_array( base_path+".value.servers", new NodeMCPServer() )
-                    }
-                />
-            </div>
-        </Box>
-
-        <Checkbox
-            label="Save history"
-            checked={node_executor.value.save_history}
-            change_value={change_boolean}
-            base_path={base_path+".value.save_history"}
-            value="true"
-        />
-
-        <Checkbox
-            label="Streaming response"
-            checked={node_executor.value.is_stream}
-            change_value={change_boolean}
-            base_path={base_path+".value.is_stream"}
-            value="true"
-        />
+        
     {:else if node_executor._variant == NodeExecutorVariant.Command}
 
         <NodeExecutorCommand
@@ -164,7 +68,14 @@
             base_path={base_path+".value"}
             web_client={node_executor.value}
         />
+    
+    {:else if node_executor._variant == NodeExecutorVariant.Graph}
 
+        <NodeExecutorGraph
+            graph_executor={node_executor.value}
+            base_path={base_path+".value"}
+        />
+        
     {:else if node_executor._variant == NodeExecutorVariant.ContextMut}
         {#each node_executor.value as _, i}
             <Box title={"ContextMut "+i} base_path={base_path+".value["+i+"]"}>

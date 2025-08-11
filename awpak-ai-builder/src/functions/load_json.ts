@@ -2,12 +2,14 @@ import { AIAgent, AIAgentProviderAnthropic, AIAgentProviderDeepSeek, AIAgentProv
 import { DataToAgentHistoryReplace, DataToAgentHistoryReplaceFirst, DataToAgentHistoryReplaceItem, DataToAgentHistoryReplaceLast, DataToAgentHistoryStringToFirst, DataToAgentHistoryStringToItem, DataToAgentHistoryStringToLast, type AgentHistoryMut, type DataToAgentHistory } from "../model/agent_history_mut";
 import { Command, CommandOutputCode, CommandOutputErr, CommandOutputObject, CommandOutputOut, CommandOutputSuccess, type CommandOutput } from "../model/command";
 import type { ContextMut } from "../model/context_mut";
-import { DataMerge, DataOperationAdd, DataOperationLen, DataOperationStringSplit, DataOperationSubstract, DataToContext, DataToString, DataType, FromAgentHistory, FromAgentHistoryContentFirst, FromAgentHistoryContentFirstMessage, FromAgentHistoryContentFull, FromAgentHistoryContentFullMessages, FromAgentHistoryContentItem, FromAgentHistoryContentItemMessage, FromAgentHistoryContentLast, FromAgentHistoryContentLastMessage, FromAgentHistoryContentRange, FromAgentHistoryContentRangeMessages, FromConcat, FromContext, FromInput, FromNull, FromOperation, FromParsedInput, FromStatic, type DataFrom, type FromAgentHistoryContent } from "../model/data";
+import { DataMerge, DataOperationAdd, DataOperationLen, DataOperationStringSplit, DataOperationSubstract, DataToContext, DataToString, DataType, FromAgentHistory, FromAgentHistoryContentFirst, FromAgentHistoryContentFirstMessage, FromAgentHistoryContentFull, FromAgentHistoryContentFullMessages, FromAgentHistoryContentItem, FromAgentHistoryContentItemMessage, FromAgentHistoryContentLast, FromAgentHistoryContentLastMessage, FromAgentHistoryContentRange, FromAgentHistoryContentRangeMessages, FromConcat, FromContext, FromInput, FromNull, FromOperation, FromParsedInput, FromStatic, FromStore, type DataFrom, type FromAgentHistoryContent } from "../model/data";
 import { DataComparatorAnd, DataComparatorEmpty, DataComparatorEq, DataComparatorFalse, DataComparatorGt, DataComparatorLt, DataComparatorNand, DataComparatorNot, DataComparatorNotEmpty, DataComparatorNotEq, DataComparatorOr, DataComparatorRegex, DataComparatorTrue, DataComparatorXor, type DataComparator } from "../model/data_comparator";
 import { Graph } from "../model/graph";
-import { GraphNode, GraphNodeOutputErr, GraphNodeOutputObject, GraphNodeOutputOut, GraphNodeOutputSuccess, Node, NodeDestination, NodeNextExitErr, NodeNextExitOk, NodeNextNode, type GraphNodeOutput, type NodeNext, type NodeType } from "../model/node";
-import { NodeExecutorAgent, NodeExecutorAgentHistoryMut, NodeExecutorCommand, NodeExecutorContextMut, NodeExecutorParallel, NodeExecutorWebClient, type NodeExecutor } from "../model/node_executor";
+import { GraphExecutor, GraphNodeOutputErr, GraphNodeOutputObject, GraphNodeOutputOut, GraphNodeOutputSuccess, type GraphNodeOutput } from "../model/graph_executor";
+import { NodeConfig, NodeDestination, NodeNextExitErr, NodeNextExitOk, NodeNextNode, type NodeNext } from "../model/node";
+import { NodeExecutorAgent, NodeExecutorAgentHistoryMut, NodeExecutorCommand, NodeExecutorContextMut, NodeExecutorGraph, NodeExecutorParallel, NodeExecutorWebClient, type NodeExecutor } from "../model/node_executor";
 import { Parallel, ParallelExecutorCommand, ParallelExecutorWebClient, type ParallelExecutor } from "../model/parallel";
+import { GeminiStoreModel, OllamaStoreModel, OpenAIStoreModel, StoreConfig, StoreDocumentPdf, StoreDocumentSizerChars, StoreDocumentSizerMarkdown, StoreDocumentSizerNone, StoreDocumentText, StoreProvider, type StoreDocument, type StoreDocumentSizer, type StoreModel } from "../model/store";
 import { AwpakMethod, WebClient, WebClientBodyForm, WebClientBodyJson, WebClientNameValue, WebClientOutputBody, WebClientOutputHeader, WebClientOutputObject, WebClientOutputStatus, WebClientOutputVersion, type WebClientBody, type WebClientOutput } from "../model/web_client";
 import { is_empty, json_stringify, not_empty_or_string_eq, number_from_any } from "./data_functions";
 import { is_type_in_enum } from "./form_utils";
@@ -15,6 +17,7 @@ import { is_type_in_enum } from "./form_utils";
 export function load_graph_from_json( json : any ) : Graph
 {
     return {
+        stores : load_stores( json.stores || [] ),
         context : load_context( json ),
         preserve_context : json.preserve_context || false,
         input_type : load_data_type( json.input_type ),
@@ -23,52 +26,173 @@ export function load_graph_from_json( json : any ) : Graph
     };
 }
 
-function load_nodes( nodes : Array<any> ) : Array<NodeType>
+function load_stores( stores : Array<any> ) : Array<StoreConfig>
+{
+    return stores.map( ( s ) => load_store( s ) ).filter( ( s ) => s ) as Array<StoreConfig>;
+}
+
+function load_store( store : any ) : StoreConfig | undefined
+{
+    if( ! store || ! store?.id?.trim() ) return undefined;
+
+    let ret = new StoreConfig( store.id );
+
+    let model = load_store_model( store.model );
+
+    if( model ) ret.model = model;
+
+    let provider = load_store_provider( store.provider );
+
+    if( provider ) ret.provider = provider;
+
+    ret.documents = load_store_documents( store.documents );
+
+    return ret;
+}
+
+function load_store_model( model : any ) : StoreModel | undefined
+{
+    if( model?.[ "OpenAI" ] )
+    {
+        let ret = new OpenAIStoreModel();
+
+        ret.model = model[ "OpenAI" ].model || "";
+        ret.api_key = model[ "OpenAI" ].api_key || "";
+
+        return ret;
+    }
+    else if( model?.[ "Gemini" ] )
+    {
+        let ret = new GeminiStoreModel();
+
+        ret.model = model[ "Gemini" ].model || "";
+        ret.api_key = model[ "Gemini" ].api_key || "";
+
+        return ret;
+    }
+    else if( model?.[ "Ollama" ] )
+    {
+        let ret = new OllamaStoreModel();
+
+        ret.model = model[ "Ollama" ].model || "";
+
+        return ret;
+    }
+}
+
+function load_store_provider( provider : any ) : StoreProvider | undefined
+{
+    if( ! is_type_in_enum( StoreProvider, provider ) ) return undefined;
+
+    return provider as StoreProvider;
+}
+
+function load_store_documents( documents : Array<any> ) : Array<StoreDocument>
+{
+    if( ! documents?.length ) return [];
+
+    return documents.map( ( d ) => load_store_document( d ) ).filter( ( d ) => d ) as Array<StoreDocument>;
+}
+
+function load_store_document( document : any ) : StoreDocument | undefined
+{
+    if( ! document ) return undefined;
+
+    if( ! is_empty( document?.[ "Text" ] ) )
+    {
+        let ret = new StoreDocumentText();
+
+        ret.path = document[ "Text" ].path;
+        ret.sizer = load_store_document_sizer( document[ "Text" ].sizer );
+
+        return ret;
+    }
+    else if( ! is_empty( document?.[ "Pdf" ] ) )
+    {
+        let ret = new StoreDocumentPdf();
+
+        ret.path = document[ "Pdf" ].path;
+        ret.sizer = load_store_document_sizer( document[ "Pdf" ].sizer );
+
+        return ret;
+    }
+}
+
+function load_store_document_sizer( sizer : any ) : StoreDocumentSizer
+{
+    if( ! sizer || typeof( sizer ) == "string" ) return new StoreDocumentSizerNone();
+
+    if( ! is_empty( sizer?.[ "Chars" ] ) )
+    {
+        let ret = new StoreDocumentSizerChars();
+
+        ret.desired = sizer?.[ "Chars" ].desired;
+        ret.max = sizer?.[ "Chars" ].max;
+
+        return ret;
+    }
+    else if( ! is_empty( sizer?.[ "Markdown" ] ) )
+    {
+        let ret = new StoreDocumentSizerMarkdown();
+
+        ret.desired = sizer?.[ "Markdown" ].desired;
+        ret.max = sizer?.[ "Markdown" ].max;
+
+        return ret;
+    }
+
+    return new StoreDocumentSizerNone();
+}
+
+function load_nodes( nodes : Array<any> ) : Array<NodeConfig>
 {
     if( ! nodes?.length ) return [];
 
     return nodes.map( ( n ) => load_node( n ) )
 }
 
-function load_node( node : any ) : NodeType
-{
-    if( node?.[ "Node" ] )
-    {
-        return load_node_node( node[ "Node" ] );
-    }
-    else if( node?.[ "Graph" ] )
-    {
-        return load_node_graph_node( node[ "Graph" ] );
-    }
+// function load_node( node : any ) : NodeConfig
+// {
+//     if( node?.[ "Node" ] )
+//     {
+//         return load_node_node( node[ "Node" ] );
+//     }
+//     else if( node?.[ "Graph" ] )
+//     {
+//         return load_node_graph_node( node[ "Graph" ] );
+//     }
     
-    throw new Error( "Node type not found. " + JSON.stringify( node ) );
-}
+//     throw new Error( "Node type not found. " + JSON.stringify( node ) );
+// }
 
-function load_node_node( node : any ) : NodeType
+function load_node( node : any ) : NodeConfig
 {
-    let ret = new Node( node.id );
+    let ret = new NodeConfig( node.id );
 
     if ( node.executor ) ret.executor = load_node_executor( node.executor );
 
     if( node.output ) ret.output = load_data_to_context( node.output );
     
-
     if ( node.destination ) ret.destination = load_destinations( node.destination );
 
     return ret;
 }
 
-function load_node_graph_node( node : any ) : NodeType
+function load_node_executor_graph( node : any ) : NodeExecutorGraph
 {
-    let ret = new GraphNode( node.id );
+    let ret = new NodeExecutorGraph();
 
-    ret.path = node.path;
+    let value = new GraphExecutor();
 
-    ret.input = load_vec_data_to_string( node.input );
-    ret.output = load_graph_node_outputs( node.output );
+    value.path = node.path;
 
-    ret.node_output = load_data_to_context( node.node_output );
-    ret.node_destination = load_destinations( node.node_destination );
+    value.input = load_vec_data_to_string( node.input );
+    value.output = load_graph_node_outputs( node.output );
+
+    // ret.node_output = load_data_to_context( node.node_output );
+    // ret.node_destination = load_destinations( node.node_destination );
+
+    ret.value = value;
 
     return ret;
 }
@@ -136,6 +260,10 @@ function load_node_executor( executor : any ) : NodeExecutor
     else if( executor?.[ "Parallel" ] )
     {
         return load_node_executor_parallel( executor[ "Parallel" ] );
+    }
+    else if( executor?.[ "Graph" ] )
+    {
+        return load_node_executor_graph( executor[ "Graph" ] );
     }
 
     throw new Error( "NodeExecutor not found. " + JSON.stringify( executor ) );
@@ -371,11 +499,11 @@ function load_node_executor_agent( agent : any ) : NodeExecutorAgent
     value.system_prompt = load_vec_data_to_string( agent.system_prompt );
     value.save_history = agent.save_history ? true : false;
 
-    if( agent.servers ) value.servers = load_mcp_servers( agent.servers );
+    if( agent.servers?.length ) value.servers = load_mcp_servers( agent.servers );
 
-    if( agent.prompt ) value.prompt = load_vec_data_to_string( agent.prompt );
+    if( agent.prompt?.length ) value.prompt = load_vec_data_to_string( agent.prompt );
 
-    value.is_stream = value.is_stream ? true : false;
+    value.is_stream = agent.is_stream ? true : false;
 
     ret.value = value;
 
@@ -784,12 +912,27 @@ function load_data_from( data : any ) : DataFrom
     {
         return load_from_agent_history( data[ "AgentHistory" ] );
     }
+    else if( ! is_empty( data?.[ "Store" ] ) )
+    {
+        return load_data_from_store( data[ "Store" ] );
+    }
     else if( typeof( data ) === "string" && data === "Null" )
     {
         return new FromNull();
     }
     
     throw new Error( "DataFrom not found. " + JSON.stringify( data ) );
+}
+
+function load_data_from_store( data : any ) : FromStore
+{
+    let ret = new FromStore();
+
+    ret.id = data.id;
+    ret.query = load_data_from( data.query );
+    ret.samples = number_from_any( data.samples ) || 1;
+
+    return ret;
 }
 
 function load_from_agent_history( data : any ) : FromAgentHistory

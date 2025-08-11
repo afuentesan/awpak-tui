@@ -374,7 +374,7 @@ async fn redirect_or_exit( runner : GraphRunner ) -> ( AwpakResult<GraphRunner, 
 
     for d in &node.destination
     {
-        match check_node_destination_condition( &runner.graph, &d.condition )
+        match check_node_destination_condition( &runner.graph, &d.condition ).await
         {
             Ok( r ) if r =>
             {
@@ -410,12 +410,12 @@ fn trace_node_destination( from : String, to : &str, graph_id : Option<&String> 
     info!( target:NODE_DESTINATION, id=option_string_to_str( graph_id ), text=format!( "From: {}, to: {}", from, to ) );
 }
 
-fn check_node_destination_condition( graph : &Graph, comparator : &DataComparator ) -> Result<bool, Error>
+async fn check_node_destination_condition( graph : &Graph, comparator : &DataComparator ) -> Result<bool, Error>
 {
     compare_data(
         &graph, 
         comparator
-    )
+    ).await
 }
 
 async fn update_next( from : String, mut runner : GraphRunner, destination : NodeDestination ) -> ( AwpakResult<GraphRunner, Error>, bool )
@@ -429,7 +429,7 @@ async fn update_next( from : String, mut runner : GraphRunner, destination : Nod
             let o = data_to_string( 
                 &runner.graph,  
                 o
-            );
+            ).await;
 
             runner.graph.final_output = Some( Ok( o ) );
 
@@ -442,7 +442,7 @@ async fn update_next( from : String, mut runner : GraphRunner, destination : Nod
             let o = data_to_string( 
                 &runner.graph, 
                 o
-            );
+            ).await;
 
             runner.graph.final_output = Some( Err( o ) );
 

@@ -1,10 +1,10 @@
 import { atom } from 'nanostores';
 import { Graph } from './model/graph';
-import { GraphNodeOutputVariant, Node, NodeDestination, NodeNextExitErr, NodeNextExitOk, NodeNextNode, NodeNextVariant, NodeTypeVariant, type NodeType } from './model/node';
+import { NodeConfig, NodeDestination, NodeNextExitErr, NodeNextExitOk, NodeNextNode, NodeNextVariant } from './model/node';
 import { DataFromVariant, DataMerge, DataToContext, DataToString, DataType, DataOperationVariant, FromAgentHistoryContentVariant } from './model/data';
-import { change_node_next_variant, change_node_variant, clean_graph_node_ids, new_agent_provider_variant, new_command_node_output_variant, new_graph_node_output_variant, new_node_executor_variant, new_parallel_executor_variant, new_web_client_output_variant, next_node_id, node_by_id, update_graph_node_ids } from './functions/node_functions';
+import { change_node_next_variant, new_agent_provider_variant, new_command_node_output_variant, new_graph_node_output_variant, new_node_executor_variant, new_parallel_executor_variant, new_web_client_output_variant, next_node_id, node_by_id, update_graph_node_ids, update_graph_store_ids } from './functions/node_functions';
 import { JSONPath } from 'jsonpath-plus';
-import { is_empty, json_stringify, new_body_variant, new_data_comparator_variant, new_data_from_agent_history_content, new_data_from_variant, new_data_operation_variant, new_data_to_agent_history } from './functions/data_functions';
+import { is_empty, json_stringify, new_body_variant, new_data_comparator_variant, new_data_from_agent_history_content, new_data_from_variant, new_data_operation_variant, new_data_to_agent_history, new_store_document_sizer_variant, new_store_document_variant, new_store_model_variant, new_store_provider_variant } from './functions/data_functions';
 import { is_type_in_enum } from './functions/form_utils';
 import type { DataComparatorVariant } from './model/data_comparator';
 import type { NodeExecutorVariant } from './model/node_executor';
@@ -15,6 +15,8 @@ import { ID_EXIT_ERR, ID_EXIT_OK } from './functions/graph_to_cytoscape';
 import { AwpakMethod, WebClientBodyVariant, WebClientOutputVariant } from './model/web_client';
 import type { DataToAgentHistoryVariant } from './model/agent_history_mut';
 import type { ParallelExecutorVariant } from './model/parallel';
+import type { GraphNodeOutputVariant } from './model/graph_executor';
+import { StoreConfig, StoreDocumentSizerVariant, StoreDocumentVariant, StoreModelVariant, StoreProvider } from './model/store';
 
 const KEY_LOCAL_STORAGE : string = "AWPAK_GRAPH";
 
@@ -45,7 +47,7 @@ function default_new_graph() : Graph
     g.context = new Map();
     g.preserve_context = false;
 
-    g.first = new Node( "Entry node" );
+    g.first = new NodeConfig( "Entry node" );
 
     return g;
 }
@@ -150,7 +152,7 @@ export function add_node()
 
     let id = next_node_id( new_graph );
 
-    new_graph.nodes.push( new Node( id ) );
+    new_graph.nodes.push( new NodeConfig( id ) );
 
     new_graph.nodes = [ ...new_graph.nodes ];
 
@@ -176,7 +178,7 @@ export function change_node_id( id : string, new_id : string )
         return;
     }
 
-    new_graph.nodes = new_graph.nodes.map( ( n : NodeType ) => 
+    new_graph.nodes = new_graph.nodes.map( ( n : NodeConfig ) => 
         {
             if( n.id == id )
             {
@@ -191,6 +193,67 @@ export function change_node_id( id : string, new_id : string )
 
     update_graph_node_ids( new_graph, id, new_id );
 
+    change_graph_and_local_save( new_graph );
+}
+
+export function add_store()
+{
+    let new_graph = Object.assign( {}, graph.get() );
+
+    if( ! new_graph.stores ) new_graph.stores = [];
+
+    new_graph.stores.push( new StoreConfig( new_store_id( new_graph ) ) );
+
+    change_graph_and_local_save( new_graph );
+}
+
+function new_store_id( graph : Graph ) : string
+{
+    let idx = graph.stores.length + 1;
+
+    let new_id = store_id_from_idx( idx );
+
+    while( store_id_exists( graph, new_id ) )
+    {
+        idx++;
+
+        new_id = store_id_from_idx( idx );
+    }
+
+    return new_id;
+}
+
+function store_id_from_idx( idx : number ) : string
+{
+    return "Store " + idx;
+}
+
+function store_id_exists( graph : Graph, id : string ) : boolean
+{
+    return ( graph.stores || [] ).find( ( s ) => s.id == id ) ? true : false;
+}
+
+export function change_store_id( id : string, new_id : string )
+{
+    if( ! new_id?.trim() || ! id?.trim() || id.trim() == new_id.trim() ) { return; }
+
+    let new_graph = Object.assign( {}, graph.get() );
+
+    new_graph.stores = new_graph.stores.map( ( n : StoreConfig ) => 
+        {
+            if( n.id == id )
+            {
+                n.id = new_id;
+
+                return Object.assign( {}, n );
+            }
+
+            return n;
+        }
+    );
+
+    update_graph_store_ids( new_graph, id, new_id );
+    
     change_graph_and_local_save( new_graph );
 }
 
@@ -494,6 +557,26 @@ export function chage_data_comparator( base_path : string, next_variant : DataCo
     change_variant( base_path, next_variant, new_data_comparator_variant );
 }
 
+export function change_store_model( base_path : string, next_variant : StoreModelVariant )
+{
+    change_variant( base_path, next_variant, new_store_model_variant );
+}
+
+export function change_store_document( base_path : string, next_variant : StoreDocumentVariant )
+{
+    change_variant( base_path, next_variant, new_store_document_variant );
+}
+
+export function change_store_document_sizer( base_path : string, next_variant : StoreDocumentSizerVariant )
+{
+    change_variant( base_path, next_variant, new_store_document_sizer_variant );
+}
+
+export function change_store_provider( base_path : string, next_variant : StoreProvider )
+{
+    change_variant( base_path, next_variant, new_store_provider_variant );
+}
+
 export function chage_data_body_variant( base_path : string, next_variant : WebClientBodyVariant | string )
 {
     if( ! next_variant?.trim() ) 
@@ -534,11 +617,6 @@ export function change_next_step( base_path : string, next_step : NodeNextVarian
     change_variant( base_path, next_step, change_node_next_variant );
 }
 
-export function change_node_type( node_path : string, new_type : string )
-{
-    change_variant( node_path, new_type, change_node_variant );
-}
-
 export function change_node_output_path( id : string, path : string )
 {
     if( ! path?.trim() ) { return; }
@@ -549,7 +627,7 @@ export function change_node_output_path( id : string, path : string )
 
     if( ! node ) { return; }
 
-    let output = node._variant == NodeTypeVariant.Node ? node.output : node.node_output;
+    let output = node.output;
 
     if( ! output )
     {
@@ -595,7 +673,7 @@ export function add_node_exit_text( idx : number, id : string )
 
     if( ! node ) { return; }
 
-    let destinations = ( node._variant == NodeTypeVariant.Node ) ? node.destination : node.node_destination;
+    let destinations = node.destination;
 
     if( ! destinations?.length ) { return; }
 
@@ -663,29 +741,16 @@ export function add_node_destination( id : string, dest_node? : string )
         }
     }
 
-    if( node._variant == NodeTypeVariant.Node )
-    {
-        if( ! node.destination ) { node.destination = []; }        
+    if( ! node.destination ) { node.destination = []; }        
 
-        node.destination.push( new_destination );
-    }
-    else if( node._variant == NodeTypeVariant.GraphNode )
-    {
-        if( ! node.node_destination ) { node.node_destination = []; }        
-
-        node.node_destination.push( new_destination );
-    }
-    else
-    {
-        return;
-    }
+    node.destination.push( new_destination );
 
     replace_node_in_graph( new_graph, node );
 
     change_graph_and_local_save( new_graph );
 }
 
-function replace_node_in_graph( graph : Graph, node : NodeType )
+function replace_node_in_graph( graph : Graph, node : NodeConfig )
 {
     if( graph.first?.id == node.id )
     {

@@ -3,19 +3,24 @@ use std::collections::HashMap;
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
 
-use crate::domain::{data::data::DataType, graph::node::{Node, NodeConfig}};
+use crate::domain::{data::data::DataType, graph::node::{Node, NodeConfig}, store::store::{Store, StoreConfig}};
 
-#[derive(Default, Serialize, Deserialize, Clone)]
+#[derive(Default, Clone)]
 pub struct Graph
 {
     pub id : Option<String>,
+
+    pub stores : HashMap<String, Store>,
+
     pub input : Option<String>,
     pub input_type : Option<DataType>,
     pub parsed_input : Value,
+
     pub context : HashMap<String, Value>,
+
     pub first : String,
     pub nodes : HashMap<String, Node>,
-    // pub output : Vec<DataToString>,
+    
     pub final_output : Option<Result<String, String>>,
 
     __clean_context : bool,
@@ -25,6 +30,7 @@ pub struct Graph
 impl Graph
 {
     pub fn new(
+        stores : HashMap<String, Store>,
         input_type : Option<DataType>,
         context : HashMap<String, Value>,
         first : String,
@@ -44,13 +50,20 @@ impl Graph
         Self 
         { 
             id : None,
+
+            stores,
+
             input : None, 
             input_type, 
             parsed_input : Value::Null, 
+
             context, 
+
             first, 
             nodes, 
+
             final_output : None, 
+
             __clean_context: ! preserve_context, 
             __initial_context : initial_context
         }
@@ -70,10 +83,15 @@ impl Graph
 pub struct GraphConfig
 {
     #[serde(default)]
+    pub stores : Vec<StoreConfig>,
+
+    #[serde(default)]
     pub context : HashMap<String, Value>,
+
     pub first : NodeConfig,
     #[serde(default)]
     pub nodes : Vec<NodeConfig>,
+    
     #[serde(default)]
     pub input_type : Option<DataType>,
     #[serde(default)]

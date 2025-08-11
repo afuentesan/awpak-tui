@@ -44,7 +44,8 @@ export type DataFrom = FromContext |
                        FromConcat | 
                        FromOperation | 
                        FromNull | 
-                       FromAgentHistory;
+                       FromAgentHistory |
+                       FromStore;
 
 export enum DataFromVariant
 {
@@ -55,7 +56,17 @@ export enum DataFromVariant
     Operation = "Operation",
     Concat = "Concat",
     Null = "Null",
-    AgentHistory = "AgentHistory"
+    AgentHistory = "AgentHistory",
+    Store = "Store"
+}
+
+export class FromStore
+{
+    readonly _variant = DataFromVariant.Store;
+
+    id : string = "";
+    query : DataFrom = new FromStatic();
+    samples : number = 1;
 }
 
 export class FromContext

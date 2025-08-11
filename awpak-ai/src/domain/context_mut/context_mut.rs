@@ -3,7 +3,7 @@ use serde::{Deserialize, Serialize};
 use crate::domain::data::data::{DataComparator, DataFrom, DataToContext};
 
 
-#[derive(Serialize, Deserialize, Clone)]
+#[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct ContextMut
 {
     pub from : DataFrom,
