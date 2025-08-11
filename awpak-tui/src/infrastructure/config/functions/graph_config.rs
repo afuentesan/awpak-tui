@@ -1,4 +1,4 @@
-use std::{collections::HashMap, fs::File, io::BufReader, sync::{Arc, Mutex, OnceLock}};
+use std::{collections::HashMap, fs::File, io::BufReader, sync::{mpsc::{Receiver, Sender}, Arc, Mutex, OnceLock}};
 
 use awpak_ai::{domain::graph::graph::Graph, infrastructure::graph::build_graph::graph_from_json_file_path};
 
@@ -60,7 +60,12 @@ pub fn save_graph_in_current( id : &str, graph : Graph )
 
 pub fn init_graphs_from_config() -> Vec<AwpakTUIGraph>
 {
-    match graph_config()
+    let ( action_sender, action_recv ) = std::sync::mpsc::channel();
+    let ( graph_sender, graph_recv ) = std::sync::mpsc::channel();
+
+    async_init_graph( graph_sender, action_recv );
+
+    let ret = match graph_config()
     {
         Some( g ) =>
         {
@@ -68,23 +73,79 @@ pub fn init_graphs_from_config() -> Vec<AwpakTUIGraph>
             .flat_map( 
                 | c | 
                 {
-                    let graph = graph_from_json_file_path( &c.path ).ok()?;
+                    match action_sender.send( InitGraphAction::New( c.path.clone() ) ) {
+                        Err( _ ) => return None,
+                        _ => {}
+                    };
 
-                    let graph_output = c.output.clone();
+                    match graph_recv.recv()
+                    {
+                        Ok( r ) =>
+                        {
+                            let graph = r.ok()?;
 
-                    let g = graph_config_to_graph( c );
+                            let graph_output = c.output.clone();
 
-                    save_graph_output( g.initial_id.clone(), graph_output );
+                            let g = graph_config_to_graph( c );
 
-                    save_graph( g.initial_id.clone(), graph );
+                            save_graph_output( g.initial_id.clone(), graph_output );
 
-                    Some( g ) 
+                            save_graph( g.initial_id.clone(), graph );
+
+                            Some( g ) 
+                        },
+                        _ => None
+                    }
                 }
             ).collect()
-                    
         },
         _ => vec![]
-    }
+    };
+
+    let _ = action_sender.send( InitGraphAction::End );
+
+    ret
+}
+
+enum InitGraphAction
+{
+    New( String ),
+    End    
+}
+
+fn async_init_graph( 
+    sender : Sender<Result<Graph, awpak_ai::domain::error::Error>>,
+    receiver : Receiver<InitGraphAction>
+)
+{
+    std::thread::spawn( move || 
+        {
+            let body = async
+            {
+                loop
+                {
+                    match receiver.recv()
+                    {
+                        Ok( r ) => match r
+                        {
+                            InitGraphAction::New( p ) =>
+                            {
+                                let _ = sender.send( graph_from_json_file_path( &p ).await );
+                            },
+                            InitGraphAction::End => break
+                        },
+                        _ => break
+                    }
+                }
+            };
+
+            tokio::runtime::Builder::new_multi_thread()
+            .enable_all()
+            .build()
+            .expect("Failed building the Runtime")
+            .block_on(body);
+        }
+    );
 }
 
 fn save_graph_output( id : String, output : AwpakTUIGraphOutputConfig )

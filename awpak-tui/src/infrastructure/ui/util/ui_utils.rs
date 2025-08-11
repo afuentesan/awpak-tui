@@ -8,7 +8,7 @@ pub enum BorderPosition
     Top,
     Right,
     Bottom,
-    Left
+    _Left
 }
 
 pub fn line_with_chars( 
@@ -88,7 +88,7 @@ fn positions( area : Rect, border_position : BorderPosition ) -> Vec<( u16, u16 
         BorderPosition::Top => ( ( area.x - 1, area.y - 1 ), ( area.x + area.width, area.y - 1 ) ),
         BorderPosition::Right => ( ( area.x + area.width, area.y - 1 ), ( area.x + area.width, area.y + area.height ) ),
         BorderPosition::Bottom => ( ( area.x - 1, area.y + area.height ), ( area.x + area.width, area.y + area.height ) ),
-        BorderPosition::Left => ( ( area.x - 1, area.y - 1 ), ( area.x - 1, area.y + area.height ) )
+        BorderPosition::_Left => ( ( area.x - 1, area.y - 1 ), ( area.x - 1, area.y + area.height ) )
     };
 
     ( start_end.0.0..=start_end.1.0 ).into_iter()

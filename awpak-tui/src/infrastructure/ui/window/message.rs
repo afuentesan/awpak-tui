@@ -25,7 +25,7 @@ fn title( message : &Message ) -> &'static str
     match message
     {
         Message::Error( _ ) => " Error ",
-        Message::Warning( _ ) => " Warning ",
+        Message::_Warning( _ ) => " Warning ",
         Message::Info( _ ) => " Info "
     }
 }

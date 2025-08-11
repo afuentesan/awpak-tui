@@ -9,7 +9,7 @@ pub struct StrLine
 
 impl StrLine
 {
-    pub fn iter( str : &str, max : Option<u16> ) -> LineIterator
+    pub fn iter( str : &str, max : Option<u16> ) -> LineIterator<'_>
     {
         LineIterator 
         { 

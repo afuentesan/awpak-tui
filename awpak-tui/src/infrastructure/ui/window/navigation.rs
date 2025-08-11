@@ -21,7 +21,7 @@ pub fn render_navigation( app : &App, areas : &Areas, frame : &mut Frame )
     );
 }
 
-fn up_navigation( app : &App ) -> Line
+fn up_navigation( app : &App ) -> Line<'_>
 {
     match app.content_generator()
     {
@@ -35,7 +35,7 @@ fn up_navigation_inactive() -> Line<'static>
     navigation_empty( ICON_UP_EMPTY )
 }
 
-fn up_navigation_active( app : &App ) -> Line
+fn up_navigation_active( app : &App ) -> Line<'_>
 {
     match app.focus()
     {
@@ -44,7 +44,7 @@ fn up_navigation_active( app : &App ) -> Line
     }
 }
 
-fn left_navigation( app : &App ) -> Line
+fn left_navigation( app : &App ) -> Line<'_>
 {
     match app.history_back().len()
     {
@@ -58,7 +58,7 @@ fn left_navigation( app : &App ) -> Line
     }
 }
 
-fn left_navigation_active( app : &App ) -> Line
+fn left_navigation_active( app : &App ) -> Line<'_>
 {
     match app.focus()
     {
@@ -72,7 +72,7 @@ fn left_navigation_inactive() -> Line<'static>
     navigation_empty( ICON_BACK_EMPTY )
 }
 
-fn right_navigation( app : &App ) -> Line
+fn right_navigation( app : &App ) -> Line<'_>
 {
     match app.history_next().len()
     {
@@ -86,7 +86,7 @@ fn right_navigation( app : &App ) -> Line
     }
 }
 
-fn right_navigation_active( app : &App ) -> Line
+fn right_navigation_active( app : &App ) -> Line<'_>
 {
     match app.focus()
     {

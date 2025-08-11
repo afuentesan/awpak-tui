@@ -3,7 +3,7 @@ use crate::domain::{input::model::input::Input, table::model::cell::Cell, util::
 #[derive(Clone)]
 pub struct Field
 {
-    pub cell : Cell,
+    // pub cell : Cell,
 
     pub id : String,
     pub name : String,
@@ -37,7 +37,7 @@ impl From<( &Cell, String, String )> for Field
 
         Self 
         { 
-            cell : cell.clone(), 
+            // cell : cell.clone(), 
             id,
             name,
             input : Input 

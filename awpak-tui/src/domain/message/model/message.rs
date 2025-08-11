@@ -3,7 +3,7 @@
 pub enum Message
 {
     Info( String ),
-    Warning( String ),
+    _Warning( String ),
     Error( String )
 }
 
@@ -14,7 +14,7 @@ impl Message
         match self
         {
             Self::Info( s ) |
-            Self::Warning( s ) |
+            Self::_Warning( s ) |
             Self::Error( s ) => s
         }
     }
@@ -27,7 +27,7 @@ impl ToString for Message
         match self
         {
             Self::Info( s ) |
-            Self::Warning( s ) |
+            Self::_Warning( s ) |
             Self::Error( s ) => s.clone()
         }
     }

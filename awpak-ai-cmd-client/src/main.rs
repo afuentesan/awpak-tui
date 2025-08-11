@@ -2,6 +2,7 @@ use std::{io::Write as _, sync::mpsc::{self, Sender}, time::Duration};
 
 use awpak_ai::{domain::{error::Error, graph::graph::Graph, tracing::filter_layer::{AwpakAIFilterLayer, AwpakAITarget, AwpakTracingMessage}}, infrastructure::graph::{build_graph::graph_from_json_file_path, run_graph::run_graph}};
 use clap::{Arg, ArgMatches, Command};
+use rustyline::DefaultEditor;
 use text_io::read;
 use tokio::time::sleep;
 use tracing_subscriber::{layer::SubscriberExt, util::SubscriberInitExt};
@@ -21,7 +22,7 @@ async fn main() -> Result<(), ()>
 
     // let path = std::env::args().nth( 1 ).ok_or( Error::Ignore ).map_err( | _ | () )?;
 
-    let mut graph = match graph_from_json_file_path( path ).await
+    let graph = match graph_from_json_file_path( path ).await
     {
         Ok( g ) => g,
         Err( e ) =>
@@ -34,16 +35,7 @@ async fn main() -> Result<(), ()>
 
     if chat
     {
-        loop
-        {
-            let input = user_input();
-
-            if input.trim() == "" { continue; }
-
-            if input.trim() == "/exit" { break; }
-
-            graph = execute_graph( graph, input ).await;
-        }
+        chat_mode( graph ).await;
     }
     else
     {
@@ -51,6 +43,53 @@ async fn main() -> Result<(), ()>
     }
     
     Ok( () )
+}
+
+async fn chat_mode( graph : Graph )
+{
+    match DefaultEditor::new()
+    {
+        Ok( e ) => rustyline_chat_mode( graph, e ).await,
+        _ => basic_chat_mode( graph ).await
+    }
+}
+
+async fn rustyline_chat_mode( mut graph : Graph, mut rl : DefaultEditor )
+{
+    loop
+    {
+        match rl.readline("Prompt: " )
+        {
+            Ok( input ) =>
+            {
+                if input.trim() == "/exit" { break; }
+
+                let _ = rl.add_history_entry( input.as_str() );
+
+                graph = execute_graph( graph, input ).await;
+            },
+            Err( e ) =>
+            {
+                println!( "{:?}", e );
+
+                break;
+            }
+        }    
+    }
+}
+
+async fn basic_chat_mode( mut graph : Graph )
+{
+    loop
+    {
+        let input = user_input();
+
+        if input.trim() == "" { continue; }
+
+        if input.trim() == "/exit" { break; }
+
+        graph = execute_graph( graph, input ).await;
+    }
 }
 
 fn init_arg_matches() -> ArgMatches
