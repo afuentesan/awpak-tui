@@ -16,7 +16,7 @@ import { AwpakMethod, WebClientBodyVariant, WebClientOutputVariant } from './mod
 import type { DataToAgentHistoryVariant } from './model/agent_history_mut';
 import type { ParallelExecutorVariant } from './model/parallel';
 import type { GraphNodeOutputVariant } from './model/graph_executor';
-import { StoreConfig, StoreDocumentSizerVariant, StoreDocumentVariant, StoreModelVariant, StoreProvider } from './model/store';
+import { StoreConfig, StoreDocumentSizerVariant, StoreDocumentVariant, StoreModelVariant, StoreProviderVariant } from './model/store';
 
 const KEY_LOCAL_STORAGE : string = "AWPAK_GRAPH";
 
@@ -572,7 +572,7 @@ export function change_store_document_sizer( base_path : string, next_variant : 
     change_variant( base_path, next_variant, new_store_document_sizer_variant );
 }
 
-export function change_store_provider( base_path : string, next_variant : StoreProvider )
+export function change_store_provider( base_path : string, next_variant : StoreProviderVariant )
 {
     change_variant( base_path, next_variant, new_store_provider_variant );
 }

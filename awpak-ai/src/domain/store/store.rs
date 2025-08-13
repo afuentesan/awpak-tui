@@ -1,6 +1,7 @@
 use std::sync::Arc;
 
 use rig::{embeddings::embedding::EmbeddingModelDyn, providers::ollama::ALL_MINILM, vector_store::in_memory_store::InMemoryVectorStore, Embed};
+use rig_postgres::PostgresVectorStore;
 use serde::{Deserialize, Serialize};
 use tokio::sync::Mutex;
 
@@ -16,7 +17,16 @@ pub struct Store
 #[derive(Clone)]
 pub enum StoreProvider
 {
-    InMemoryVectorStore( InMemoryVectorStore<EmbeddingDocument> )
+    InMemoryVectorStore( InMemoryVectorStore<EmbeddingDocument> ),
+    Postgres( PostgresStoreProvider )
+}
+
+#[derive(Clone)]
+pub enum PostgresStoreProvider
+{
+    Ollama( Arc<PostgresVectorStore<rig::providers::ollama::EmbeddingModel>> ),
+    OpenAI( Arc<PostgresVectorStore<rig::providers::openai::embedding::EmbeddingModel>> ),
+    Gemini( Arc<PostgresVectorStore<rig::providers::gemini::embedding::EmbeddingModel>> )
 }
 
 impl Default for StoreProvider
@@ -104,7 +114,18 @@ impl Default for StoreModel
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub enum StoreProviderConfig
 {
-    InMemoryVectorStore
+    InMemoryVectorStore,
+    Postgres( PostgresStoreProviderConfig )
+}
+
+#[derive(Debug, Serialize, Deserialize, Clone)]
+pub struct PostgresStoreProviderConfig
+{
+    pub database_url : String,
+    #[serde(default)]
+    pub table_name : Option<String>,
+    #[serde(default)]
+    pub raw_database_url : bool
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone)]

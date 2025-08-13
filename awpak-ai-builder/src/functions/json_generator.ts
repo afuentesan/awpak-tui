@@ -9,7 +9,7 @@ import { GraphNodeOutputVariant, type GraphExecutor, type GraphNodeOutput } from
 import { NodeConfig, NodeDestination, NodeNextVariant, type NodeNext } from "../model/node";
 import { NodeExecutorAgent, NodeExecutorAgentHistoryMut, NodeExecutorCommand, NodeExecutorContextMut, NodeExecutorParallel, NodeExecutorVariant, NodeExecutorWebClient, type NodeExecutor } from "../model/node_executor";
 import { ParallelExecutorVariant, type ParallelExecutor } from "../model/parallel";
-import { StoreDocumentSizerVariant, StoreModelVariant, type StoreConfig, type StoreDocument, type StoreDocumentSizer, type StoreModel } from "../model/store";
+import { StoreDocumentSizerVariant, StoreModelVariant, StoreProviderVariant, type StoreConfig, type StoreDocument, type StoreDocumentSizer, type StoreModel, type StoreProvider } from "../model/store";
 import { WebClient, WebClientBodyVariant, WebClientOutputVariant, type WebClientBody, type WebClientNameValue, type WebClientOutput } from "../model/web_client";
 import { is_empty } from "./data_functions";
 
@@ -50,8 +50,26 @@ function json_store( store : StoreConfig ) : any
     return {
         id : store.id,
         documents : json_store_documents( store.documents ),
-        provider : store.provider,
+        provider : json_store_provider( store.provider ),
         model : json_store_model( store.model )
+    }
+}
+
+function json_store_provider( provider : StoreProvider ) : any
+{
+    if( provider._variant == StoreProviderVariant.InMemoryVectorStore )
+    {
+        return StoreProviderVariant.InMemoryVectorStore;
+    }
+    else if( provider._variant == StoreProviderVariant.Postgres )
+    {
+        return {
+            [provider._variant] : {
+                database_url : provider.database_url,
+                table_name : provider.table_name,
+                raw_database_url : provider.raw_database_url
+            }
+        }
     }
 }
 

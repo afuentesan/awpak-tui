@@ -2,10 +2,11 @@
 <script lang="ts">
     import { is_empty } from "../../functions/data_functions";
     import { select_options_from_enum } from "../../functions/form_utils";
-    import { StoreDocumentText, StoreModelVariant, StoreProvider, type StoreConfig } from "../../model/store";
-    import { change_store_model, change_store_provider, change_store_id, remove_from_array, change_option_string, append_to_array } from "../../store";
+    import { StoreDocumentText, StoreModelVariant, StoreProviderVariant, type StoreConfig } from "../../model/store";
+    import { change_store_model, change_store_provider, change_store_id, remove_from_array, change_option_string, append_to_array, change_boolean } from "../../store";
     import Box from "../form/Box.svelte";
     import Button from "../form/Button.svelte";
+    import Checkbox from "../form/Checkbox.svelte";
     import Input from "../form/Input.svelte";
     import Select from "../form/Select.svelte";
     import StoreDocument from "./StoreDocument.svelte";
@@ -67,15 +68,43 @@
             label="Provider" 
             options={
                 select_options_from_enum(
-                    StoreProvider,
-                    store.provider,
+                    StoreProviderVariant,
+                    store.provider._variant,
                     false
                 )
             } 
-            value={store.provider} 
+            value={store.provider._variant} 
             change_value={change_store_provider} 
             base_path={base_path+".provider"} 
         />
+
+        {#if store.provider._variant == StoreProviderVariant.Postgres}
+            <Box title="Postgres config" base_path={base_path+".provider"}>
+                <Input
+                    base_path={base_path+".provider.database_url"}
+                    label="DB url connection"
+                    value={store.provider.database_url}
+                    change_value={change_option_string}
+                />
+                <Checkbox
+                    base_path={base_path+".provider.raw_database_url"}
+                    checked={!store.provider.raw_database_url}
+                    change_value={
+                        ( bp : string, value : boolean ) => {
+                            change_boolean( bp, ! value );
+                        }
+                    }
+                    label="DB url from env"
+                    value="true"
+                />
+                <Input
+                    base_path={base_path+".provider.table_name"}
+                    label="Table name"
+                    value={store.provider.table_name}
+                    change_value={change_option_string}
+                />
+            </Box>
+        {/if}
 
         <Box title="Model provider" base_path={base_path+".model"}>
             <Select 

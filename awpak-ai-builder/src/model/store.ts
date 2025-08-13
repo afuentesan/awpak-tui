@@ -4,7 +4,7 @@ export class StoreConfig
 {
     id : string;
 
-    provider : StoreProvider = StoreProvider.InMemoryVectorStore;
+    provider : StoreProvider = new InMemoryVectorStoreProvider();
 
     model : StoreModel = new OllamaStoreModel();
 
@@ -74,9 +74,27 @@ export class StoreDocumentSizerNone
     readonly _variant = StoreDocumentSizerVariant.None;
 }
 
-export enum StoreProvider
+export type StoreProvider = InMemoryVectorStoreProvider | 
+                            PostgresStoreProvider;
+
+export enum StoreProviderVariant
 {
-    InMemoryVectorStore = "InMemoryVectorStore"
+    InMemoryVectorStore = "InMemoryVectorStore",
+    Postgres = "Postgres"
+}
+
+export class InMemoryVectorStoreProvider
+{
+    readonly _variant = StoreProviderVariant.InMemoryVectorStore;
+}
+
+export class PostgresStoreProvider
+{
+    readonly _variant = StoreProviderVariant.Postgres;
+
+    database_url : string = "";
+    table_name : string | undefined;
+    raw_database_url : boolean = false;
 }
 
 export type StoreModel = OpenAIStoreModel | 

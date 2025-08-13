@@ -9,7 +9,7 @@ import { GraphExecutor, GraphNodeOutputErr, GraphNodeOutputObject, GraphNodeOutp
 import { NodeConfig, NodeDestination, NodeNextExitErr, NodeNextExitOk, NodeNextNode, type NodeNext } from "../model/node";
 import { NodeExecutorAgent, NodeExecutorAgentHistoryMut, NodeExecutorCommand, NodeExecutorContextMut, NodeExecutorGraph, NodeExecutorParallel, NodeExecutorWebClient, type NodeExecutor } from "../model/node_executor";
 import { Parallel, ParallelExecutorCommand, ParallelExecutorWebClient, type ParallelExecutor } from "../model/parallel";
-import { GeminiStoreModel, OllamaStoreModel, OpenAIStoreModel, StoreConfig, StoreDocumentPdf, StoreDocumentSizerChars, StoreDocumentSizerMarkdown, StoreDocumentSizerNone, StoreDocumentText, StoreProvider, type StoreDocument, type StoreDocumentSizer, type StoreModel } from "../model/store";
+import { GeminiStoreModel, InMemoryVectorStoreProvider, OllamaStoreModel, OpenAIStoreModel, PostgresStoreProvider, StoreConfig, StoreDocumentPdf, StoreDocumentSizerChars, StoreDocumentSizerMarkdown, StoreDocumentSizerNone, StoreDocumentText, type StoreDocument, type StoreDocumentSizer, type StoreModel, type StoreProvider } from "../model/store";
 import { AwpakMethod, WebClient, WebClientBodyForm, WebClientBodyJson, WebClientNameValue, WebClientOutputBody, WebClientOutputHeader, WebClientOutputObject, WebClientOutputStatus, WebClientOutputVersion, type WebClientBody, type WebClientOutput } from "../model/web_client";
 import { is_empty, json_stringify, not_empty_or_string_eq, number_from_any } from "./data_functions";
 import { is_type_in_enum } from "./form_utils";
@@ -82,9 +82,23 @@ function load_store_model( model : any ) : StoreModel | undefined
 
 function load_store_provider( provider : any ) : StoreProvider | undefined
 {
-    if( ! is_type_in_enum( StoreProvider, provider ) ) return undefined;
+    if( 
+        ( typeof( provider ) == "string" && provider == "InMemoryVectorStoreProvider" ) ||
+        ! is_empty( provider[ "InMemoryVectorStoreProvider" ] ) 
+    )
+    {
+        return new InMemoryVectorStoreProvider();
+    }
+    else if( ! is_empty( provider[ "Postgres" ] ) )
+    {
+        let ret = new PostgresStoreProvider();
 
-    return provider as StoreProvider;
+        ret.database_url = provider[ "Postgres" ].database_url;
+        ret.table_name = provider[ "Postgres" ].table_name;
+        ret.raw_database_url = provider[ "Postgres" ].raw_database_url ? true : false;
+
+        return ret;
+    }
 }
 
 function load_store_documents( documents : Array<any> ) : Array<StoreDocument>

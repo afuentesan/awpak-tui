@@ -1,7 +1,7 @@
 import { DataToAgentHistoryReplace, DataToAgentHistoryReplaceFirst, DataToAgentHistoryReplaceItem, DataToAgentHistoryReplaceLast, DataToAgentHistoryStringToFirst, DataToAgentHistoryStringToItem, DataToAgentHistoryStringToLast, DataToAgentHistoryVariant, type DataToAgentHistory } from "../model/agent_history_mut";
 import { DataFromVariant, DataOperationAdd, DataOperationLen, DataOperationStringSplit, DataOperationSubstract, DataOperationVariant, FromAgentHistory, FromAgentHistoryContentFirst, FromAgentHistoryContentFirstMessage, FromAgentHistoryContentFull, FromAgentHistoryContentFullMessages, FromAgentHistoryContentItem, FromAgentHistoryContentItemMessage, FromAgentHistoryContentLast, FromAgentHistoryContentLastMessage, FromAgentHistoryContentRange, FromAgentHistoryContentRangeMessages, FromAgentHistoryContentVariant, FromConcat, FromContext, FromInput, FromNull, FromOperation, FromParsedInput, FromStatic, FromStore, type DataFrom, type DataOperation, type FromAgentHistoryContent } from "../model/data";
 import { DataComparatorAnd, DataComparatorEmpty, DataComparatorEq, DataComparatorFalse, DataComparatorGt, DataComparatorLt, DataComparatorNand, DataComparatorNot, DataComparatorNotEmpty, DataComparatorNotEq, DataComparatorOr, DataComparatorRegex, DataComparatorTrue, DataComparatorVariant, DataComparatorXor, type DataComparator } from "../model/data_comparator";
-import { GeminiStoreModel, OllamaStoreModel, OpenAIStoreModel, StoreDocumentPdf, StoreDocumentSizerChars, StoreDocumentSizerMarkdown, StoreDocumentSizerNone, StoreDocumentSizerVariant, StoreDocumentText, StoreDocumentVariant, StoreModelVariant, StoreProvider, type StoreDocument, type StoreDocumentSizer, type StoreModel } from "../model/store";
+import { GeminiStoreModel, InMemoryVectorStoreProvider, OllamaStoreModel, OpenAIStoreModel, PostgresStoreProvider, StoreDocumentPdf, StoreDocumentSizerChars, StoreDocumentSizerMarkdown, StoreDocumentSizerNone, StoreDocumentSizerVariant, StoreDocumentText, StoreDocumentVariant, StoreModelVariant, StoreProviderVariant, type StoreDocument, type StoreDocumentSizer, type StoreModel, type StoreProvider } from "../model/store";
 import { WebClientBodyForm, WebClientBodyJson, WebClientBodyVariant, type WebClientBody } from "../model/web_client";
 import { is_type_in_enum } from "./form_utils";
 
@@ -56,13 +56,20 @@ export function new_data_operation_variant( old : DataOperation, new_variant : s
 
 export function new_store_provider_variant( old : StoreProvider, new_variant : string ) : StoreProvider | undefined
 {
-    if( ! is_type_in_enum( StoreProvider, new_variant ) ) { return undefined; }
+    if( ! is_type_in_enum( StoreProviderVariant, new_variant ) ) { return undefined; }
 
-    new_variant = new_variant as StoreProvider;
+    new_variant = new_variant as StoreProviderVariant;
 
-    if( old == new_variant ) { return old; }
+    if( old._variant == new_variant ) { return old; }
 
-    return new_variant as StoreProvider;
+    if( new_variant == StoreProviderVariant.InMemoryVectorStore )
+    {
+        return new InMemoryVectorStoreProvider();
+    }
+    else if( new_variant == StoreProviderVariant.Postgres )
+    {
+        return new PostgresStoreProvider();
+    }
 }
 
 export function new_store_document_variant( old : StoreDocument, new_variant : string ) : StoreDocument | undefined

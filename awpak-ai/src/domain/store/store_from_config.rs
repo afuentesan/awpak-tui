@@ -4,7 +4,7 @@ use rig::{client::EmbeddingsClient, embeddings::{Embedding, EmbeddingModel, Embe
 use text_splitter::{MarkdownSplitter, TextSplitter};
 use tokio::sync::Mutex;
 
-use crate::domain::{error::{ChangeError, Error}, store::store::{EmbeddingDocument, GeminiStoreModel, OllamaStoreModel, OpenAIStoreModel, Store, StoreConfig, StoreDocument, StoreDocumentSizer, StoreModel, StoreProvider, StoreProviderConfig}};
+use crate::domain::{error::{ChangeError, Error}, store::{postgres_store::postgres_store_provider, store::{EmbeddingDocument, GeminiStoreModel, OllamaStoreModel, OpenAIStoreModel, Store, StoreConfig, StoreDocument, StoreDocumentSizer, StoreModel, StoreProvider, StoreProviderConfig}}};
 
 
 pub async fn store_from_config( config : StoreConfig ) -> Result<Store, Error>
@@ -69,7 +69,8 @@ async fn provider_from_config(
 {
     match config
     {
-        StoreProviderConfig::InMemoryVectorStore => in_memory_vector_store_provider( model, documents ).await
+        StoreProviderConfig::InMemoryVectorStore => in_memory_vector_store_provider( model, documents ).await,
+        StoreProviderConfig::Postgres( p ) => postgres_store_provider( model, documents, p ).await
     }
 }
 
@@ -125,7 +126,7 @@ pub fn ollama_store_model( model : &OllamaStoreModel ) -> Result<rig::providers:
     Ok( client.embedding_model( &model.model ) )
 }
 
-async fn provider_embeddings<M: EmbeddingModel>(
+pub async fn provider_embeddings<M: EmbeddingModel>(
     documents : Vec<StoreDocument> ,
     embedding_model : M
 ) -> Result<Vec<(EmbeddingDocument, OneOrMany<Embedding>)>, Error>

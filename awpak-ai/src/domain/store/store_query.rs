@@ -1,7 +1,7 @@
 use rig::{embeddings::EmbeddingModel, vector_store::{in_memory_store::{InMemoryVectorIndex, InMemoryVectorStore}, VectorSearchRequest, VectorStoreIndex}};
 use serde_json::Value;
 
-use crate::domain::{data::{data::FromStore, data_selection::data_selection, data_utils::value_to_string}, error::Error, graph::graph::Graph, store::{store::{EmbeddingDocument, Store, StoreModel, StoreProvider}, store_from_config::{gemini_store_model, ollama_store_model, openai_store_model}}};
+use crate::domain::{data::{data::FromStore, data_selection::data_selection, data_utils::value_to_string}, error::Error, graph::graph::Graph, store::{postgres_store::query_postgres_store, store::{EmbeddingDocument, Store, StoreModel, StoreProvider}, store_from_config::{gemini_store_model, ollama_store_model, openai_store_model}}};
 
 
 pub async fn store_query_from_graph_store(
@@ -61,7 +61,29 @@ pub async fn store_query(
             drop( lock );
 
             result
-        }    
+        },
+        StoreProvider::Postgres( s ) =>
+        {
+            match query_postgres_store( &s, query, samples ).await
+            {
+                Ok( r ) =>
+                {
+                    let _ = lock.insert( StoreProvider::Postgres( s ) );
+
+                    drop( lock );
+
+                    Ok( r )
+                },
+                Err( e ) =>
+                {
+                    let _ = lock.insert( StoreProvider::Postgres( s ) );
+
+                    drop( lock );
+
+                    Err( e )
+                }
+            }
+        }
     }
 }
 

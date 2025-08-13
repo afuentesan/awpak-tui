@@ -12,8 +12,8 @@ categories = ["command-line-utilities"]
 [dependencies]
 tokio = { version = "1.47.1", features = ["full"] }
 tokio-stream = "0.1.17"
-# awpak-ai = { version = "0.2.0", path = "../awpak-ai"}
-awpak-ai = { version = "0.2.0" }
+awpak-ai = { version = "0.2.0", path = "../awpak-ai"}
+# awpak-ai = { version = "0.2.0" }
 text_io = "0.1.13"
 tracing = "0.1.41"
 # tracing-subscriber = { version = "0.3.19", features = [ "env-filter" ] }
