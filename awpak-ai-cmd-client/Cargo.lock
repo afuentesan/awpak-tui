@@ -202,6 +202,8 @@ checksum = "c08606f8c3cbf4ce6ec8e28fb0014a2c086708fe954eaa885384a6165172e7e8"
 [[package]]
 name = "awpak-ai"
 version = "0.2.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "daacc503bec122ce07bf145b2960210a9fef632b6aae24b193dcd178cb2c174a"
 dependencies = [
  "async-recursion",
  "async-stream",
@@ -225,7 +227,7 @@ dependencies = [
 
 [[package]]
 name = "awpak-ai-cmd-client"
-version = "0.2.0"
+version = "0.2.1"
 dependencies = [
  "awpak-ai",
  "clap",
