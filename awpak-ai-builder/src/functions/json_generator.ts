@@ -553,7 +553,7 @@ function json_data_from( data_from : DataFrom ) : any
         return {
             [data_from._variant] : {
                 path : data_from.path,
-                required : data_from.required
+                required : data_from.required ? true : false
             }
         }
     }
@@ -561,7 +561,7 @@ function json_data_from( data_from : DataFrom ) : any
     {
         return {
             [data_from._variant] : {
-                required : data_from.required
+                required : data_from.required ? true : false
             }
         }
     }
@@ -696,7 +696,7 @@ function json_data_to_context( data : DataToContext | undefined ) : any
     return {
         path : data.path,
         ty : data.ty,
-        merge : data.merge,
+        merge : data.merge || "Insert",
         optional : data.optional || false
     }
 }

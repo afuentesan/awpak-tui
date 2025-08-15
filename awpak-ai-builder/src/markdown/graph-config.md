@@ -1,12 +1,18 @@
 In the [Getting Started guide](/docs/getting-started), we built our first graph: a simple yet functional chat powered by an LLM.
 That example focused on quickly creating and connecting the essential nodes, configuring a minimal agent, and running the graph to see how everything works end to end.
 
+<br/>
+
 Now that you have successfully built and executed your first graph, it’s time to dive deeper.
 The [Graph Builder](https://www.awpak.com/builder) offers a wide range of configuration options that allow you to tailor a graph's behavior to your specific needs.
 
+<br />
+
 You can run these graphs not only from your own code but also from the command line using the
-[awpak-ai-cmd-client](https://github.com/afuentesan/awpak-tui/tree/main/awpak-ai-cmd-client),
+<a href="https://github.com/afuentesan/awpak-tui/tree/main/awpak-ai-cmd-client" target="_blank" title="Github of awpak-ai-cmd-client command-line tool">awpak-ai-cmd-client</a>,
 a CLI tool designed for quick testing and running of graphs without writing any code.
+
+<br />
 
 In the following sections, we will explore these options one by one, starting with the general configuration settings available at the top level of any graph.
 
@@ -61,6 +67,8 @@ The initial context is useful for providing default values, configuration data, 
 This checkbox determines whether the execution context should be preserved after the graph finishes running.
 If checked, the context from one run will be carried over to the next, allowing stateful behavior across executions.
 
+<br />
+
 For example, if your graph pauses to request additional user input and then resumes execution,
 you can retain previous values without resetting everything.
 
@@ -68,3 +76,15 @@ you can retain previous values without resetting everything.
 > When using the CLI tool [awpak-ai-cmd-client](https://github.com/afuentesan/awpak-tui/tree/main/awpak-ai-cmd-client),
 > you can enable interactive input handling by passing the `--chat` option.
 > This allows you to provide runtime input dynamically, which works seamlessly with preserved context.
+
+### Next Steps
+
+Now that we have explored the basic **Graph config** options —including the input data type, the initial context, and the option to preserve that context— it’s time to see them in action.
+
+<br />
+
+In the <a href="/docs/sum-example" title="Example graph that sums the numbers entered by the user">next section</a>, we will build a very simple graph that continuously adds the numbers entered by the user. This example will let us apply the configuration parameters we have just learned, especially the **Preserve context** option, which will allow the graph to remember the accumulated sum between executions.
+
+---
+
+* <a href="/docs/sum-example" title="Example graph that sums the numbers entered by the user">Sum example</a>

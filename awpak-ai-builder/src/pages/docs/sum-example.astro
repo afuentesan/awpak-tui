@@ -1,0 +1,17 @@
+---
+import Header from '../../components/util/Header.astro';
+import MainLayout from '../../layouts/MainLayout.astro';
+import MenuLayout from '../../layouts/MenuLayout.astro';
+
+import { Content as GraphConfigMD } from '../../markdown/sum-example.md';
+
+---
+
+<MainLayout>
+    <MenuLayout menu="sum-example">
+        <article class="mdo p-2">
+            <header class="pb-1"><Header ty="h1">Sum example</Header></header>
+            <GraphConfigMD />
+        </article>
+    </MenuLayout>
+</MainLayout>

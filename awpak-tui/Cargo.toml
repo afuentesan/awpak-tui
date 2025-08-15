@@ -21,7 +21,7 @@ tokio-stream = "0.1.17"
 uuid = { version = "1.18.0", features = ["v4"] }
 wl-clipboard-rs = "0.9.2"
 clipboard-rs = "0.2.4"
-awpak-ai = { version = "0.2.0" }
+awpak-ai = { version = "0.2.1" }
 tracing = "0.1.41"
 tracing-subscriber = { version = "0.3.19" }
 
